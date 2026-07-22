@@ -1,5 +1,10 @@
 import { z } from "zod";
 
+const emptyToUndefined = z.preprocess(
+  (val) => (val === "" || val === null || val === undefined ? undefined : val),
+  z.string().optional()
+);
+
 export const createCustomerSchema = z.object({
   customerCode: z
     .string()
@@ -14,7 +19,7 @@ export const createCustomerSchema = z.object({
     .min(1, "Telefon zorunludur")
     .max(20, "Telefon en fazla 20 karakter olabilir"),
   phone2: z.string().max(20, "Telefon en fazla 20 karakter olabilir").optional().or(z.literal("")),
-  email: z.string().email("Geçerli bir e-posta girin").optional().or(z.literal("")),
+  email: z.union([z.string().email("Geçerli bir e-posta girin"), z.literal("")]),
   address: z.string().max(500, "Adres en fazla 500 karakter olabilir").optional().or(z.literal("")),
   city: z.string().max(100, "Şehir en fazla 100 karakter olabilir").optional().or(z.literal("")),
   district: z.string().max(100, "İlçe en fazla 100 karakter olabilir").optional().or(z.literal("")),
@@ -22,7 +27,7 @@ export const createCustomerSchema = z.object({
   balance: z.coerce.number().min(0, "Bakiye negatif olamaz").optional().default(0),
   depositBottleCount: z.coerce.number().int().min(0, "Depozito şişe sayısı negatif olamaz").optional().default(0),
   emptyBottleCount: z.coerce.number().int().min(0, "Boş şişe sayısı negatif olamaz").optional().default(0),
-  notes: z.string().max(1000, "Notlar en fazla 1000 karakter olabilir").optional().or(z.literal("")),
+  notes: emptyToUndefined,
 });
 
 export const updateCustomerSchema = createCustomerSchema.partial().extend({
