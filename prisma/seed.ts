@@ -62,6 +62,26 @@ async function main() {
     },
   });
 
+  await prisma.vehicle.upsert({
+    where: { tenantId_plate: { tenantId: tenant.id, plate: "34 MET 001" } },
+    update: {},
+    create: {
+      tenantId: tenant.id,
+      code: "ARAC-0001",
+      plate: "34 MET 001",
+      type: "Damacana Dağıtım Aracı",
+      brand: "Ford",
+      model: "Transit",
+      modelYear: 2023,
+      capacity: 120,
+      capacityUnit: "ADET",
+      mileage: 28500,
+      status: "ACTIVE",
+      inspectionDate: new Date("2026-12-15"),
+      insuranceDate: new Date("2026-10-20"),
+    },
+  });
+
   const orderDate = new Date("2026-07-22");
   const deliveryDate = new Date("2026-07-25");
 

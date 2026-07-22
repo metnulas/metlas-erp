@@ -11,8 +11,8 @@ const navigationItems = [
   { label: "Müşteriler", icon: Users, href: "/customers" },
   { label: "Siparişler", icon: ReceiptText, href: "/orders" },
   { label: "Ürünler", icon: Package, href: "/products" },
-  { label: "Araçlar", icon: Truck, href: "#" },
-  { label: "Personeller", icon: BriefcaseBusiness, href: "#" },
+  { label: "Araçlar", icon: Truck, href: "/vehicles" },
+  { label: "Personeller", icon: BriefcaseBusiness, href: "/personnel" },
   { label: "Kasa", icon: Wallet, href: "#" },
   { label: "Raporlar", icon: BarChart3, href: "#" },
 ];

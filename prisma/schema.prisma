@@ -18,6 +18,8 @@ model Tenant {
   orders    Order[]
   products  Product[]
   stockMovements StockMovement[]
+  vehicles  Vehicle[]
+  personnel Personnel[]
 }
 
 model Customer {
@@ -161,4 +163,78 @@ model StockMovement {
   @@index([tenantId, productId, createdAt])
   @@index([tenantId, type])
   @@index([referenceType, referenceId])
+}
+
+enum VehicleStatus {
+  ACTIVE
+  MAINTENANCE
+  INACTIVE
+}
+
+model Vehicle {
+  id             String        @id @default(cuid())
+  tenantId       String
+  code           String
+  plate          String
+  type           String
+  brand          String?
+  model          String?
+  modelYear      Int?
+  capacity       Int           @default(0)
+  capacityUnit   String        @default("ADET")
+  mileage        Int           @default(0)
+  status         VehicleStatus @default(ACTIVE)
+  inspectionDate DateTime?
+  insuranceDate  DateTime?
+  notes          String?       @db.Text
+  isActive       Boolean       @default(true)
+  deletedAt      DateTime?
+  createdBy      String?
+  updatedBy      String?
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+  tenant         Tenant        @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+
+  @@unique([tenantId, code])
+  @@unique([tenantId, plate])
+  @@index([tenantId, status])
+  @@index([tenantId, type])
+  @@index([tenantId, isActive])
+  @@index([tenantId, deletedAt])
+}
+
+enum PersonnelStatus {
+  ACTIVE
+  ON_LEAVE
+  INACTIVE
+}
+
+model Personnel {
+  id                 String          @id @default(cuid())
+  tenantId           String
+  employeeCode       String
+  fullName           String
+  phone              String
+  email              String?
+  position           String
+  licenseNumber      String?
+  licenseClass       String?
+  licenseExpiryDate  DateTime?
+  hireDate           DateTime?
+  status             PersonnelStatus @default(ACTIVE)
+  notes              String?         @db.Text
+  isActive           Boolean         @default(true)
+  deletedAt          DateTime?
+  createdBy          String?
+  updatedBy          String?
+  createdAt          DateTime        @default(now())
+  updatedAt          DateTime        @updatedAt
+  tenant             Tenant          @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+
+  @@unique([tenantId, employeeCode])
+  @@index([tenantId, fullName])
+  @@index([tenantId, position])
+  @@index([tenantId, status])
+  @@index([tenantId, isActive])
+  @@index([tenantId, deletedAt])
 }
