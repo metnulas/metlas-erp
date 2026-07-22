@@ -1,0 +1,51 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import { Bell, ChevronDown, LogOut, Menu, Moon, Search, Settings, Sun, UserRound } from "lucide-react";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { Input } from "@/components/ui/input";
+
+type HeaderProps = { onMenuClick: () => void };
+
+export default function Header({ onMenuClick }: HeaderProps) {
+  const [isDark, setIsDark] = useState(() => typeof document !== "undefined" && document.documentElement.classList.contains("dark"));
+
+  useEffect(() => {
+    document.documentElement.classList.toggle("dark", isDark);
+  }, [isDark]);
+
+  const toggleTheme = () => {
+    const nextThemeIsDark = !isDark;
+    setIsDark(nextThemeIsDark);
+    document.documentElement.classList.toggle("dark", nextThemeIsDark);
+    window.localStorage.setItem("metlas-theme", nextThemeIsDark ? "dark" : "light");
+  };
+
+  return (
+    <header className="sticky top-0 z-30 flex h-[4.5rem] shrink-0 items-center gap-3 border-b border-border/70 bg-background/90 px-4 backdrop-blur-xl sm:px-6 lg:px-8">
+      <Button aria-label="Menüyü aç" className="lg:hidden" onClick={onMenuClick} size="icon" variant="ghost"><Menu /></Button>
+      <div className="relative hidden max-w-xl flex-1 sm:block">
+        <Search className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
+        <Input aria-label="Genel arama" className="h-10 border-transparent bg-muted/70 pl-9 shadow-none transition-colors focus-visible:border-primary/50 focus-visible:bg-background" placeholder="Müşteri, sipariş veya araç ara..." />
+      </div>
+      <div className="ml-auto flex items-center gap-1.5 sm:gap-2">
+        <Button aria-label={isDark ? "Aydınlık temaya geç" : "Karanlık temaya geç"} onClick={toggleTheme} size="icon" variant="ghost">{isDark ? <Sun /> : <Moon />}</Button>
+        <Button aria-label="Bildirimler" className="relative" size="icon" variant="ghost"><Bell /><span className="absolute top-1.5 right-1.5 size-2 rounded-full bg-primary ring-2 ring-background" /></Button>
+        <DropdownMenu>
+          <DropdownMenuTrigger aria-label="Kullanıcı menüsünü aç" className="ml-1 inline-flex items-center gap-2 rounded-lg p-1 outline-none transition-colors hover:bg-muted focus-visible:ring-3 focus-visible:ring-ring/50">
+            <Avatar className="bg-primary text-primary-foreground"><AvatarFallback className="bg-primary text-xs font-semibold text-primary-foreground">MY</AvatarFallback></Avatar>
+            <span className="hidden text-left sm:block"><span className="block text-sm font-semibold leading-4">Metin Yılmaz</span><span className="block text-xs text-muted-foreground">Yönetici</span></span>
+            <ChevronDown className="hidden size-4 text-muted-foreground sm:block" />
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-52">
+            <DropdownMenuLabel>Hesabım</DropdownMenuLabel><DropdownMenuSeparator />
+            <DropdownMenuItem><UserRound /> Profilim</DropdownMenuItem><DropdownMenuItem><Settings /> Ayarlar</DropdownMenuItem>
+            <DropdownMenuSeparator /><DropdownMenuItem variant="destructive"><LogOut /> Çıkış yap</DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
+    </header>
+  );
+}

@@ -1,16 +1,34 @@
-export default function Sidebar() {
+"use client";
+
+import { BarChart3, BriefcaseBusiness, LayoutDashboard, ReceiptText, Truck, Users, Wallet, X } from "lucide-react";
+import { Button } from "@/components/ui/button";
+
+const navigationItems = [
+  { label: "Dashboard", icon: LayoutDashboard, active: true },
+  { label: "Müşteriler", icon: Users },
+  { label: "Siparişler", icon: ReceiptText },
+  { label: "Araçlar", icon: Truck },
+  { label: "Personeller", icon: BriefcaseBusiness },
+  { label: "Kasa", icon: Wallet },
+  { label: "Raporlar", icon: BarChart3 },
+];
+
+type SidebarProps = { isMobileMenuOpen: boolean; onClose: () => void };
+
+export default function Sidebar({ isMobileMenuOpen, onClose }: SidebarProps) {
   return (
-    <aside className="h-screen w-64 bg-slate-900 p-6 text-white">
-      <h1 className="mb-8 text-2xl font-bold">METLAS ERP</h1>
-      <nav className="space-y-4">
-        <a href="#" className="block hover:text-cyan-400">Dashboard</a>
-        <a href="#" className="block hover:text-cyan-400">Müşteriler</a>
-        <a href="#" className="block hover:text-cyan-400">Siparişler</a>
-        <a href="#" className="block hover:text-cyan-400">Araçlar</a>
-        <a href="#" className="block hover:text-cyan-400">Personeller</a>
-        <a href="#" className="block hover:text-cyan-400">Kasa</a>
-        <a href="#" className="block hover:text-cyan-400">Raporlar</a>
-      </nav>
-    </aside>
+    <>
+      {isMobileMenuOpen && <button aria-label="Menüyü kapat" className="fixed inset-0 z-40 bg-slate-950/45 lg:hidden" onClick={onClose} />}
+      <aside className={`fixed inset-y-0 left-0 z-50 flex w-72 flex-col border-r border-white/10 bg-slate-950 px-4 py-5 text-slate-300 shadow-2xl transition-transform duration-300 lg:translate-x-0 ${isMobileMenuOpen ? "translate-x-0" : "-translate-x-full"}`}>
+        <div className="mb-8 flex items-center justify-between px-2">
+          <div className="flex items-center gap-3"><div className="grid size-10 place-items-center rounded-xl bg-gradient-to-br from-cyan-400 to-blue-600 font-bold text-slate-950 shadow-lg shadow-cyan-500/20">M</div><div><h1 className="text-base font-bold tracking-wide text-white">METLAS ERP</h1><p className="text-xs text-slate-500">İş Yönetim Platformu</p></div></div>
+          <Button aria-label="Menüyü kapat" className="text-slate-400 hover:bg-white/10 hover:text-white lg:hidden" onClick={onClose} size="icon" variant="ghost"><X /></Button>
+        </div>
+        <nav aria-label="Ana menü" className="space-y-1">
+          {navigationItems.map(({ label, icon: Icon, active }) => <a href="#" key={label} className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors ${active ? "bg-gradient-to-r from-cyan-500/20 to-blue-500/10 text-cyan-300 ring-1 ring-cyan-400/15" : "hover:bg-white/5 hover:text-white"}`} onClick={onClose}><Icon className="size-4" />{label}</a>)}
+        </nav>
+        <div className="mt-auto rounded-xl border border-white/10 bg-white/5 p-4"><p className="text-xs font-medium text-white">METLAS ERP v1.0</p><p className="mt-1 text-xs leading-5 text-slate-500">Tüm operasyonlarınız tek ekranda.</p></div>
+      </aside>
+    </>
   );
 }

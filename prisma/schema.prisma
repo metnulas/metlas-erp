@@ -1,0 +1,44 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Tenant {
+  id        String     @id @default(cuid())
+  name      String
+  slug      String     @unique
+  isActive  Boolean    @default(true)
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  customers Customer[]
+}
+
+model Customer {
+  id                 String   @id @default(cuid())
+  tenantId           String
+  customerCode       String
+  fullName           String
+  phone              String
+  phone2             String?
+  email              String?
+  address            String?
+  city               String?
+  district           String?
+  location           String?
+  balance            Decimal  @default(0) @db.Decimal(14, 2)
+  depositBottleCount Int      @default(0)
+  emptyBottleCount   Int      @default(0)
+  isActive           Boolean  @default(true)
+  notes              String?  @db.Text
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+  tenant             Tenant   @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+
+  @@unique([tenantId, customerCode])
+  @@index([tenantId, fullName])
+  @@index([tenantId, isActive])
+}

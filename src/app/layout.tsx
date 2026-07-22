@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Script from "next/script";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -7,9 +8,7 @@ export const metadata: Metadata = {
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
-  return (
-    <html lang="tr" className="h-full antialiased font-sans">
-      <body className="flex min-h-full flex-col">{children}</body>
-    </html>
-  );
+  const themeScript = `(() => { const savedTheme = localStorage.getItem("metlas-theme"); const isDark = savedTheme ? savedTheme === "dark" : matchMedia("(prefers-color-scheme: dark)").matches; document.documentElement.classList.toggle("dark", isDark); })()`;
+
+  return <html lang="tr" className="h-full antialiased font-sans"><body className="flex min-h-full flex-col"><Script id="metlas-theme" strategy="beforeInteractive">{themeScript}</Script>{children}</body></html>;
 }
