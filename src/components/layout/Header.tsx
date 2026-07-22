@@ -24,7 +24,7 @@ export default function Header({ onMenuClick }: HeaderProps) {
   };
 
   return (
-    <header className="sticky top-0 z-30 flex h-[4.5rem] shrink-0 items-center gap-3 border-b border-border/70 bg-background/90 px-4 backdrop-blur-xl sm:px-6 lg:px-8">
+    <header className="sticky top-0 z-30 flex h-[4.5rem] shrink-0 items-center gap-3 border-b border-border/70 bg-background/95 px-4 sm:px-6 lg:px-8">
       <Button aria-label="Menüyü aç" className="lg:hidden" onClick={onMenuClick} size="icon" variant="ghost"><Menu /></Button>
       <div className="relative hidden max-w-xl flex-1 sm:block">
         <Search className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
