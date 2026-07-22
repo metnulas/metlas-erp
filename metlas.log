@@ -1,0 +1,117 @@
+
+> metlas@0.1.0 dev
+> next dev
+
+▲ Next.js 16.2.10 (Turbopack)
+- Local:         http://localhost:3000
+- Network:       http://192.168.1.104:3000
+- Environments: .env
+✓ Ready in 313ms
+
+^C^C
+> metlas@0.1.0 dev
+> next dev
+
+▲ Next.js 16.2.10 (Turbopack)
+- Local:         http://localhost:3000
+- Network:       http://192.168.1.104:3000
+- Environments: .env
+✓ Ready in 312ms
+
+⚠ Blocked cross-origin request to Next.js dev resource /_next/webpack-hmr from "192.168.1.104".
+Cross-origin access to Next.js dev resources is blocked by default for safety.
+
+To allow this host in development, add it to "allowedDevOrigins" in next.config.js and restart the dev server:
+
+// next.config.js
+module.exports = {
+  allowedDevOrigins: ['192.168.1.104'],
+}
+
+Read more: https://nextjs.org/docs/app/api-reference/config/next-config-js/allowedDevOrigins
+ GET / 200 in 1642ms (next.js: 1352ms, application-code: 289ms)
+ GET / 200 in 45ms (next.js: 4ms, application-code: 41ms)
+ GET / 200 in 44ms (next.js: 3ms, application-code: 41ms)
+ GET /customers 200 in 142ms (next.js: 32ms, application-code: 111ms)
+[browser] Base UI: A component that acts as a button expected a native <button> because the `nativeButton` prop is true. Rendering a non-<button> removes native button semantics, which can impact forms and accessibility. Use a real <button> in the `render` prop, or set `nativeButton` to `false`.
+    at Button (http://localhost:3000/_next/static/chunks/src_0p1c6u-._.js:173:214)
+    at CustomerList (http://localhost:3000/_next/static/chunks/src_0p1c6u-._.js:2323:223)
+    at CustomersPage (about://React/Server/C:%5Cmetlas-erp%5C.next%5Cdev%5Cserver%5Cchunks%5Cssr%5C%5Broot-of-the-server%5D__1xozk72._.js?11:203:274) 
+    at error (file://C:/metlas-erp/.next/dev/static/chunks/node_modules_074ur8d._.js:3120:21) (file://C:/metlas-erp/.next/dev/static/chunks/node_modules_074ur8d._.js:3120:21)
+ GET / 200 in 48ms (next.js: 3ms, application-code: 45ms)
+ GET /api/customers?page=1&pageSize=20&sort=createdAt&order=desc 200 in 1319ms (next.js: 175ms, application-code: 1143ms)
+ GET /orders 200 in 663ms (next.js: 636ms, application-code: 28ms)
+[browser] Base UI: A component that acts as a button expected a native <button> because the `nativeButton` prop is true. Rendering a non-<button> removes native button semantics, which can impact forms and accessibility. Use a real <button> in the `render` prop, or set `nativeButton` to `false`.
+    at Button (http://localhost:3000/_next/static/chunks/src_0p1c6u-._.js:173:214)
+    at OrderList (http://localhost:3000/_next/static/chunks/src_19pjljq._.js:2317:223)
+    at OrdersPage (about://React/Server/C:%5Cmetlas-erp%5C.next%5Cdev%5Cserver%5Cchunks%5Cssr%5C%5Broot-of-the-server%5D__1xh0nlu._.js?45:203:274) 
+    at error (file://C:/metlas-erp/.next/dev/static/chunks/node_modules_074ur8d._.js:3120:21) (file://C:/metlas-erp/.next/dev/static/chunks/node_modules_074ur8d._.js:3120:21)
+ GET /api/orders?page=1&pageSize=20&sort=createdAt&order=desc 200 in 1223ms (next.js: 217ms, application-code: 1006ms)
+ GET /orders/cmrw5f8hi0000uj60wovfjx83 200 in 2.1s (next.js: 1192ms, application-code: 875ms)
+[browser] Base UI: A component that acts as a button expected a native <button> because the `nativeButton` prop is true. Rendering a non-<button> removes native button semantics, which can impact forms and accessibility. Use a real <button> in the `render` prop, or set `nativeButton` to `false`.
+    at Button (about://React/Server/C:%5Cmetlas-erp%5C.next%5Cdev%5Cserver%5Cchunks%5Cssr%5C%5Broot-of-the-server%5D__0qfkwv4._.js?14:219:263)
+    at OrderDetail (about://React/Server/C:%5Cmetlas-erp%5C.next%5Cdev%5Cserver%5Cchunks%5Cssr%5C%5Broot-of-the-server%5D__0mlsg55._.js?61:218:280)
+    at OrderContent (about://React/Server/C:%5Cmetlas-erp%5C.next%5Cdev%5Cserver%5Cchunks%5Cssr%5C%5Broot-of-the-server%5D__0mlsg55._.js?58:1317:263)
+    at OrderDetailPage (about://React/Server/C:%5Cmetlas-erp%5C.next%5Cdev%5Cserver%5Cchunks%5Cssr%5C%5Broot-of-the-server%5D__0mlsg55._.js?54:1340:270) 
+    at error (file://C:/metlas-erp/.next/dev/static/chunks/node_modules_074ur8d._.js:3120:21) (file://C:/metlas-erp/.next/dev/static/chunks/node_modules_074ur8d._.js:3120:21)
+[browser] Base UI: A component that acts as a button expected a native <button> because the `nativeButton` prop is true. Rendering a non-<button> removes native button semantics, which can impact forms and accessibility. Use a real <button> in the `render` prop, or set `nativeButton` to `false`.
+    at Button (about://React/Server/C:%5Cmetlas-erp%5C.next%5Cdev%5Cserver%5Cchunks%5Cssr%5C%5Broot-of-the-server%5D__0qfkwv4._.js?14:219:263)
+    at OrderDetail (about://React/Server/C:%5Cmetlas-erp%5C.next%5Cdev%5Cserver%5Cchunks%5Cssr%5C%5Broot-of-the-server%5D__0mlsg55._.js?64:270:272)
+    at OrderContent (about://React/Server/C:%5Cmetlas-erp%5C.next%5Cdev%5Cserver%5Cchunks%5Cssr%5C%5Broot-of-the-server%5D__0mlsg55._.js?58:1317:263)
+    at OrderDetailPage (about://React/Server/C:%5Cmetlas-erp%5C.next%5Cdev%5Cserver%5Cchunks%5Cssr%5C%5Broot-of-the-server%5D__0mlsg55._.js?54:1340:270) 
+    at error (file://C:/metlas-erp/.next/dev/static/chunks/node_modules_074ur8d._.js:3120:21) (file://C:/metlas-erp/.next/dev/static/chunks/node_modules_074ur8d._.js:3120:21)
+ GET /orders 200 in 30ms (next.js: 7ms, application-code: 23ms)
+ GET /api/orders?page=1&pageSize=20&sort=createdAt&order=desc 200 in 11ms (next.js: 3ms, application-code: 8ms)
+ GET /api/orders?page=1&pageSize=20&sort=createdAt&order=desc 200 in 284ms (next.js: 4ms, application-code: 280ms)
+[browser] Uncaught Error: Base UI: MenuGroupContext is missing. Menu group parts must be used within <Menu.Group> or <Menu.RadioGroup>.
+    at DropdownMenuLabel (file://C:/metlas-erp/.next/dev/static/chunks/src_0p1c6u-._.js:314:214)
+    at Header (file://C:/metlas-erp/.next/dev/static/chunks/src_0p1c6u-._.js:752:239)
+    at DashboardLayout (file://C:/metlas-erp/.next/dev/static/chunks/src_0p1c6u-._.js:1139:223)
+    at OrdersPage (src\app\orders\page.tsx:8:5)
+   6 | export default function OrdersPage() {
+   7 |   return (
+>  8 |     <DashboardLayout>
+     |     ^
+   9 |       <Suspense fallback={<Loading message="Siparişler yükleniyor..." />}>
+  10 |         <OrderList />
+  11 |       </Suspense>
+ GET / 200 in 92ms (next.js: 3ms, application-code: 89ms)
+[browser] Uncaught Error: Base UI: MenuGroupContext is missing. Menu group parts must be used within <Menu.Group> or <Menu.RadioGroup>.
+    at DropdownMenuLabel (src/components/ui/dropdown-menu.tsx:64:5)
+    at Header (src/components/layout/Header.tsx:43:13)
+    at DashboardLayout (src/components/layout/DashboardLayout.tsx:21:9)
+    at Home (src\app\page.tsx:9:5)
+  62 | }) {
+  63 |   return (
+> 64 |     <MenuPrimitive.GroupLabel
+     |     ^
+  65 |       data-slot="dropdown-menu-label"
+  66 |       data-inset={inset}
+  67 |       className={cn(
+ GET /customers 200 in 26ms (next.js: 4ms, application-code: 21ms)
+ GET /customers? 200 in 71ms (next.js: 3ms, application-code: 68ms)
+[browser] Base UI: A component that acts as a button expected a native <button> because the `nativeButton` prop is true. Rendering a non-<button> removes native button semantics, which can impact forms and accessibility. Use a real <button> in the `render` prop, or set `nativeButton` to `false`.
+    at Button (http://localhost:3000/_next/static/chunks/src_0p1c6u-._.js:173:214)
+    at CustomerList (http://localhost:3000/_next/static/chunks/src_0p1c6u-._.js:2323:223)
+    at CustomersPage (about://React/Server/C:%5Cmetlas-erp%5C.next%5Cdev%5Cserver%5Cchunks%5Cssr%5C%5Broot-of-the-server%5D__1xozk72._.js?11:203:274) 
+    at error (file://C:/metlas-erp/.next/dev/static/chunks/node_modules_074ur8d._.js:3120:21) (file://C:/metlas-erp/.next/dev/static/chunks/node_modules_074ur8d._.js:3120:21)
+ GET /api/customers?page=1&pageSize=20&sort=createdAt&order=desc 200 in 242ms (next.js: 4ms, application-code: 238ms)
+ GET /orders 200 in 29ms (next.js: 3ms, application-code: 25ms)
+[browser] Base UI: A component that acts as a button expected a native <button> because the `nativeButton` prop is true. Rendering a non-<button> removes native button semantics, which can impact forms and accessibility. Use a real <button> in the `render` prop, or set `nativeButton` to `false`.
+    at Button (http://localhost:3000/_next/static/chunks/src_0p1c6u-._.js:173:214)
+    at OrderList (http://localhost:3000/_next/static/chunks/src_19pjljq._.js:2317:223)
+    at OrdersPage (about://React/Server/C:%5Cmetlas-erp%5C.next%5Cdev%5Cserver%5Cchunks%5Cssr%5C%5Broot-of-the-server%5D__1xh0nlu._.js?13:203:274) 
+    at error (file://C:/metlas-erp/.next/dev/static/chunks/node_modules_074ur8d._.js:3120:21) (file://C:/metlas-erp/.next/dev/static/chunks/node_modules_074ur8d._.js:3120:21)
+ GET /api/orders?page=1&pageSize=20&sort=createdAt&order=desc 200 in 11ms (next.js: 2ms, application-code: 8ms)
+ GET /api/orders?page=1&pageSize=20&sort=createdAt&order=desc 200 in 510ms (next.js: 3ms, application-code: 507ms)
+ GET /customers 200 in 19ms (next.js: 2ms, application-code: 16ms)
+ GET /api/customers?page=1&pageSize=20&sort=createdAt&order=desc 200 in 155ms (next.js: 2ms, application-code: 152ms)
+ GET /orders 200 in 23ms (next.js: 2ms, application-code: 21ms)
+ GET /api/orders?page=1&pageSize=20&sort=createdAt&order=desc 200 in 302ms (next.js: 3ms, application-code: 300ms)
+ GET /customers 200 in 19ms (next.js: 2ms, application-code: 17ms)
+ GET /api/customers?page=1&pageSize=20&sort=createdAt&order=desc 200 in 130ms (next.js: 2ms, application-code: 128ms)
+ GET / 200 in 29ms (next.js: 3ms, application-code: 26ms)
+prisma:error Error in PostgreSQL connection: Error { kind: Closed, cause: None }
+prisma:error Error in PostgreSQL connection: Error { kind: Closed, cause: None }
+prisma:error Error in PostgreSQL connection: Error { kind: Closed, cause: None }
+prisma:error Error in PostgreSQL connection: Error { kind: Closed, cause: None }
