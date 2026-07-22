@@ -325,3 +325,7 @@ prisma/
 - `npm run db:generate` → Prisma Client üret
 - `npm run db:migrate` → Migration uygula
 - `npm run db:seed` → Seed verisi yükle
+
+## Kalıcı Proje Hafızası
+
+Detaylı ürün vizyonu, hedefler, planlanan modüller, mühendislik ilkeleri ve çalışma akışı için `PROJECT_MEMORY.md` dosyasını referans al.

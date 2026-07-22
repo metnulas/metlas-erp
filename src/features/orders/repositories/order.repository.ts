@@ -1,7 +1,7 @@
 import { prisma } from "@/lib/db/prisma";
 import { Prisma, type Order, type OrderItem } from "@prisma/client";
 
-export type OrderWithItems = Order & { items: OrderItem[]; customer: { id: string; fullName: string; phone: string } };
+export type OrderWithItems = Order & { items: (OrderItem & { product: { id: string; code: string; name: string } | null })[]; customer: { id: string; fullName: string; phone: string } };
 
 export interface FindManyParams {
   where: Prisma.OrderWhereInput;
@@ -15,15 +15,20 @@ export interface OrderRepository {
   count(where: Prisma.OrderWhereInput): Promise<number>;
   findById(id: string, tenantId: string): Promise<OrderWithItems | null>;
   findByCode(orderCode: string, tenantId: string): Promise<Order | null>;
-  create(data: Prisma.OrderCreateInput, items: Prisma.OrderItemCreateWithoutOrderInput[]): Promise<OrderWithItems>;
-  update(id: string, data: Prisma.OrderUpdateInput, items?: Prisma.OrderItemCreateWithoutOrderInput[]): Promise<OrderWithItems>;
+  create(tenantId: string, data: Prisma.OrderCreateInput, items: Prisma.OrderItemCreateWithoutOrderInput[], stockItems?: StockItem[]): Promise<OrderWithItems>;
+  update(id: string, tenantId: string, data: Prisma.OrderUpdateInput, items?: Prisma.OrderItemCreateWithoutOrderInput[], stockItems?: StockItem[]): Promise<OrderWithItems>;
   softDelete(id: string, tenantId: string): Promise<Order>;
   nextOrderCode(tenantId: string): Promise<string>;
 }
 
+export interface StockItem {
+  productId?: string | null;
+  quantity: number;
+}
+
 export function createOrderRepository(): OrderRepository {
   const includeRelations = {
-    items: true,
+    items: { include: { product: { select: { id: true, code: true, name: true } } } },
     customer: { select: { id: true, fullName: true, phone: true } },
   };
 
@@ -55,43 +60,34 @@ export function createOrderRepository(): OrderRepository {
       });
     },
 
-    async create(data, items) {
-      return prisma.order.create({
-        data: {
-          ...data,
-          items: {
-            create: items.map((item) => ({
-              ...item,
-              total: (item.quantity ?? 1) * Number(item.unitPrice),
-            })),
-          },
-        },
-        include: includeRelations,
-      });
-    },
-
-    async update(id, data, items) {
-      if (items) {
-        await prisma.orderItem.deleteMany({ where: { orderId: id } });
-        return prisma.order.update({
-          where: { id },
+    async create(tenantId, data, items, stockItems = []) {
+      return prisma.$transaction(async (tx) => {
+        const order = await tx.order.create({
           data: {
             ...data,
             items: {
-              create: items.map((item) => ({
-                ...item,
-                total: (item.quantity ?? 1) * Number(item.unitPrice),
-              })),
+              create: items.map((item) => ({ ...item, total: (item.quantity ?? 1) * Number(item.unitPrice) })),
             },
           },
           include: includeRelations,
         });
-      }
+        await applyStockOut(tx, tenantId, order.id, stockItems);
+        return order;
+      });
+    },
 
-      return prisma.order.update({
-        where: { id },
-        data,
-        include: includeRelations,
+    async update(id, tenantId, data, items, stockItems = []) {
+      return prisma.$transaction(async (tx) => {
+        if (items) {
+          await tx.orderItem.deleteMany({ where: { orderId: id } });
+        }
+        const order = await tx.order.update({
+          where: { id },
+          data: items ? { ...data, items: { create: items.map((item) => ({ ...item, total: (item.quantity ?? 1) * Number(item.unitPrice) })) } } : data,
+          include: includeRelations,
+        });
+        await applyStockOut(tx, tenantId, order.id, stockItems);
+        return order;
       });
     },
 
@@ -124,4 +120,18 @@ export function createOrderRepository(): OrderRepository {
       return `${prefix}001`;
     },
   };
+}
+
+async function applyStockOut(tx: Prisma.TransactionClient, tenantId: string, orderId: string, stockItems: StockItem[]) {
+  for (const item of stockItems) {
+    if (!item.productId || item.quantity <= 0) continue;
+    const product = await tx.product.findFirst({ where: { id: item.productId, tenantId, deletedAt: null } });
+    if (!product) throw new Error("PRODUCT_NOT_FOUND");
+    const balanceAfter = product.stockQuantity - item.quantity;
+    if (balanceAfter < 0) throw new Error("INSUFFICIENT_STOCK");
+    await tx.product.update({ where: { id: product.id }, data: { stockQuantity: balanceAfter } });
+    await tx.stockMovement.create({
+      data: { tenantId, productId: product.id, type: "ORDER", quantity: -item.quantity, balanceAfter, referenceType: "ORDER", referenceId: orderId, notes: "Sipariş teslimi" },
+    });
+  }
 }

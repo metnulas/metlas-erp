@@ -12,6 +12,7 @@ import {
   useReactTable,
 } from "@tanstack/react-table";
 import { useState } from "react";
+import type { ReactNode } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, Search } from "lucide-react";
@@ -30,6 +31,7 @@ interface DataTableProps<TData, TValue> {
   total: number;
   totalPages: number;
   onPageChange: (page: number) => void;
+  renderMobileCard?: (row: TData) => ReactNode;
 }
 
 export default function DataTable<TData, TValue>({
@@ -44,6 +46,7 @@ export default function DataTable<TData, TValue>({
   total,
   totalPages,
   onPageChange,
+  renderMobileCard,
 }: DataTableProps<TData, TValue>) {
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
@@ -79,7 +82,7 @@ export default function DataTable<TData, TValue>({
         </div>
       )}
 
-      <div className="overflow-hidden rounded-xl border border-border/70 bg-card">
+      <div className="hidden overflow-hidden rounded-xl border border-border/70 bg-card md:block">
         <div className="overflow-x-auto">
           <table className="w-full caption-bottom text-sm">
             <thead className="border-b border-border/70 bg-muted/30">
@@ -129,6 +132,18 @@ export default function DataTable<TData, TValue>({
           </table>
         </div>
       </div>
+
+      {renderMobileCard && (
+        <div className="space-y-3 md:hidden">
+          {isLoading ? (
+            <div className="rounded-xl border border-border/70 bg-card p-5"><Loading /></div>
+          ) : table.getRowModel().rows.length === 0 ? (
+            <div className="rounded-xl border border-border/70 bg-card p-5"><EmptyState title={emptyTitle} description={emptyDescription} /></div>
+          ) : (
+            table.getRowModel().rows.map((row) => <div key={row.id}>{renderMobileCard(row.original)}</div>)
+          )}
+        </div>
+      )}
 
       <div className="flex items-center justify-between">
         <p className="text-sm text-muted-foreground">

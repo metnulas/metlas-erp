@@ -14,62 +14,88 @@ function Get-LocalIP {
     return $ip
 }
 
+function Test-MetlasProcess($procId) {
+    $currentId = $procId
+    for ($i = 0; $i -lt 8 -and $currentId; $i++) {
+        try {
+            $proc = Get-CimInstance Win32_Process -Filter "ProcessId=$currentId" -ErrorAction Stop
+        } catch {
+            return $false
+        }
+        if (-not $proc) { return $false }
+
+        $cmd = "$($proc.CommandLine)"
+        if ($cmd -like "*$scriptPath*" -or $cmd -match "next(\.cmd)?(\.js)?\s+dev|npm(\.cmd)?\s+run\s+dev") {
+            return $true
+        }
+        $currentId = $proc.ParentProcessId
+    }
+    return $false
+}
+
+function Get-PortOwner {
+    $conn = Get-NetTCPConnection -LocalPort 3000 -State Listen -ErrorAction SilentlyContinue | Select-Object -First 1
+    if ($conn) { return $conn.OwningProcess }
+    return $null
+}
+
 function Get-ServerProcess {
     $procId = $null
     if (Test-Path $pidFile) {
         $procId = Get-Content $pidFile -Raw -ErrorAction SilentlyContinue
         $procId = "$procId".Trim()
     }
-    if ($procId -and ($proc = Get-Process -Id $procId -ErrorAction SilentlyContinue)) {
+    if ($procId -and ($proc = Get-Process -Id $procId -ErrorAction SilentlyContinue) -and (Test-MetlasProcess $procId)) {
         return @{ Process = $proc; Pid = $procId }
     }
     elseif ($procId) {
         Remove-Item $pidFile -Force -ErrorAction SilentlyContinue
     }
-    $proc = Get-Process -Name "node" -ErrorAction SilentlyContinue | Where-Object {
-        try { $cmd = (Get-CimInstance Win32_Process -Filter "ProcessId=$($_.Id)").CommandLine
-            $cmd -match "next dev|npm" } catch { $false }
-    } | Select-Object -First 1
-    if ($proc) {
-        return @{ Process = $proc; Pid = $proc.Id }
+
+    $portPid = Get-PortOwner
+    if ($portPid -and (Test-MetlasProcess $portPid)) {
+        $proc = Get-Process -Id $portPid -ErrorAction SilentlyContinue
+        if ($proc) {
+            $portPid | Out-File -FilePath $pidFile -Encoding ASCII
+            return @{ Process = $proc; Pid = $portPid }
+        }
     }
     return $null
 }
 
-function Get-PortOwner {
-    $conn = Get-NetTCPConnection -LocalPort 3000 -ErrorAction SilentlyContinue | Select-Object -First 1
-    if ($conn) { return $conn.OwningProcess }
-    return $null
-}
-
-if ($args[0] -eq "status") {
+if ($args[0] -eq "status" -or $args[0] -eq "status-line") {
     $server = Get-ServerProcess
     $portPid = Get-PortOwner
     $ip = Get-LocalIP
-    $uptime = "00:00:00"
+    $uptime = "-"
+    $status = "STOPPED"
+    $serverPid = "-"
 
     if ($server) {
         $p = $server.Process
         $startTime = $p.StartTime
         $elapsed = [DateTime]::Now - $startTime
         $uptime = "{0:D2}:{1:D2}:{2:D2}" -f $elapsed.Hours, $elapsed.Minutes, $elapsed.Seconds
-        Write-Output "RUNNING"
-        Write-Output $server.Pid
-        Write-Output $uptime
-        Write-Output $ip
-    }
-    else {
-        Write-Output "STOPPED"
-        Write-Output "-"
-        Write-Output "-"
-        Write-Output $ip
+        $status = "RUNNING"
+        $serverPid = $server.Pid
     }
 
     if ($portPid -and -not $server) {
-        Write-Output "PORT_BUSY:$portPid"
+        $portMessage = "PORT_BUSY:$portPid"
     }
     else {
-        Write-Output "PORT_OK"
+        $portMessage = "PORT_OK"
+    }
+
+    if ($args[0] -eq "status-line") {
+        Write-Output "$status|$serverPid|$uptime|$ip|$portMessage"
+    }
+    else {
+        Write-Output $status
+        Write-Output $serverPid
+        Write-Output $uptime
+        Write-Output $ip
+        Write-Output $portMessage
     }
     exit 0
 }
@@ -87,26 +113,37 @@ if ($args[0] -eq "start-background") {
         exit 2
     }
 
-    $psi = New-Object System.Diagnostics.ProcessStartInfo
-    $psi.FileName = "cmd.exe"
-    $psi.Arguments = "/c npm.cmd run dev >> `"$logFile`" 2>&1"
-    $psi.WorkingDirectory = $scriptPath
-    $psi.UseShellExecute = $false
-    $psi.CreateNoWindow = $true
-    $psi.WindowStyle = [System.Diagnostics.ProcessWindowStyle]::Hidden
-    $p = [System.Diagnostics.Process]::Start($psi)
+    $command = "npm.cmd run dev >> `"$logFile`" 2>&1"
+    try {
+        $child = Start-Process -FilePath "cmd.exe" `
+            -ArgumentList @('/d', '/c', $command) `
+            -WorkingDirectory $scriptPath `
+            -WindowStyle Hidden `
+            -PassThru -ErrorAction Stop
+    }
+    catch {
+        Write-Output "ERROR:CREATE_FAILED_$($_.Exception.Message)"
+        exit 3
+    }
 
-    Start-Sleep -Seconds 3
+    $deadline = (Get-Date).AddSeconds(20)
+    do {
+        Start-Sleep -Milliseconds 500
+        $portPid = Get-PortOwner
+        if ($portPid -and (Test-MetlasProcess $portPid)) {
+            $portPid | Out-File -FilePath $pidFile -Encoding ASCII
+            Write-Output "STARTED:$portPid"
+            exit 0
+        }
+    } while ((Get-Date) -lt $deadline)
 
-    $nodeProc = Get-Process -Name "node" -ErrorAction SilentlyContinue |
-        Sort-Object StartTime -Descending | Select-Object -First 1
-
-    if ($nodeProc) {
-        $nodeProc.Id | Out-File -FilePath $pidFile -Encoding ASCII
-        Write-Output "STARTED:$($nodeProc.Id)"
-    } else {
-        $p.Id | Out-File -FilePath $pidFile -Encoding ASCII
-        Write-Output "STARTED:$($p.Id)"
+    $server = Get-ServerProcess
+    if ($server) {
+        Write-Output "STARTED:$($server.Pid)"
+    }
+    else {
+        Write-Output "ERROR:SERVER_NOT_READY"
+        exit 3
     }
     exit 0
 }

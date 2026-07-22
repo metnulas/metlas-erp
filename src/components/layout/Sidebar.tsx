@@ -3,13 +3,14 @@
 import { usePathname } from "next/navigation";
 import Link from "next/link";
 import { useEffect } from "react";
-import { BarChart3, BriefcaseBusiness, LayoutDashboard, ReceiptText, Truck, Users, Wallet, X } from "lucide-react";
+import { BarChart3, BriefcaseBusiness, LayoutDashboard, Package, ReceiptText, Truck, Users, Wallet, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 const navigationItems = [
   { label: "Dashboard", icon: LayoutDashboard, href: "/" },
   { label: "Müşteriler", icon: Users, href: "/customers" },
   { label: "Siparişler", icon: ReceiptText, href: "/orders" },
+  { label: "Ürünler", icon: Package, href: "/products" },
   { label: "Araçlar", icon: Truck, href: "#" },
   { label: "Personeller", icon: BriefcaseBusiness, href: "#" },
   { label: "Kasa", icon: Wallet, href: "#" },
@@ -39,13 +40,11 @@ export default function Sidebar({ isMobileMenuOpen, onClose }: SidebarProps) {
   return (
     <>
       {isMobileMenuOpen && (
-        <div
-          role="button"
-          tabIndex={-1}
+        <button
+          type="button"
           aria-label="Menüyü kapat"
-          className="fixed inset-0 z-40 bg-slate-950/60 lg:hidden"
+          className="fixed inset-0 z-40 border-0 bg-slate-950/60 p-0 lg:hidden"
           onClick={onClose}
-          onKeyDown={(e) => { if (e.key === "Escape") onClose(); }}
         />
       )}
       <aside

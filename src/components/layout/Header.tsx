@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { Bell, ChevronDown, LogOut, Menu, Moon, Search, Settings, Sun, UserRound } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuGroup, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 
 type HeaderProps = { onMenuClick: () => void };
@@ -40,7 +40,7 @@ export default function Header({ onMenuClick }: HeaderProps) {
             <ChevronDown className="hidden size-4 text-muted-foreground sm:block" />
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-52">
-            <DropdownMenuLabel>Hesabım</DropdownMenuLabel><DropdownMenuSeparator />
+             <DropdownMenuGroup><DropdownMenuLabel>Hesabım</DropdownMenuLabel></DropdownMenuGroup><DropdownMenuSeparator />
             <DropdownMenuItem><UserRound /> Profilim</DropdownMenuItem><DropdownMenuItem><Settings /> Ayarlar</DropdownMenuItem>
             <DropdownMenuSeparator /><DropdownMenuItem variant="destructive"><LogOut /> Çıkış yap</DropdownMenuItem>
           </DropdownMenuContent>

@@ -11,7 +11,7 @@ interface CustomerDetailProps {
 export default function CustomerDetail({ customer }: CustomerDetailProps) {
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
         <div className="flex items-center gap-3">
           <Button variant="ghost" size="icon" render={<Link href="/customers" />}>
               <ArrowLeft className="size-4" />

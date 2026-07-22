@@ -22,6 +22,46 @@ async function main() {
     },
   });
 
+  const damacana = await prisma.product.upsert({
+    where: { tenantId_code: { tenantId: tenant.id, code: "URN-19L" } },
+    update: {},
+    create: {
+      tenantId: tenant.id,
+      code: "URN-19L",
+      name: "19L Damacana Su",
+      category: "Damacana",
+      unit: "ADET",
+      salePrice: 30,
+      purchasePrice: 12,
+      stockQuantity: 100,
+      minStockLevel: 20,
+      hasDeposit: true,
+      depositAmount: 100,
+      stockMovements: {
+        create: { tenantId: tenant.id, type: "INITIAL", quantity: 100, balanceAfter: 100, notes: "Demo başlangıç stoğu" },
+      },
+    },
+  });
+
+  const pet = await prisma.product.upsert({
+    where: { tenantId_code: { tenantId: tenant.id, code: "URN-5L" } },
+    update: {},
+    create: {
+      tenantId: tenant.id,
+      code: "URN-5L",
+      name: "5L Su Şişesi",
+      category: "Şişe",
+      unit: "ADET",
+      salePrice: 10,
+      purchasePrice: 4,
+      stockQuantity: 250,
+      minStockLevel: 50,
+      stockMovements: {
+        create: { tenantId: tenant.id, type: "INITIAL", quantity: 250, balanceAfter: 250, notes: "Demo başlangıç stoğu" },
+      },
+    },
+  });
+
   const orderDate = new Date("2026-07-22");
   const deliveryDate = new Date("2026-07-25");
 
@@ -41,8 +81,8 @@ async function main() {
       notes: "Örnek sipariş - su bidonu",
       items: {
         create: [
-          { productName: "19L Su Bidonu", quantity: 20, unitPrice: 30, total: 600 },
-          { productName: "5L Su Şişesi", quantity: 25, unitPrice: 10, total: 250 },
+           { productId: damacana.id, productName: damacana.name, quantity: 20, unitPrice: 30, total: 600 },
+           { productId: pet.id, productName: pet.name, quantity: 25, unitPrice: 10, total: 250 },
         ],
       },
     },
@@ -63,7 +103,7 @@ async function main() {
       notes: "Acil sipariş",
       items: {
         create: [
-          { productName: "19L Su Bidonu", quantity: 15, unitPrice: 30, total: 450 },
+           { productId: damacana.id, productName: damacana.name, quantity: 15, unitPrice: 30, total: 450 },
         ],
       },
     },

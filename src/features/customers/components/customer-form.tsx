@@ -214,12 +214,12 @@ export default function CustomerForm({ initialData, mode }: CustomerFormProps) {
         </div>
       </section>
 
-      <div className="flex items-center justify-end gap-3">
-        <Button type="button" variant="outline" onClick={() => router.back()} disabled={isSubmitting}>
+      <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+        <Button className="w-full sm:w-auto" type="button" variant="outline" onClick={() => router.back()} disabled={isSubmitting}>
           <X className="size-4" />
           İptal
         </Button>
-        <Button type="submit" disabled={isSubmitting}>
+        <Button className="w-full sm:w-auto" type="submit" disabled={isSubmitting}>
           {isSubmitting ? (
             <Loader2 className="size-4 animate-spin" />
           ) : (

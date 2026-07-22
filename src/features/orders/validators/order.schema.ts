@@ -4,6 +4,7 @@ const orderStatusEnum = z.enum(["PENDING", "CONFIRMED", "DELIVERING", "DELIVERED
 
 const orderItemSchema = z.object({
   id: z.string().optional(),
+  productId: z.string().optional(),
   productName: z.string().min(1, "Ürün adı zorunludur").max(200),
   quantity: z.coerce.number().int().min(1, "Miktar en az 1 olmalıdır"),
   unitPrice: z.coerce.number().min(0, "Birim fiyat negatif olamaz"),

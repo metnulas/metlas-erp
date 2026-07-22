@@ -16,6 +16,8 @@ model Tenant {
   updatedAt DateTime   @updatedAt
   customers Customer[]
   orders    Order[]
+  products  Product[]
+  stockMovements StockMovement[]
 }
 
 model Customer {
@@ -88,12 +90,75 @@ model Order {
 model OrderItem {
   id          String  @id @default(cuid())
   orderId     String
+  productId   String?
   productName String
   quantity    Int     @default(1)
   unitPrice   Decimal @db.Decimal(14, 2)
   total       Decimal @default(0) @db.Decimal(14, 2)
   notes       String? @db.Text
   order       Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product     Product? @relation(fields: [productId], references: [id], onDelete: SetNull)
 
   @@index([orderId])
+  @@index([productId])
+}
+
+model Product {
+  id             String          @id @default(cuid())
+  tenantId       String
+  code           String
+  name           String
+  category       String?
+  unit           String          @default("ADET")
+  description    String?         @db.Text
+  salePrice      Decimal         @default(0) @db.Decimal(14, 2)
+  purchasePrice  Decimal         @default(0) @db.Decimal(14, 2)
+  stockQuantity  Int             @default(0)
+  minStockLevel  Int             @default(0)
+  hasDeposit     Boolean         @default(false)
+  depositAmount  Decimal         @default(0) @db.Decimal(14, 2)
+  isActive       Boolean         @default(true)
+  deletedAt      DateTime?
+  createdBy      String?
+  updatedBy      String?
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+  tenant         Tenant          @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  orderItems     OrderItem[]
+  stockMovements StockMovement[]
+
+  @@unique([tenantId, code])
+  @@index([tenantId, name])
+  @@index([tenantId, category])
+  @@index([tenantId, isActive])
+  @@index([tenantId, deletedAt])
+}
+
+enum StockMovementType {
+  INITIAL
+  PURCHASE
+  SALE
+  ORDER
+  RETURN
+  ADJUSTMENT
+}
+
+model StockMovement {
+  id            String            @id @default(cuid())
+  tenantId      String
+  productId     String
+  type          StockMovementType
+  quantity      Int
+  balanceAfter  Int
+  referenceType String?
+  referenceId   String?
+  notes         String?           @db.Text
+  createdBy     String?
+  createdAt     DateTime          @default(now())
+  tenant        Tenant            @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  product       Product           @relation(fields: [productId], references: [id], onDelete: Restrict)
+
+  @@index([tenantId, productId, createdAt])
+  @@index([tenantId, type])
+  @@index([referenceType, referenceId])
 }

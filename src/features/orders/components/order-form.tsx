@@ -22,16 +22,26 @@ interface CustomerOption {
   phone: string;
 }
 
+interface ProductOption {
+  id: string;
+  code: string;
+  name: string;
+  salePrice: number;
+  unit: string;
+}
+
 export default function OrderForm({ initialData, mode }: OrderFormProps) {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [customers, setCustomers] = useState<CustomerOption[]>([]);
+  const [products, setProducts] = useState<ProductOption[]>([]);
 
   const {
     register,
     handleSubmit,
     control,
     watch,
+    setValue,
     formState: { errors },
   } = useForm<CreateOrderInput>({
     resolver: zodResolver(createOrderSchema),
@@ -44,6 +54,7 @@ export default function OrderForm({ initialData, mode }: OrderFormProps) {
           discount: Number(initialData.discount),
           notes: initialData.notes ?? "",
           items: initialData.items.map((item) => ({
+            productId: item.productId ?? "",
             productName: item.productName,
             quantity: item.quantity,
             unitPrice: Number(item.unitPrice),
@@ -57,7 +68,7 @@ export default function OrderForm({ initialData, mode }: OrderFormProps) {
           status: "PENDING",
           discount: 0,
           notes: "",
-          items: [{ productName: "", quantity: 1, unitPrice: 0, notes: "" }],
+          items: [{ productId: "", productName: "", quantity: 1, unitPrice: 0, notes: "" }],
         },
   });
 
@@ -88,6 +99,19 @@ export default function OrderForm({ initialData, mode }: OrderFormProps) {
       }
     }
     fetchCustomers();
+
+    async function fetchProducts() {
+      try {
+        const response = await fetch("/api/products?pageSize=100&isActive=true");
+        const result = await response.json();
+        if (result.success) {
+          setProducts(result.data.data.map((product: ProductOption) => ({ ...product, salePrice: Number(product.salePrice) })));
+        }
+      } catch {
+        // silent
+      }
+    }
+    fetchProducts();
   }, []);
 
   async function onSubmit(data: CreateOrderInput) {
@@ -191,7 +215,7 @@ export default function OrderForm({ initialData, mode }: OrderFormProps) {
             type="button"
             variant="outline"
             size="sm"
-            onClick={() => append({ productName: "", quantity: 1, unitPrice: 0, notes: "" })}
+             onClick={() => append({ productId: "", productName: "", quantity: 1, unitPrice: 0, notes: "" })}
           >
             <Plus className="size-4" />
             Ürün Ekle
@@ -204,7 +228,23 @@ export default function OrderForm({ initialData, mode }: OrderFormProps) {
               <div className="grid gap-3 sm:grid-cols-12 sm:items-end">
                 <div className="space-y-1.5 sm:col-span-5">
                   <label className="text-xs font-medium text-muted-foreground">Ürün Adı</label>
-                  <Input placeholder="Ürün adı" {...register(`items.${index}.productName`)} />
+                  <select
+                    className="flex h-9 w-full rounded-lg border border-input bg-transparent px-3 py-1 text-sm"
+                    {...register(`items.${index}.productId`, {
+                      onChange: (event) => {
+                        const product = products.find((item) => item.id === event.target.value);
+                        if (product) {
+                          setValue(`items.${index}.productName`, product.name, { shouldValidate: true });
+                          setValue(`items.${index}.unitPrice`, product.salePrice, { shouldValidate: true });
+                        }
+                      },
+                    })}
+                  >
+                    <option value="">Ürün seçin</option>
+                    {products.map((product) => <option key={product.id} value={product.id}>{product.code} - {product.name}</option>)}
+                  </select>
+                  <input type="hidden" {...register(`items.${index}.productName`)} />
+                  {products.length === 0 && <p className="text-xs text-muted-foreground">Ürün kataloğu boş. Önce Ürünler bölümünden ürün ekleyin.</p>}
                 </div>
                 <div className="space-y-1.5 sm:col-span-2">
                   <label className="text-xs font-medium text-muted-foreground">Miktar</label>
@@ -276,12 +316,12 @@ export default function OrderForm({ initialData, mode }: OrderFormProps) {
         </div>
       </section>
 
-      <div className="flex items-center justify-end gap-3">
-        <Button type="button" variant="outline" onClick={() => router.back()} disabled={isSubmitting}>
+      <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+        <Button className="w-full sm:w-auto" type="button" variant="outline" onClick={() => router.back()} disabled={isSubmitting}>
           <X className="size-4" />
           İptal
         </Button>
-        <Button type="submit" disabled={isSubmitting}>
+        <Button className="w-full sm:w-auto" type="submit" disabled={isSubmitting}>
           {isSubmitting ? (
             <Loader2 className="size-4 animate-spin" />
           ) : (

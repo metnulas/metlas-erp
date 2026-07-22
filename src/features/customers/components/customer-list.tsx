@@ -143,6 +143,35 @@ export default function CustomerList() {
 
   const columns = getCustomerColumns({ onDelete: handleDelete });
 
+  const renderMobileCustomerCard = (customer: CustomerRow) => {
+    const balance = Number(customer.balance);
+    return (
+      <article className="rounded-2xl border border-border/70 bg-card p-4 shadow-sm">
+        <div className="flex items-start justify-between gap-3">
+          <div className="min-w-0">
+            <p className="font-mono text-xs text-muted-foreground">{customer.customerCode}</p>
+            <Link href={`/customers/${customer.id}`} className="mt-1 block truncate text-base font-semibold hover:text-primary">
+              {customer.fullName}
+            </Link>
+            <p className="mt-1 truncate text-sm text-muted-foreground">{customer.phone}</p>
+          </div>
+          <span className={`shrink-0 rounded-full px-2 py-1 text-[11px] font-medium ${customer.isActive ? "bg-emerald-50 text-emerald-700" : "bg-muted text-muted-foreground"}`}>
+            {customer.isActive ? "Aktif" : "Pasif"}
+          </span>
+        </div>
+        <div className="mt-4 grid grid-cols-2 gap-2">
+          <div className="rounded-xl bg-muted/40 p-3"><p className="text-[11px] text-muted-foreground">Bakiye</p><p className={`mt-1 truncate text-sm font-semibold ${balance > 0 ? "text-emerald-600" : balance < 0 ? "text-destructive" : ""}`}>{balance.toLocaleString("tr-TR", { style: "currency", currency: "TRY" })}</p></div>
+          <div className="rounded-xl bg-muted/40 p-3"><p className="text-[11px] text-muted-foreground">Konum</p><p className="mt-1 truncate text-sm font-semibold">{customer.city || customer.district || "-"}</p></div>
+        </div>
+        <div className="mt-4 flex gap-2">
+          <Button className="min-w-0 flex-1" size="sm" render={<Link href={`/customers/${customer.id}`} />}>Detay</Button>
+          <Button className="min-w-0 flex-1" size="sm" variant="outline" render={<Link href={`/customers/${customer.id}/edit`} />}>Düzenle</Button>
+          <Button size="icon-sm" variant="ghost" aria-label={`${customer.fullName} müşterisini sil`} onClick={() => handleDelete(customer.id)}><span aria-hidden="true">×</span></Button>
+        </div>
+      </article>
+    );
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
@@ -183,6 +212,7 @@ export default function CustomerList() {
           total={data?.total ?? 0}
           totalPages={data?.totalPages ?? 0}
           onPageChange={handlePageChange}
+          renderMobileCard={renderMobileCustomerCard}
           emptyTitle="Müşteri bulunamadı"
           emptyDescription="Filtreleri değiştirmeyi deneyin."
         />

@@ -21,7 +21,7 @@ set "C_BOLD=%ESC%[1m"
 set "C_RESET=%ESC%[0m"
 
 set "SCRIPT_DIR=%~dp0"
-set "PS_CMD=powershell -ExecutionPolicy Bypass -File "%SCRIPT_DIR%metlas.ps1""
+set "PS_CMD=powershell.exe -NoProfile -ExecutionPolicy Bypass -File "%SCRIPT_DIR%metlas.ps1""
 set "STATUS_CACHE_FILE=%SCRIPT_DIR%metlas_cache.tmp"
 
 :: =============================================
@@ -46,9 +46,9 @@ if not exist "%SCRIPT_DIR%package.json" (
 where npm >nul 2>nul
 if %errorlevel% neq 0 (
     cls
-    echo %C_RED%????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????%C_RESET%
-    echo %C_RED%??? %C_RESET%%C_BOLD%                     HATA                       %C_RESET%%C_RED%???%C_RESET%
-    echo %C_RED%????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????%C_RESET%
+    echo %C_RED%+==================================================================================================================+%C_RESET%
+    echo %C_RED%# %C_RESET%%C_BOLD%                     HATA                       %C_RESET%%C_RED% #%C_RESET%
+    echo %C_RED%+==================================================================================================================+%C_RESET%
     echo.
     echo %C_BOLD%Node.js / npm bulunamadi!%C_RESET%
     echo.
@@ -71,15 +71,17 @@ set "SRV_UPTIME=00:00:00"
 set "SRV_IP=127.0.0.1"
 set "SRV_PORT_MSG="
 
-set "LINE_NUM=0"
-for /f "usebackq delims=" %%a in (`%PS_CMD% status 2^>nul`) do (
-    set /a LINE_NUM+=1
-    if !LINE_NUM! equ 1 set "SRV_STATUS=%%a"
-    if !LINE_NUM! equ 2 set "SRV_PID=%%a"
-    if !LINE_NUM! equ 3 set "SRV_UPTIME=%%a"
-    if !LINE_NUM! equ 4 set "SRV_IP=%%a"
-    if !LINE_NUM! equ 5 set "SRV_PORT_MSG=%%a"
+if exist "%STATUS_CACHE_FILE%" del /q "%STATUS_CACHE_FILE%" >nul 2>&1
+%PS_CMD% status-line >"%STATUS_CACHE_FILE%" 2>nul
+
+for /f "usebackq tokens=1-5 delims=|" %%a in ("%STATUS_CACHE_FILE%") do (
+    set "SRV_STATUS=%%a"
+    set "SRV_PID=%%b"
+    set "SRV_UPTIME=%%c"
+    set "SRV_IP=%%d"
+    set "SRV_PORT_MSG=%%e"
 )
+if exist "%STATUS_CACHE_FILE%" del /q "%STATUS_CACHE_FILE%" >nul 2>&1
 if "!SRV_STATUS!"=="" set "SRV_STATUS=STOPPED"
 goto :EOF
 
@@ -95,11 +97,12 @@ echo %C_BOLD%%C_CYAN%+==========================================================
 echo %C_BOLD%%C_CYAN%#        METLAS ERP YONETICI              #%C_RESET%
 echo %C_BOLD%%C_CYAN%+================================================================================================+%C_RESET%
 echo.
-if "%SRV_STATUS%"=="RUNNING" (
-    echo  %C_BOLD%Sunucu : %C_GREEN%CALISIYOR%C_RESET%  %C_GRAY%Port : 3000  PID : %SRV_PID%%C_RESET%
-) else (
-    echo  %C_BOLD%Sunucu : %C_RED%KAPALI%C_RESET%
-)
+if "%SRV_STATUS%"=="RUNNING" goto MENU_RUNNING
+echo  %C_BOLD%Sunucu : %C_RED%KAPALI%C_RESET%
+goto MENU_STATUS_DONE
+:MENU_RUNNING
+echo  %C_BOLD%Sunucu : %C_GREEN%CALISIYOR%C_RESET%  %C_GRAY%Port : 3000  PID : %SRV_PID%%C_RESET%
+:MENU_STATUS_DONE
 echo  %C_GRAY%--------------------------------------------------%C_RESET%
 echo.
 echo  %C_BOLD% 1.%C_RESET%  Arkaplanda Baslat
@@ -138,50 +141,34 @@ goto MENU
 :: 1) Arkaplanda Baslat
 :: =============================================
 :ARKAPLAN_BASLAT
-if "%SRV_STATUS%"=="RUNNING" (
-    echo.
-    echo %C_YELLOW%[!] Sunucu zaten calisiyor. PID: %SRV_PID%%C_RESET%
-    echo %C_YELLOW%    Once durdurmak icin 3) Sunucuyu Durdur secenegini kullanin.%C_RESET%
-    echo.
-    pause
-    goto MENU
-)
+if "%SRV_STATUS%"=="RUNNING" goto ARKAPLAN_ZATEN_CALISIYOR
+goto ARKAPLAN_BASLAT_DEVAM
+
+:ARKAPLAN_ZATEN_CALISIYOR
+echo.
+echo %C_YELLOW%[!] Sunucu zaten calisiyor. PID: %SRV_PID%%C_RESET%
+echo %C_YELLOW%    Once durdurmak icin 3) Sunucuyu Durdur secenegini kullanin.%C_RESET%
+echo.
+pause
+goto MENU
+
+:ARKAPLAN_BASLAT_DEVAM
 
 echo.
 echo %C_CYAN%[*] Sunucu arkaplanda baslatiliyor...%C_RESET%
 echo.
 
 set "TMPFILE=%SCRIPT_DIR%metlas_start.tmp"
-if exist "%TMPFILE%" del "%TMPFILE%"
+if exist "%TMPFILE%" del /q "%TMPFILE%" >nul 2>&1
 
-start /B cmd /c "%PS_CMD% start-background > "%TMPFILE%" 2>&1"
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File "%SCRIPT_DIR%metlas.ps1" start-background >"%TMPFILE%" 2>&1
 
-set "DOT_COUNT=0"
-set "WAIT_SEC=0"
-:BASLAT_BEKLE
-if not exist "%TMPFILE%" (
-    set /a DOT_COUNT+=1
-    set /a WAIT_SEC+=1
-    if !DOT_COUNT! gtr 5 (
-        set "DOTS="
-        set "DOT_COUNT=0"
-        set "DOTS=?    ?"
-        <nul set /p "=%C_GREEN%[%DOTS%] Baslatiliyor... %C_RESET%"
-    )
-    if !WAIT_SEC! gtr 20 (
-        echo.
-        echo %C_RED%[!] Zaman asimi. Sunucu baslatilamadi.%C_RESET%
-        if exist "%TMPFILE%" del "%TMPFILE%"
-        echo    Log dosyasini kontrol edin: metlas.log
-        pause
-        goto MENU
-    )
-    timeout /t 1 /nobreak >nul
-    goto BASLAT_BEKLE
-)
+set "PS_RESULT="
+if not exist "%TMPFILE%" goto BASLAT_SONUC
+for /f "usebackq delims=" %%a in ("%TMPFILE%") do if not defined PS_RESULT set "PS_RESULT=%%a"
+del /q "%TMPFILE%" >nul 2>&1
 
-for /f "usebackq delims=" %%a in ("%TMPFILE%") do set "PS_RESULT=%%a"
-if exist "%TMPFILE%" del "%TMPFILE%"
+:BASLAT_SONUC
 
 if "%PS_RESULT%"=="null" set "PS_RESULT="
 if "%PS_RESULT%"=="" (
@@ -223,13 +210,14 @@ if not "%NEW_PID%"=="" (
     echo.
     echo %C_GREEN%[+] Sunucu baslatildi! PID: %NEW_PID%%C_RESET%
     echo    Loglar metlas.log dosyasina yaziliyor.
-    echo    6) Loglari Goruntule ile canli takip edebilirsiniz.
+    echo    6^) Loglari Goruntule ile canli takip edebilirsiniz.
     pause
     goto MENU
 )
 
 echo.
-echo %C_RED%[!] Bilinmeyen hata: %PS_RESULT%%C_RESET%
+echo %C_RED%[!] Sunucu baslatma hatasi: %PS_RESULT%%C_RESET%
+echo    Ayrintili log: %SCRIPT_DIR%metlas.log
 pause
 goto MENU
 
@@ -279,7 +267,12 @@ if "%SRV_STATUS%"=="STOPPED" (
 echo.
 echo %C_CYAN%[*] Sunucu durduruluyor... (PID: %SRV_PID%)%C_RESET%
 
-for /f "usebackq delims=" %%a in (`%PS_CMD% stop 2^>nul`) do set "PS_RESULT=%%a"
+set "STOP_RESULT_FILE=%SCRIPT_DIR%metlas_stop.tmp"
+if exist "%STOP_RESULT_FILE%" del /q "%STOP_RESULT_FILE%" >nul 2>&1
+%PS_CMD% stop >"%STOP_RESULT_FILE%" 2>nul
+set "PS_RESULT="
+if exist "%STOP_RESULT_FILE%" for /f "usebackq delims=" %%a in ("%STOP_RESULT_FILE%") do if not defined PS_RESULT set "PS_RESULT=%%a"
+if exist "%STOP_RESULT_FILE%" del /q "%STOP_RESULT_FILE%" >nul 2>&1
 
 if "%PS_RESULT%"=="NOT_RUNNING" (
     echo %C_YELLOW%[!] Sunucu zaten calismiyor.%C_RESET%
@@ -288,7 +281,7 @@ if "%PS_RESULT%"=="NOT_RUNNING" (
         echo %C_GREEN%[+] Sunucu basariyla durduruldu.%C_RESET%
     ) else (
         echo %C_RED%[!] Durdurma hatasi: %PS_RESULT%%C_RESET%
-        echo %C_YELLOW%[*] node.exe tum surecleri sonlandiriliyor (guvenli)...%C_RESET%
+        echo %C_YELLOW%[*] node.exe tum surecleri sonlandiriliyor ^(guvenli^)...%C_RESET%
         taskkill /f /im node.exe >nul 2>&1
         if exist "%SCRIPT_DIR%metlas.pid" del "%SCRIPT_DIR%metlas.pid"
         echo %C_GREEN%[+] Tum node surecleri sonlandirildi.%C_RESET%

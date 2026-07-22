@@ -3,6 +3,7 @@ import {
   createOrderRepository,
   type OrderRepository,
   type OrderWithItems,
+  type StockItem,
 } from "../repositories/order.repository";
 import type { OrderQueryInput } from "../validators/order.schema";
 import { Prisma, type OrderStatus } from "@prisma/client";
@@ -23,6 +24,7 @@ export interface CreateOrderData {
   discount?: number;
   notes?: string;
   items: Array<{
+    productId?: string;
     productName: string;
     quantity: number;
     unitPrice: number;
@@ -38,6 +40,7 @@ export interface UpdateOrderData {
   discount?: number;
   notes?: string;
   items?: Array<{
+    productId?: string;
     productName: string;
     quantity: number;
     unitPrice: number;
@@ -141,7 +144,13 @@ export function createOrderService(
       const orderCode = await repository.nextOrderCode(tenantId);
       const { totalAmount, grandTotal } = calculateTotals(input.items, input.discount ?? 0);
 
-      return repository.create(
+      const stockItems: StockItem[] = input.status === "DELIVERED"
+        ? input.items.map((item) => ({ productId: item.productId, quantity: item.quantity }))
+        : [];
+
+      try {
+        return await repository.create(
+          tenantId,
         {
           orderCode,
           orderDate: new Date(input.orderDate),
@@ -157,13 +166,20 @@ export function createOrderService(
           updatedBy: userId ?? null,
         },
         input.items.map((item) => ({
+          ...(item.productId && { product: { connect: { id: item.productId } } }),
           productName: item.productName,
           quantity: item.quantity,
           unitPrice: item.unitPrice,
           total: item.quantity * item.unitPrice,
           notes: item.notes || null,
-        }))
-      );
+        })),
+        stockItems
+        );
+      } catch (error) {
+        if (error instanceof Error && error.message === "PRODUCT_NOT_FOUND") throw new AppError("Siparişte geçersiz ürün bulundu", 400, "PRODUCT_NOT_FOUND");
+        if (error instanceof Error && error.message === "INSUFFICIENT_STOCK") throw new AppError("Sipariş için yeterli stok bulunmuyor", 400, "INSUFFICIENT_STOCK");
+        throw error;
+      }
     },
 
     async update(id, tenantId, input, userId) {
@@ -199,6 +215,7 @@ export function createOrderService(
       updateData.updatedBy = userId ?? null;
 
       const items = input.items?.map((item) => ({
+        ...(item.productId && { product: { connect: { id: item.productId } } }),
         productName: item.productName,
         quantity: item.quantity,
         unitPrice: item.unitPrice,
@@ -213,7 +230,17 @@ export function createOrderService(
       updateData.totalAmount = totalAmount;
       updateData.grandTotal = grandTotal;
 
-      return repository.update(id, updateData, items);
+      const stockItems: StockItem[] = input.status === "DELIVERED"
+        ? (input.items ?? existing.items).map((item) => ({ productId: item.productId, quantity: item.quantity }))
+        : [];
+
+      try {
+        return await repository.update(id, tenantId, updateData, items, stockItems);
+      } catch (error) {
+        if (error instanceof Error && error.message === "PRODUCT_NOT_FOUND") throw new AppError("Siparişte geçersiz ürün bulundu", 400, "PRODUCT_NOT_FOUND");
+        if (error instanceof Error && error.message === "INSUFFICIENT_STOCK") throw new AppError("Sipariş için yeterli stok bulunmuyor", 400, "INSUFFICIENT_STOCK");
+        throw error;
+      }
     },
 
     async softDelete(id, tenantId) {
