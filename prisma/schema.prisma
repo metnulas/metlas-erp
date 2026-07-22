@@ -15,6 +15,7 @@ model Tenant {
   createdAt DateTime   @default(now())
   updatedAt DateTime   @updatedAt
   customers Customer[]
+  orders    Order[]
 }
 
 model Customer {
@@ -40,9 +41,59 @@ model Customer {
   createdAt          DateTime  @default(now())
   updatedAt          DateTime  @updatedAt
   tenant             Tenant    @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  orders             Order[]
 
   @@unique([tenantId, customerCode])
   @@index([tenantId, fullName])
   @@index([tenantId, isActive])
   @@index([tenantId, deletedAt])
+}
+
+enum OrderStatus {
+  PENDING
+  CONFIRMED
+  DELIVERING
+  DELIVERED
+  CANCELLED
+}
+
+model Order {
+  id            String      @id @default(cuid())
+  tenantId      String
+  orderCode     String
+  customerId    String
+  orderDate     DateTime    @default(now())
+  deliveryDate  DateTime?
+  status        OrderStatus @default(PENDING)
+  totalAmount   Decimal     @default(0) @db.Decimal(14, 2)
+  discount      Decimal     @default(0) @db.Decimal(14, 2)
+  grandTotal    Decimal     @default(0) @db.Decimal(14, 2)
+  notes         String?     @db.Text
+  deletedAt     DateTime?
+  createdBy     String?
+  updatedBy     String?
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+  tenant        Tenant      @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  customer      Customer    @relation(fields: [customerId], references: [id], onDelete: Restrict)
+  items         OrderItem[]
+
+  @@unique([tenantId, orderCode])
+  @@index([tenantId, orderDate])
+  @@index([tenantId, status])
+  @@index([tenantId, customerId])
+  @@index([tenantId, deletedAt])
+}
+
+model OrderItem {
+  id          String  @id @default(cuid())
+  orderId     String
+  productName String
+  quantity    Int     @default(1)
+  unitPrice   Decimal @db.Decimal(14, 2)
+  total       Decimal @default(0) @db.Decimal(14, 2)
+  notes       String? @db.Text
+  order       Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@index([orderId])
 }

@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 const navigationItems = [
   { label: "Dashboard", icon: LayoutDashboard, href: "/" },
   { label: "Müşteriler", icon: Users, href: "/customers" },
-  { label: "Siparişler", icon: ReceiptText, href: "#" },
+  { label: "Siparişler", icon: ReceiptText, href: "/orders" },
   { label: "Araçlar", icon: Truck, href: "#" },
   { label: "Personeller", icon: BriefcaseBusiness, href: "#" },
   { label: "Kasa", icon: Wallet, href: "#" },
