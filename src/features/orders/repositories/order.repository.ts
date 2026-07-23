@@ -1,7 +1,7 @@
 import { prisma } from "@/lib/db/prisma";
 import { Prisma, type Order, type OrderItem } from "@prisma/client";
 
-export type OrderWithItems = Order & { items: (OrderItem & { product: { id: string; code: string; name: string } | null })[]; customer: { id: string; fullName: string; phone: string } };
+export type OrderWithItems = Order & { items: (OrderItem & { product: { id: string; code: string; name: string } | null })[]; customer: { id: string; fullName: string; phone: string }; vehicle: { id: string; code: string; plate: string; type: string } | null; personnel: { id: string; employeeCode: string; fullName: string; phone: string } | null };
 
 export interface FindManyParams {
   where: Prisma.OrderWhereInput;
@@ -15,6 +15,8 @@ export interface OrderRepository {
   count(where: Prisma.OrderWhereInput): Promise<number>;
   findById(id: string, tenantId: string): Promise<OrderWithItems | null>;
   findByCode(orderCode: string, tenantId: string): Promise<Order | null>;
+  findCustomer(id: string, tenantId: string): Promise<boolean>;
+  findProducts(ids: string[], tenantId: string): Promise<string[]>;
   create(tenantId: string, data: Prisma.OrderCreateInput, items: Prisma.OrderItemCreateWithoutOrderInput[], stockItems?: StockItem[]): Promise<OrderWithItems>;
   update(id: string, tenantId: string, data: Prisma.OrderUpdateInput, items?: Prisma.OrderItemCreateWithoutOrderInput[], stockItems?: StockItem[]): Promise<OrderWithItems>;
   softDelete(id: string, tenantId: string): Promise<Order>;
@@ -30,6 +32,8 @@ export function createOrderRepository(): OrderRepository {
   const includeRelations = {
     items: { include: { product: { select: { id: true, code: true, name: true } } } },
     customer: { select: { id: true, fullName: true, phone: true } },
+    vehicle: { select: { id: true, code: true, plate: true, type: true } },
+    personnel: { select: { id: true, employeeCode: true, fullName: true, phone: true } },
   };
 
   return {
@@ -74,6 +78,17 @@ export function createOrderRepository(): OrderRepository {
         await applyStockOut(tx, tenantId, order.id, stockItems);
         return order;
       });
+    },
+
+    async findCustomer(id, tenantId) {
+      const customer = await prisma.customer.findFirst({ where: { id, tenantId, deletedAt: null, isActive: true }, select: { id: true } });
+      return Boolean(customer);
+    },
+
+    async findProducts(ids, tenantId) {
+      if (ids.length === 0) return [];
+      const products = await prisma.product.findMany({ where: { id: { in: ids }, tenantId, deletedAt: null, isActive: true }, select: { id: true } });
+      return products.map((product) => product.id);
     },
 
     async update(id, tenantId, data, items, stockItems = []) {

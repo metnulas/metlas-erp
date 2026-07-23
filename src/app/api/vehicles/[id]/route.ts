@@ -5,6 +5,7 @@ import { ZodError } from "zod";
 import { getCurrentTenantId } from "@/server/tenancy/tenant-context";
 import { AppError } from "@/server/errors/app-error";
 import { createVehicleService } from "@/features/vehicles/services/vehicle.service";
+import { requirePermission } from "@/server/auth/authorization";
 import { updateVehicleSchema, vehicleIdSchema } from "@/features/vehicles/validators/vehicle.schema";
 
 const vehicleService = createVehicleService();
@@ -18,13 +19,13 @@ function handleApiError(error: unknown) {
 }
 
 export async function GET(_request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  try { const { id } = vehicleIdSchema.parse(await params); return NextResponse.json({ success: true, data: await vehicleService.getById(id, getCurrentTenantId()) }); } catch (error) { return handleApiError(error); }
+  try { const { id } = vehicleIdSchema.parse(await params); return NextResponse.json({ success: true, data: await vehicleService.getById(id, await getCurrentTenantId()) }); } catch (error) { return handleApiError(error); }
 }
 
 export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  try { const { id } = await params; const input = updateVehicleSchema.parse({ ...(await request.json()), id }); return NextResponse.json({ success: true, data: await vehicleService.update(id, getCurrentTenantId(), input) }); } catch (error) { return handleApiError(error); }
+  try { await requirePermission("vehicle:write"); const { id } = await params; const input = updateVehicleSchema.parse({ ...(await request.json()), id }); return NextResponse.json({ success: true, data: await vehicleService.update(id, await getCurrentTenantId(), input) }); } catch (error) { return handleApiError(error); }
 }
 
 export async function DELETE(_request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  try { const { id } = vehicleIdSchema.parse(await params); await vehicleService.softDelete(id, getCurrentTenantId()); return NextResponse.json({ success: true, data: { deleted: true } }); } catch (error) { return handleApiError(error); }
+  try { await requirePermission("vehicle:write"); const { id } = vehicleIdSchema.parse(await params); await vehicleService.softDelete(id, await getCurrentTenantId()); return NextResponse.json({ success: true, data: { deleted: true } }); } catch (error) { return handleApiError(error); }
 }

@@ -20,6 +20,30 @@ model Tenant {
   stockMovements StockMovement[]
   vehicles  Vehicle[]
   personnel Personnel[]
+  users     User[]
+}
+
+enum UserRole {
+  ADMIN
+  OPERATIONS
+  COURIER
+  ACCOUNTING
+}
+
+model User {
+  id           String   @id @default(cuid())
+  tenantId     String
+  email        String   @unique
+  name         String
+  passwordHash String
+  role         UserRole @default(OPERATIONS)
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  tenant       Tenant   @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+
+  @@index([tenantId, isActive])
+  @@index([tenantId, role])
 }
 
 model Customer {
@@ -81,11 +105,20 @@ model Order {
   tenant        Tenant      @relation(fields: [tenantId], references: [id], onDelete: Restrict)
   customer      Customer    @relation(fields: [customerId], references: [id], onDelete: Restrict)
   items         OrderItem[]
+  vehicle       Vehicle?    @relation("OrderVehicle", fields: [vehicleId], references: [id], onDelete: SetNull)
+  personnel     Personnel?  @relation("OrderPersonnel", fields: [personnelId], references: [id], onDelete: SetNull)
+  vehicleId     String?
+  personnelId   String?
+  deliveryNotes String?      @db.Text
+  deliveredAt   DateTime?
 
   @@unique([tenantId, orderCode])
   @@index([tenantId, orderDate])
   @@index([tenantId, status])
   @@index([tenantId, customerId])
+  @@index([tenantId, vehicleId])
+  @@index([tenantId, personnelId])
+  @@index([tenantId, deliveryDate])
   @@index([tenantId, deletedAt])
 }
 
@@ -194,6 +227,7 @@ model Vehicle {
   createdAt      DateTime      @default(now())
   updatedAt      DateTime      @updatedAt
   tenant         Tenant        @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  assignedOrders Order[]       @relation("OrderVehicle")
 
   @@unique([tenantId, code])
   @@unique([tenantId, plate])
@@ -230,6 +264,7 @@ model Personnel {
   createdAt          DateTime        @default(now())
   updatedAt          DateTime        @updatedAt
   tenant             Tenant          @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  assignedOrders     Order[]         @relation("OrderPersonnel")
 
   @@unique([tenantId, employeeCode])
   @@index([tenantId, fullName])

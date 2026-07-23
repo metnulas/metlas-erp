@@ -9,7 +9,7 @@ interface OrderDetailPageProps {
 }
 
 async function OrderContent({ id }: { id: string }) {
-  const tenantId = getCurrentTenantId();
+  const tenantId = await getCurrentTenantId();
   const orderService = createOrderService();
   const order = await orderService.getById(id, tenantId);
 
@@ -21,7 +21,7 @@ export default async function OrderDetailPage({ params }: OrderDetailPageProps) 
 
   let exists = false;
   try {
-    const tenantId = getCurrentTenantId();
+    const tenantId = await getCurrentTenantId();
     const orderService = createOrderService();
     await orderService.getById(id, tenantId);
     exists = true;

@@ -13,6 +13,7 @@ export interface FindManyParams {
 export interface ProductRepository {
   findMany(params: FindManyParams): Promise<Product[]>;
   count(where: Prisma.ProductWhereInput): Promise<number>;
+  findLowStockIds(tenantId: string): Promise<string[]>;
   findById(id: string, tenantId: string): Promise<ProductWithMovements | null>;
   findByCode(code: string, tenantId: string): Promise<Product | null>;
   create(data: Prisma.ProductCreateInput): Promise<Product>;
@@ -41,6 +42,11 @@ export function createProductRepository(): ProductRepository {
 
     async count(where) {
       return prisma.product.count({ where });
+    },
+
+    async findLowStockIds(tenantId) {
+      const rows = await prisma.$queryRaw<Array<{ id: string }>>`SELECT "id" FROM "Product" WHERE "tenantId" = ${tenantId} AND "deletedAt" IS NULL AND "stockQuantity" <= "minStockLevel"`;
+      return rows.map((row) => row.id);
     },
 
     async findById(id, tenantId) {

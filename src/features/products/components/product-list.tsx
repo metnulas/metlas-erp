@@ -40,7 +40,7 @@ export default function ProductList() {
     const result = await response.json();
     if (!response.ok) return toast.error(result.error?.message ?? "Ürün silinemedi");
     toast.success("Ürün silindi");
-    window.location.reload();
+    setProducts((current) => current.filter((product) => product.id !== id));
   }
 
   return <div className="space-y-6">

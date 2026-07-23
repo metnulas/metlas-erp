@@ -9,7 +9,7 @@ interface CustomerDetailPageProps {
 }
 
 async function CustomerContent({ id }: { id: string }) {
-  const tenantId = getCurrentTenantId();
+  const tenantId = await getCurrentTenantId();
   const customerService = createCustomerService();
   const customer = await customerService.getById(id, tenantId);
 
@@ -21,7 +21,7 @@ export default async function CustomerDetailPage({ params }: CustomerDetailPageP
 
   let exists = false;
   try {
-    const tenantId = getCurrentTenantId();
+    const tenantId = await getCurrentTenantId();
     const customerService = createCustomerService();
     await customerService.getById(id, tenantId);
     exists = true;

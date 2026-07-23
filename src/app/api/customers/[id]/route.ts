@@ -6,6 +6,7 @@ import { createCustomerService } from "@/features/customers/services/customer.se
 import { customerIdSchema, updateCustomerSchema } from "@/features/customers/validators/customer.schema";
 import type { ApiResponse } from "@/shared/types";
 import { AppError } from "@/server/errors/app-error";
+import { requirePermission } from "@/server/auth/authorization";
 
 const customerService = createCustomerService();
 
@@ -43,7 +44,7 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const tenantId = getCurrentTenantId();
+    const tenantId = await getCurrentTenantId();
     const { id } = await params;
     const { id: validId } = customerIdSchema.parse({ id });
 
@@ -65,7 +66,8 @@ export async function PUT(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const tenantId = getCurrentTenantId();
+    await requirePermission("customer:write");
+    const tenantId = await getCurrentTenantId();
     const { id } = await params;
     const body = await request.json();
     const input = updateCustomerSchema.parse({ ...body, id });
@@ -88,7 +90,8 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const tenantId = getCurrentTenantId();
+    await requirePermission("customer:write");
+    const tenantId = await getCurrentTenantId();
     const { id } = await params;
     const { id: validId } = customerIdSchema.parse({ id });
 

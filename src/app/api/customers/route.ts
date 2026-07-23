@@ -6,12 +6,13 @@ import { createCustomerService } from "@/features/customers/services/customer.se
 import { customerQuerySchema, createCustomerSchema } from "@/features/customers/validators/customer.schema";
 import type { ApiResponse } from "@/shared/types";
 import { AppError } from "@/server/errors/app-error";
+import { requirePermission } from "@/server/auth/authorization";
 
 const customerService = createCustomerService();
 
 export async function GET(request: NextRequest) {
   try {
-    const tenantId = getCurrentTenantId();
+    const tenantId = await getCurrentTenantId();
     const { searchParams } = new URL(request.url);
 
     const query = customerQuerySchema.parse({
@@ -63,7 +64,8 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const tenantId = getCurrentTenantId();
+    await requirePermission("customer:write");
+    const tenantId = await getCurrentTenantId();
     const body = await request.json();
     const input = createCustomerSchema.parse(body);
 

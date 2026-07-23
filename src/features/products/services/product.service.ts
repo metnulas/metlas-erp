@@ -37,7 +37,7 @@ export function createProductService(repository: ProductRepository = createProdu
       const where: Prisma.ProductWhereInput = { tenantId, deletedAt: null };
       if (isActive !== undefined) where.isActive = isActive;
       if (category) where.category = category;
-      if (lowStock) where.stockQuantity = { lte: 0 };
+      if (lowStock) where.id = { in: await repository.findLowStockIds(tenantId) };
       if (search) {
         where.OR = [
           { code: { contains: search, mode: "insensitive" } },

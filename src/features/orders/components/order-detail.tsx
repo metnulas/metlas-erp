@@ -3,9 +3,10 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Pencil, ArrowLeft, Package, Calendar, FileText } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
+import DeliveryAssignment from "@/features/deliveries/components/delivery-assignment";
 
 interface OrderDetailProps {
-  order: Order & { items: OrderItem[]; customer: Pick<Customer, "id" | "fullName" | "phone"> };
+  order: Order & { items: OrderItem[]; customer: Pick<Customer, "id" | "fullName" | "phone">; vehicle: { id: string; plate: string; code: string; type: string } | null; personnel: { id: string; fullName: string; employeeCode: string; phone: string } | null };
 }
 
 const statusLabels: Record<string, string> = {
@@ -125,6 +126,17 @@ export default function OrderDetail({ order }: OrderDetailProps) {
                 <p className="text-sm font-medium">{order.customer.phone}</p>
               </div>
             </div>
+          </section>
+
+          <section className="rounded-xl border border-border/70 bg-card p-6">
+            <DeliveryAssignment
+              orderId={order.id}
+              initialVehicleId={order.vehicle?.id}
+              initialPersonnelId={order.personnel?.id}
+              initialDate={order.deliveryDate}
+              initialNotes={order.deliveryNotes}
+              initialStatus={order.status}
+            />
           </section>
 
           <section className="rounded-xl border border-border/70 bg-card p-6">

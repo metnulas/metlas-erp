@@ -6,6 +6,7 @@ import { createOrderService } from "@/features/orders/services/order.service";
 import { orderIdSchema, updateOrderSchema } from "@/features/orders/validators/order.schema";
 import type { ApiResponse } from "@/shared/types";
 import { AppError } from "@/server/errors/app-error";
+import { requirePermission } from "@/server/auth/authorization";
 
 const orderService = createOrderService();
 
@@ -43,7 +44,8 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const tenantId = getCurrentTenantId();
+    await requirePermission("order:write");
+    const tenantId = await getCurrentTenantId();
     const { id } = await params;
     const { id: validId } = orderIdSchema.parse({ id });
 
@@ -65,7 +67,8 @@ export async function PUT(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const tenantId = getCurrentTenantId();
+    await requirePermission("order:write");
+    const tenantId = await getCurrentTenantId();
     const { id } = await params;
     const body = await request.json();
     const input = updateOrderSchema.parse({ ...body, id });
@@ -88,7 +91,8 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const tenantId = getCurrentTenantId();
+    await requirePermission("order:write");
+    const tenantId = await getCurrentTenantId();
     const { id } = await params;
     const { id: validId } = orderIdSchema.parse({ id });
 

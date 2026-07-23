@@ -65,6 +65,13 @@ function calculateTotals(
   return { totalAmount, grandTotal };
 }
 
+async function validateReferences(repository: OrderRepository, tenantId: string, customerId: string, items: Array<{ productId?: string | null }>) {
+  if (!(await repository.findCustomer(customerId, tenantId))) throw new AppError("Müşteri bulunamadı veya bu işletmeye ait değil", 400, "CUSTOMER_NOT_AVAILABLE");
+  const requestedProductIds = [...new Set(items.flatMap((item) => item.productId ? [item.productId] : []))];
+  const validProductIds = await repository.findProducts(requestedProductIds, tenantId);
+  if (validProductIds.length !== requestedProductIds.length) throw new AppError("Siparişte geçersiz veya pasif ürün bulundu", 400, "PRODUCT_NOT_AVAILABLE");
+}
+
 function buildSortOrder(
   sort: OrderQueryInput["sort"],
   order: OrderQueryInput["order"]
@@ -140,13 +147,13 @@ export function createOrderService(
       if (input.items.length === 0) {
         throw new AppError("En az bir ürün eklemelisiniz", 400, "ORDER_NO_ITEMS");
       }
+      if (input.status === "DELIVERED") throw new AppError("Teslim edilen sipariş dağıtım ekranından tamamlanmalıdır", 400, "DELIVERY_WORKFLOW_REQUIRED");
+      await validateReferences(repository, tenantId, input.customerId, input.items);
 
       const orderCode = await repository.nextOrderCode(tenantId);
       const { totalAmount, grandTotal } = calculateTotals(input.items, input.discount ?? 0);
 
-      const stockItems: StockItem[] = input.status === "DELIVERED"
-        ? input.items.map((item) => ({ productId: item.productId, quantity: item.quantity }))
-        : [];
+      const stockItems: StockItem[] = [];
 
       try {
         return await repository.create(
@@ -191,6 +198,8 @@ export function createOrderService(
       if (existing.status === "DELIVERED" || existing.status === "CANCELLED") {
         throw new AppError("Teslim edilmiş veya iptal edilmiş sipariş düzenlenemez", 400, "ORDER_IMMUTABLE");
       }
+      if (input.status === "DELIVERED") throw new AppError("Teslim edilen sipariş dağıtım ekranından tamamlanmalıdır", 400, "DELIVERY_WORKFLOW_REQUIRED");
+      if (input.customerId || input.items) await validateReferences(repository, tenantId, input.customerId ?? existing.customer.id, input.items ?? existing.items);
 
       const updateData: Prisma.OrderUpdateInput = {};
 
@@ -230,9 +239,7 @@ export function createOrderService(
       updateData.totalAmount = totalAmount;
       updateData.grandTotal = grandTotal;
 
-      const stockItems: StockItem[] = input.status === "DELIVERED"
-        ? (input.items ?? existing.items).map((item) => ({ productId: item.productId, quantity: item.quantity }))
-        : [];
+      const stockItems: StockItem[] = [];
 
       try {
         return await repository.update(id, tenantId, updateData, items, stockItems);

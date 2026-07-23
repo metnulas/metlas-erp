@@ -2,8 +2,8 @@
 
 import { usePathname } from "next/navigation";
 import Link from "next/link";
-import { useEffect } from "react";
-import { BarChart3, BriefcaseBusiness, LayoutDashboard, Package, ReceiptText, Truck, Users, Wallet, X } from "lucide-react";
+import { useEffect, useRef } from "react";
+import { BarChart3, BriefcaseBusiness, ClipboardList, LayoutDashboard, Package, ReceiptText, Truck, Users, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 const navigationItems = [
@@ -13,14 +13,15 @@ const navigationItems = [
   { label: "Ürünler", icon: Package, href: "/products" },
   { label: "Araçlar", icon: Truck, href: "/vehicles" },
   { label: "Personeller", icon: BriefcaseBusiness, href: "/personnel" },
-  { label: "Kasa", icon: Wallet, href: "#" },
-  { label: "Raporlar", icon: BarChart3, href: "#" },
+  { label: "Dağıtım", icon: ClipboardList, href: "/deliveries" },
+  { label: "Raporlar", icon: BarChart3, href: "/reports" },
 ];
 
 type SidebarProps = { isMobileMenuOpen: boolean; onClose: () => void };
 
 export default function Sidebar({ isMobileMenuOpen, onClose }: SidebarProps) {
   const pathname = usePathname();
+  const closeButtonRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
     if (isMobileMenuOpen) {
@@ -32,6 +33,14 @@ export default function Sidebar({ isMobileMenuOpen, onClose }: SidebarProps) {
       document.body.style.overflow = "";
     };
   }, [isMobileMenuOpen]);
+
+  useEffect(() => {
+    if (!isMobileMenuOpen) return;
+    closeButtonRef.current?.focus();
+    const handleKeyDown = (event: KeyboardEvent) => { if (event.key === "Escape") onClose(); };
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [isMobileMenuOpen, onClose]);
 
   useEffect(() => {
     onClose();
@@ -59,6 +68,7 @@ export default function Sidebar({ isMobileMenuOpen, onClose }: SidebarProps) {
             </div>
           </div>
           <Button
+            ref={closeButtonRef}
             aria-label="Menüyü kapat"
             className="size-8 text-slate-400 hover:bg-white/10 hover:text-white lg:hidden"
             onClick={onClose}

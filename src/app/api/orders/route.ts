@@ -6,12 +6,13 @@ import { createOrderService } from "@/features/orders/services/order.service";
 import { orderQuerySchema, createOrderSchema } from "@/features/orders/validators/order.schema";
 import type { ApiResponse } from "@/shared/types";
 import { AppError } from "@/server/errors/app-error";
+import { requirePermission } from "@/server/auth/authorization";
 
 const orderService = createOrderService();
 
 export async function GET(request: NextRequest) {
   try {
-    const tenantId = getCurrentTenantId();
+    const tenantId = await getCurrentTenantId();
     const { searchParams } = new URL(request.url);
 
     const query = orderQuerySchema.parse({
@@ -65,7 +66,8 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const tenantId = getCurrentTenantId();
+    await requirePermission("order:write");
+    const tenantId = await getCurrentTenantId();
     const body = await request.json();
     const input = createOrderSchema.parse(body);
 

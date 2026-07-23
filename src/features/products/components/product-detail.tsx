@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { ArrowLeft, Edit, PackagePlus } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -16,6 +17,7 @@ type ProductDetailData = Omit<Product, "salePrice" | "purchasePrice" | "depositA
 };
 
 export default function ProductDetail({ product }: { product: ProductDetailData }) {
+  const router = useRouter();
   const [quantity, setQuantity] = useState(1);
   const [type, setType] = useState("PURCHASE");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -26,7 +28,7 @@ export default function ProductDetail({ product }: { product: ProductDetailData 
       const response = await fetch(`/api/products/${product.id}/stock`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ type, quantity: type === "SALE" || type === "ORDER" ? -Math.abs(quantity) : Math.abs(quantity) }) });
       const result = await response.json();
       if (!response.ok) throw new Error(result.error?.message ?? "Stok güncellenemedi");
-      toast.success("Stok güncellendi"); window.location.reload();
+      toast.success("Stok güncellendi"); router.refresh();
     } catch (error) { toast.error(error instanceof Error ? error.message : "Stok güncellenemedi"); } finally { setIsSubmitting(false); }
   }
 

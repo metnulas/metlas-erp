@@ -1,4 +1,5 @@
-import { PrismaClient, OrderStatus } from "@prisma/client";
+import { PrismaClient, OrderStatus, UserRole } from "@prisma/client";
+import { hashPassword } from "../src/lib/auth-password";
 
 const prisma = new PrismaClient();
 
@@ -20,6 +21,12 @@ async function main() {
       city: "İstanbul",
       district: "Kadıköy",
     },
+  });
+
+  await prisma.user.upsert({
+    where: { email: "admin@metlas.local" },
+    update: { tenantId: tenant.id, name: "Metin Yılmaz", role: UserRole.ADMIN, isActive: true, passwordHash: await hashPassword(process.env.METLAS_SEED_ADMIN_PASSWORD ?? "Metlas123!") },
+    create: { tenantId: tenant.id, email: "admin@metlas.local", name: "Metin Yılmaz", role: UserRole.ADMIN, passwordHash: await hashPassword(process.env.METLAS_SEED_ADMIN_PASSWORD ?? "Metlas123!") },
   });
 
   const damacana = await prisma.product.upsert({
