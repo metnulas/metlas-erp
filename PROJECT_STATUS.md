@@ -95,7 +95,7 @@ V1 genel tamamlanma: **yaklaşık %68**. Bu oran kod kapsamına dayalı teknik t
 
 ## Son Commit
 
-`1e45ad5` — `feat: turn dashboard into V1 operations center`
+`8229287` — `feat: add METLAS ERP branding logo`
 
 ## Tarih
 
