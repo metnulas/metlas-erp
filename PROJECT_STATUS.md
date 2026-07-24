@@ -70,7 +70,7 @@ V1 genel tamamlanma: **yaklaşık %68**. Bu oran kod kapsamına dayalı teknik t
 
 ## Son Commit
 
-Bu aşamanın commit hash'i commit sonrasında yazılacaktır.
+`8bc14ae` — `refactor: complete V1 stage 1 standardization`
 
 ## Tarih
 
