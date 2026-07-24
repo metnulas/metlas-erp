@@ -10,6 +10,7 @@ import OrderFilters from "./order-filters";
 import { getOrderColumns, type OrderRow } from "./order-table";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
+import { ORDER_STATUS_LABELS, ORDER_STATUS_STYLES } from "@/shared/constants/order-status";
 
 interface OrderListData {
   data: OrderRow[];
@@ -130,13 +131,11 @@ export default function OrderList() {
 
   const columns = getOrderColumns({ onDelete: handleDelete });
   const renderMobileOrderCard = (order: OrderRow) => {
-    const statusLabels: Record<string, string> = { PENDING: "Beklemede", CONFIRMED: "Onaylandı", DELIVERING: "Teslimatta", DELIVERED: "Teslim Edildi", CANCELLED: "İptal" };
-    const statusStyles: Record<string, string> = { PENDING: "bg-amber-50 text-amber-700", CONFIRMED: "bg-blue-50 text-blue-700", DELIVERING: "bg-purple-50 text-purple-700", DELIVERED: "bg-emerald-50 text-emerald-700", CANCELLED: "bg-muted text-muted-foreground" };
     return (
       <article className="rounded-2xl border border-border/70 bg-card p-4 shadow-sm">
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0"><Link href={`/orders/${order.id}`} className="block truncate font-mono text-sm font-semibold hover:text-primary">{order.orderCode}</Link><p className="mt-1 truncate text-sm text-muted-foreground">{order.customer.fullName}</p></div>
-          <span className={`shrink-0 rounded-full px-2 py-1 text-[11px] font-medium ${statusStyles[order.status] ?? "bg-muted text-muted-foreground"}`}>{statusLabels[order.status] ?? order.status}</span>
+           <span className={`shrink-0 rounded-full px-2 py-1 text-[11px] font-medium ${ORDER_STATUS_STYLES[order.status] ?? "bg-muted text-muted-foreground"}`}>{ORDER_STATUS_LABELS[order.status] ?? order.status}</span>
         </div>
         <div className="mt-4 grid grid-cols-2 gap-2">
           <div className="rounded-xl bg-muted/40 p-3"><p className="text-[11px] text-muted-foreground">Sipariş tarihi</p><p className="mt-1 text-sm font-semibold">{new Date(order.orderDate).toLocaleDateString("tr-TR")}</p></div>

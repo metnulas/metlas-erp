@@ -52,12 +52,15 @@ export default function Sidebar({ isMobileMenuOpen, onClose }: SidebarProps) {
         <button
           type="button"
           aria-label="Menüyü kapat"
-          className="fixed inset-0 z-40 border-0 bg-slate-950/60 p-0 lg:hidden"
+           className="fixed inset-0 z-40 border-0 bg-slate-950/60 p-0 transition-opacity lg:hidden"
           onClick={onClose}
         />
       )}
       <aside
-        className={`fixed inset-y-0 left-0 z-50 flex w-72 flex-col border-r border-white/10 bg-slate-950 px-4 py-5 text-slate-300 shadow-2xl transition-transform duration-300 ease-in-out lg:translate-x-0 ${isMobileMenuOpen ? "translate-x-0" : "-translate-x-full"}`}
+       className={`fixed inset-y-0 left-0 z-50 flex w-72 flex-col border-r border-white/10 bg-slate-950 px-4 py-5 text-slate-300 shadow-2xl transition-transform duration-300 ease-in-out lg:translate-x-0 ${isMobileMenuOpen ? "translate-x-0" : "-translate-x-full"}`}
+        role="dialog"
+        aria-modal={isMobileMenuOpen}
+        aria-label="Ana navigasyon"
       >
         <div className="mb-8 flex items-center justify-between px-2">
           <div className="flex items-center gap-3">

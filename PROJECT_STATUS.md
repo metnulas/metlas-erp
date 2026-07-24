@@ -1,52 +1,71 @@
 # METLAS ERP Proje Durumu
 
-## Genel Durum
+## Version
 
-- Sprint 1 — Dashboard: Tamamlandı.
-- Sprint 2 — Profesyonel altyapı ve Customer modülü: Tamamlandı.
+`METLAS ERP v1.0 Stable` geliştirme protokolü aktif. Proje şu anda **AŞAMA 1 — Kod temizliği, UI standardizasyonu ve responsive temel** aşamasındadır.
 
-## Tamamlananlar
+## Tamamlanan Aşamalar
 
-### Sprint 1 — Dashboard
+- Önceki sprint altyapısı: Prisma, PostgreSQL/Neon, Zod, React Hook Form, TanStack Table, NextAuth ve tenant modeli.
+- Customer ve Order temel CRUD akışları.
+- Product/Stock, Vehicle, Personnel ve Delivery temel akışları.
+- Dashboard, Reports ve mobil sidebar erişimi.
+- Authentication, JWT session ve temel rol/permission altyapısı.
 
-- Dashboard arayüzü, responsive düzen ve tema desteği.
+## AŞAMA 1 Durumu
 
-### Sprint 2 — Altyapı
+**Durum:** Büyük ölçüde tamamlandı; son doğrulama ve commit aşamasında.
 
-- Prisma, PostgreSQL, Zod, React Hook Form, TanStack Table, Sonner ve Auth.js bağımlılıkları.
-- Çok kiracılı `Tenant` ve `Customer` başlangıç veritabanı şeması.
-- İlk SQL migration, Prisma seed ve environment şablonu.
-- Veritabanı istemcisi, tenant bağlamı, uygulama hatası ve yapılandırılmış günlükleme temelleri.
+### Yapılan değişiklikler
 
-### Customer Modülü (Enterprise Seviye)
+- Ortak `Field`, `Textarea` ve `Select` UI primitive'leri eklendi.
+- Product ve Vehicle formları ortak field/select/textarea sistemine geçirildi.
+- Order durum label/style haritaları tek ortak sabite taşındı.
+- API hata yönetimi için merkezi `handleApiError` yardımcı işlevi eklendi ve stok endpoint'inde kullanıldı.
+- Customer repository update işlemine explicit `tenantId` kapsamı eklendi.
+- Global `error.tsx` ve `loading.tsx` eklendi.
+- Header'daki işlevsiz Profilim, Ayarlar ve statik bildirim öğeleri kaldırıldı.
+- Sidebar'a mobil dialog semantiği ve backdrop geçişi eklendi.
+- Kullanılmayan scaffold SVG'leri ve runtime log/pid kalıntıları kaldırıldı.
+- Log ve pid dosyaları `.gitignore` kapsamına alındı.
 
-- **Veritabanı**: Soft delete (`deletedAt`), audit alanları (`createdBy`, `updatedBy`), indeks optimizasyonu.
-- **Repository Pattern**: Prisma tabanlı, tenant izolasyonlu veri erişim katmanı.
-- **Service Layer**: İş mantığı, validasyon, hata yönetimi.
-- **Zod Validation**: Oluşturma, güncelleme, sorgulama şemaları.
-- **REST API**:
-  - `GET /api/customers` — Listeleme, sayfalama, arama, filtreleme, sıralama.
-  - `POST /api/customers` — Oluşturma (müşteri kodu benzersizliği kontrolü).
-  - `GET /api/customers/[id]` — Detay.
-  - `PUT /api/customers/[id]` — Güncelleme.
-  - `DELETE /api/customers/[id]` — Soft delete.
-- **UI Bileşenleri**: DataTable, CustomerForm, CustomerDetail, CustomerFilters.
-- **Sayfalar**: Liste, Yeni, Detay, Düzenleme.
-- **Sidebar**: Dinamik linkler, aktif sayfa durumu.
-- **Shared Altyapı**: Tipler, hook'lar, tekrar kullanılabilir bileşenler.
-- **Build**: `npm run build` ve `npm run lint` başarıyla geçiyor.
+### Doğrulama
 
-## Yapılacaklar (Sonraki Sprint)
+- `npx tsc --noEmit`: başarılı.
+- `npm run build`: başarılı.
+- `npm run lint`: 0 hata, React Hook Form ve TanStack Table kaynaklı 2 bilgilendirici uyarı.
 
-- Auth.js ile gerçek oturum ve tenant bağlamı.
-- Ürün/Proje modülü.
-- Sipariş modülü.
-- Araç modülü.
-- Personel modülü.
-- Kasa modülü.
-- Raporlama modülü.
-- Gerçek PostgreSQL bağlantısıyla migration ve seed çalıştırılması.
+## Kalan AŞAMA 1 işleri
 
-## Bağlantı Notu
+- Tüm listelerin ortak pagination/search standardına geçirilmesi.
+- Tüm formlarda ortak `Textarea`, `Select` ve field düzeninin tamamlanması.
+- API route'larının tamamının merkezi error handler'a geçirilmesi.
+- Mobil gerçek cihaz/viewport kabul testlerinin yapılması.
+- Detay sayfaları ve liste ekranlarında kalan görsel tutarsızlıkların temizlenmesi.
+- Sayfa metadata'larının modül bazında tamamlanması.
 
-`.env` dosyası oluşturuldu. Gerçek `DATABASE_URL` girildiğinde `npx prisma migrate dev` ile migration uygulanabilir.
+## Bilinen Sorunlar
+
+- Next.js 16 middleware convention için `proxy` deprecation uyarısı veriyor.
+- React Compiler, React Hook Form ve TanStack Table kullanımını memoization açısından uyarıyor.
+- Kapsamlı unit, integration ve e2e test altyapısı henüz yok.
+- Cookie varlığına dayalı middleware kontrolü token imzasını/expiry'sini doğrulamıyor.
+- Tahsilat, Kasa ve Ayarlar modülleri henüz uygulanmadı.
+
+## Sonraki Aşama
+
+**AŞAMA 2 — Dashboard'u gerçek operasyon merkezine dönüştürme.**
+
+Kapsam: KPI'lar, hızlı işlemler, kritik stok, bekleyen tahsilatlar için V1 hazırlığı, yaklaşan belge tarihleri, son işlemler ve mobil operasyon görünümü.
+
+## Tamamlanma
+
+V1 genel tamamlanma: **yaklaşık %68**. Bu oran kod kapsamına dayalı teknik tahmindir; ticari kabul oranı değildir.
+
+## Son Commit
+
+Bu aşamanın commit hash'i commit sonrasında yazılacaktır.
+
+## Tarih
+
+24 Temmuz 2026

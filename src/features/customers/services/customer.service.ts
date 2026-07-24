@@ -179,7 +179,7 @@ export function createCustomerService(
         updatedBy: userId ?? null,
       };
 
-      return repository.update(id, updateData);
+      return repository.update(id, tenantId, updateData);
     },
 
     async softDelete(id, tenantId) {

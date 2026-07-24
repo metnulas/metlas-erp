@@ -4,26 +4,11 @@ import { Button } from "@/components/ui/button";
 import { Pencil, ArrowLeft, Package, Calendar, FileText } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import DeliveryAssignment from "@/features/deliveries/components/delivery-assignment";
+import { ORDER_STATUS_LABELS, ORDER_STATUS_STYLES } from "@/shared/constants/order-status";
 
 interface OrderDetailProps {
   order: Order & { items: OrderItem[]; customer: Pick<Customer, "id" | "fullName" | "phone">; vehicle: { id: string; plate: string; code: string; type: string } | null; personnel: { id: string; fullName: string; employeeCode: string; phone: string } | null };
 }
-
-const statusLabels: Record<string, string> = {
-  PENDING: "Beklemede",
-  CONFIRMED: "Onaylandı",
-  DELIVERING: "Teslimatta",
-  DELIVERED: "Teslim Edildi",
-  CANCELLED: "İptal",
-};
-
-const statusStyles: Record<string, string> = {
-  PENDING: "bg-amber-50 text-amber-700 ring-1 ring-amber-600/20",
-  CONFIRMED: "bg-blue-50 text-blue-700 ring-1 ring-blue-600/20",
-  DELIVERING: "bg-purple-50 text-purple-700 ring-1 ring-purple-600/20",
-  DELIVERED: "bg-emerald-50 text-emerald-700 ring-1 ring-emerald-600/20",
-  CANCELLED: "bg-gray-50 text-gray-600 ring-1 ring-gray-500/20",
-};
 
 export default function OrderDetail({ order }: OrderDetailProps) {
   return (
@@ -55,8 +40,8 @@ export default function OrderDetail({ order }: OrderDetailProps) {
               </div>
               <div className="space-y-1">
                 <p className="text-sm text-muted-foreground">Durum</p>
-                <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${statusStyles[order.status] ?? ""}`}>
-                  {statusLabels[order.status] ?? order.status}
+                <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${ORDER_STATUS_STYLES[order.status] ?? ""}`}>
+                  {ORDER_STATUS_LABELS[order.status] ?? order.status}
                 </span>
               </div>
               <div className="space-y-1">

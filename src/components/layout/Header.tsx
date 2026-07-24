@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { signOut, useSession } from "next-auth/react";
-import { Bell, ChevronDown, LogOut, Menu, Moon, Search, Settings, Sun, UserRound } from "lucide-react";
+import { ChevronDown, LogOut, Menu, Moon, Search, Sun } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuGroup, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
@@ -34,7 +34,6 @@ export default function Header({ onMenuClick }: HeaderProps) {
       </div>
       <div className="ml-auto flex items-center gap-1.5 sm:gap-2">
         <Button aria-label={isDark ? "Aydınlık temaya geç" : "Karanlık temaya geç"} onClick={toggleTheme} size="icon" variant="ghost">{isDark ? <Sun /> : <Moon />}</Button>
-        <Button aria-label="Bildirimler" className="relative" size="icon" variant="ghost"><Bell /><span className="absolute top-1.5 right-1.5 size-2 rounded-full bg-primary ring-2 ring-background" /></Button>
         <DropdownMenu>
           <DropdownMenuTrigger aria-label="Kullanıcı menüsünü aç" className="ml-1 inline-flex items-center gap-2 rounded-lg p-1 outline-none transition-colors hover:bg-muted focus-visible:ring-3 focus-visible:ring-ring/50">
             <Avatar className="bg-primary text-primary-foreground"><AvatarFallback className="bg-primary text-xs font-semibold text-primary-foreground">{(session?.user?.name ?? "M").slice(0, 2).toUpperCase()}</AvatarFallback></Avatar>
@@ -43,8 +42,7 @@ export default function Header({ onMenuClick }: HeaderProps) {
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-52">
              <DropdownMenuGroup><DropdownMenuLabel>Hesabım</DropdownMenuLabel></DropdownMenuGroup><DropdownMenuSeparator />
-            <DropdownMenuItem><UserRound /> Profilim</DropdownMenuItem><DropdownMenuItem><Settings /> Ayarlar</DropdownMenuItem>
-            <DropdownMenuSeparator /><DropdownMenuItem variant="destructive" onClick={() => signOut({ callbackUrl: "/login" })}><LogOut /> Çıkış yap</DropdownMenuItem>
+             <DropdownMenuSeparator /><DropdownMenuItem variant="destructive" onClick={() => signOut({ callbackUrl: "/login" })}><LogOut /> Çıkış yap</DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       </div>

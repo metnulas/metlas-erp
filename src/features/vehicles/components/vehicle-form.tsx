@@ -7,7 +7,10 @@ import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { Loader2, Save, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Field } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
+import { Select } from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
 import type { Vehicle } from "@prisma/client";
 import { createVehicleSchema, type CreateVehicleInput } from "../validators/vehicle.schema";
 
@@ -48,11 +51,10 @@ export default function VehicleForm({ initialData, mode }: { initialData?: Vehic
       <Field label="Kapasite" error={errorText("capacity")}><Input type="number" min="0" {...register("capacity")} /></Field>
       <Field label="Kapasite Birimi" error={errorText("capacityUnit")}><Input placeholder="ADET" {...register("capacityUnit")} /></Field>
       <Field label="Kilometre" error={errorText("mileage")}><Input type="number" min="0" {...register("mileage")} /></Field>
-      <Field label="Durum" error={errorText("status")}><select className="flex h-8 w-full rounded-lg border border-input bg-transparent px-2.5 text-sm" {...register("status")}><option value="ACTIVE">Aktif</option><option value="MAINTENANCE">Bakımda</option><option value="INACTIVE">Pasif</option></select></Field>
+       <Field label="Durum" error={errorText("status")}><Select {...register("status")}><option value="ACTIVE">Aktif</option><option value="MAINTENANCE">Bakımda</option><option value="INACTIVE">Pasif</option></Select></Field>
     </div></section>
-    <section className="rounded-xl border border-border/70 bg-card p-6"><h2 className="mb-6 text-lg font-semibold">Belge Takibi</h2><div className="grid gap-4 sm:grid-cols-2"><Field label="Muayene Tarihi" error={errorText("inspectionDate")}><Input type="date" {...register("inspectionDate")} /></Field><Field label="Sigorta Tarihi" error={errorText("insuranceDate")}><Input type="date" {...register("insuranceDate")} /></Field></div><label htmlFor="vehicle-notes" className="mt-4 block text-sm font-medium">Notlar</label><textarea id="vehicle-notes" rows={4} className="mt-1 flex w-full rounded-lg border border-input bg-transparent px-3 py-2 text-sm focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50" {...register("notes")} /></section>
+     <section className="rounded-xl border border-border/70 bg-card p-6"><h2 className="mb-6 text-lg font-semibold">Belge Takibi</h2><div className="grid gap-4 sm:grid-cols-2"><Field label="Muayene Tarihi" error={errorText("inspectionDate")}><Input type="date" {...register("inspectionDate")} /></Field><Field label="Sigorta Tarihi" error={errorText("insuranceDate")}><Input type="date" {...register("insuranceDate")} /></Field></div><label htmlFor="vehicle-notes" className="mt-4 block text-sm font-medium">Notlar</label><Textarea id="vehicle-notes" rows={4} className="mt-1" {...register("notes")} /></section>
     <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end"><Button className="w-full sm:w-auto" type="button" variant="outline" onClick={() => router.back()} disabled={isSubmitting}><X className="size-4" /> İptal</Button><Button className="w-full sm:w-auto" type="submit" disabled={isSubmitting}>{isSubmitting ? <Loader2 className="size-4 animate-spin" /> : <Save className="size-4" />}{mode === "edit" ? "Güncelle" : "Oluştur"}</Button></div>
   </form>;
 }
 
-function Field({ label, error, children }: { label: string; error?: string; children: React.ReactNode }) { return <div className="space-y-1.5"><label className="text-sm font-medium">{label}</label>{children}{error && <p className="text-xs text-destructive">{error}</p>}</div>; }

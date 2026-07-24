@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import EmptyState from "@/shared/components/empty-state";
 import DeliveryAssignment from "./delivery-assignment";
+import { ORDER_STATUS_LABELS, ORDER_STATUS_STYLES } from "@/shared/constants/order-status";
 
 type Delivery = {
   id: string;
@@ -18,9 +19,6 @@ type Delivery = {
   vehicle: { id: string; plate: string } | null;
   personnel: { id: string; fullName: string } | null;
 };
-
-const statusLabels: Record<string, string> = { PENDING: "Beklemede", CONFIRMED: "Onaylandı", DELIVERING: "Teslimatta" };
-const statusStyles: Record<string, string> = { PENDING: "bg-amber-50 text-amber-700", CONFIRMED: "bg-blue-50 text-blue-700", DELIVERING: "bg-purple-50 text-purple-700" };
 
 function today() { return new Date().toISOString().slice(0, 10); }
 
@@ -61,7 +59,7 @@ export default function DeliveryList() {
             <article key={item.id} className="rounded-2xl border border-border/70 bg-card p-4 shadow-sm">
               <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
                 <div className="min-w-0 flex-1">
-                  <div className="flex flex-wrap items-center gap-2"><Link href={`/orders/${item.id}`} className="font-mono text-sm font-semibold hover:text-primary">{item.orderCode}</Link><span className={`rounded-full px-2 py-1 text-[11px] font-medium ${statusStyles[item.status] ?? "bg-muted text-muted-foreground"}`}>{statusLabels[item.status] ?? item.status}</span>{!item.deliveryDate && <span className="rounded-full bg-orange-50 px-2 py-1 text-[11px] font-medium text-orange-700">Planlanmamış</span>}</div>
+                   <div className="flex flex-wrap items-center gap-2"><Link href={`/orders/${item.id}`} className="font-mono text-sm font-semibold hover:text-primary">{item.orderCode}</Link><span className={`rounded-full px-2 py-1 text-[11px] font-medium ${ORDER_STATUS_STYLES[item.status] ?? "bg-muted text-muted-foreground"}`}>{ORDER_STATUS_LABELS[item.status] ?? item.status}</span>{!item.deliveryDate && <span className="rounded-full bg-orange-50 px-2 py-1 text-[11px] font-medium text-orange-700">Planlanmamış</span>}</div>
                   <p className="mt-2 text-base font-semibold">{item.customer.fullName}</p>
                   <p className="mt-1 flex items-center gap-1 text-sm text-muted-foreground"><MapPin className="size-3.5" />{item.customer.district || item.customer.address || "Adres girilmemiş"}</p>
                   <div className="mt-3 flex flex-wrap gap-3 text-xs text-muted-foreground"><span className="flex items-center gap-1"><Truck className="size-3.5" />{item.vehicle?.plate || "Araç atanmamış"}</span><span className="flex items-center gap-1"><UserRound className="size-3.5" />{item.personnel?.fullName || "Personel atanmamış"}</span></div>

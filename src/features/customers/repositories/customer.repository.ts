@@ -14,7 +14,7 @@ export interface CustomerRepository {
   findById(id: string, tenantId: string): Promise<Customer | null>;
   findByCode(customerCode: string, tenantId: string): Promise<Customer | null>;
   create(data: Prisma.CustomerCreateInput): Promise<Customer>;
-  update(id: string, data: Prisma.CustomerUpdateInput): Promise<Customer>;
+  update(id: string, tenantId: string, data: Prisma.CustomerUpdateInput): Promise<Customer>;
   softDelete(id: string, tenantId: string): Promise<Customer>;
 }
 
@@ -49,9 +49,9 @@ export function createCustomerRepository(): CustomerRepository {
       return prisma.customer.create({ data });
     },
 
-    async update(id, data) {
+    async update(id, tenantId, data) {
       return prisma.customer.update({
-        where: { id },
+        where: { id, tenantId },
         data,
       });
     },

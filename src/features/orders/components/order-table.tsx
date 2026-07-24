@@ -11,6 +11,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { ORDER_STATUS_LABELS, ORDER_STATUS_STYLES } from "@/shared/constants/order-status";
 
 export interface OrderRow {
   id: string;
@@ -26,22 +27,6 @@ export interface OrderRow {
   items: Array<{ id: string; productName: string; quantity: number; unitPrice: number; total: number }>;
   createdAt: string;
 }
-
-const statusLabels: Record<string, string> = {
-  PENDING: "Beklemede",
-  CONFIRMED: "Onaylandı",
-  DELIVERING: "Teslimatta",
-  DELIVERED: "Teslim Edildi",
-  CANCELLED: "İptal",
-};
-
-const statusStyles: Record<string, string> = {
-  PENDING: "bg-amber-50 text-amber-700 ring-1 ring-amber-600/20",
-  CONFIRMED: "bg-blue-50 text-blue-700 ring-1 ring-blue-600/20",
-  DELIVERING: "bg-purple-50 text-purple-700 ring-1 ring-purple-600/20",
-  DELIVERED: "bg-emerald-50 text-emerald-700 ring-1 ring-emerald-600/20",
-  CANCELLED: "bg-gray-50 text-gray-600 ring-1 ring-gray-500/20",
-};
 
 interface OrderTableColumnsProps {
   onDelete: (id: string) => void;
@@ -102,8 +87,8 @@ export function getOrderColumns({ onDelete }: OrderTableColumnsProps): ColumnDef
       cell: ({ row }) => {
         const status = row.getValue("status") as string;
         return (
-          <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${statusStyles[status] ?? ""}`}>
-            {statusLabels[status] ?? status}
+          <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${ORDER_STATUS_STYLES[status] ?? ""}`}>
+            {ORDER_STATUS_LABELS[status] ?? status}
           </span>
         );
       },

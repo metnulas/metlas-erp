@@ -7,7 +7,9 @@ import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { Loader2, Save, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Field } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { createProductSchema, type CreateProductInput } from "../validators/product.schema";
 import type { Product } from "@prisma/client";
 
@@ -87,7 +89,7 @@ export default function ProductForm({ initialData, mode }: { initialData?: Produ
       </section>
       <section className="rounded-xl border border-border/70 bg-card p-6">
         <label htmlFor="description" className="mb-2 block text-sm font-medium">Açıklama</label>
-        <textarea id="description" rows={4} className="flex w-full rounded-lg border border-input bg-transparent px-3 py-2 text-sm placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50" {...register("description")} />
+        <Textarea id="description" rows={4} {...register("description")} />
         {errors.description && <p className="mt-1 text-xs text-destructive">{errors.description.message}</p>}
       </section>
       <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
@@ -98,6 +100,3 @@ export default function ProductForm({ initialData, mode }: { initialData?: Produ
   );
 }
 
-function Field({ label, error, children }: { label: string; error?: string; children: React.ReactNode }) {
-  return <div className="space-y-1.5"><label className="text-sm font-medium">{label}</label>{children}{error && <p className="text-xs text-destructive">{error}</p>}</div>;
-}
