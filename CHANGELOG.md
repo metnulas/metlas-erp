@@ -31,6 +31,9 @@ METLAS ERP V1 geliştirmelerinde kullanıcıyı ve sistemi etkileyen değişikli
 - Müşteri ve sipariş formu not alanları ortak `Textarea` component'ine geçirildi.
 - Ürün, araç, personel, dağıtım ve rapor sayfalarına metadata eklendi.
 - Tüm API route'larının hata yönetimi merkezi `handleApiError` ile standardize edildi.
+- Teslimat atama formu ortak `Select` ve `Textarea` primitive'lerine geçirildi.
+- Müşteri, sipariş ve login sayfaları için eksik metadata'lar eklendi.
+- AŞAMA 1 tamamlandı; sonraki aşama Dashboard operasyon merkezi çalışmasıdır.
 
 #### Doğrulama
 

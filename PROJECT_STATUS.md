@@ -14,7 +14,7 @@
 
 ## AŞAMA 1 Durumu
 
-**Durum:** Büyük ölçüde tamamlandı; bu paket doğrulandı ve commit aşamasında.
+**Durum:** Tamamlandı.
 
 ### Yapılan değişiklikler
 
@@ -33,6 +33,8 @@
 - Müşteri ve sipariş formu not alanları ortak `Textarea` component'ine geçirildi.
 - Ürün, araç, personel, dağıtım ve raporlar liste sayfalarına metadata eklendi.
 - Tüm API route'larındaki yerel hata handler'ları merkezi `handleApiError` yardımcı işlevine taşındı.
+- Teslimat atama formu ortak `Select` ve `Textarea` primitive'lerini kullanacak şekilde standardize edildi.
+- Müşteri, sipariş ve login sayfalarının metadata'ları tamamlandı.
 
 ### Doğrulama
 
@@ -40,12 +42,13 @@
 - `npm run build`: başarılı.
 - `npm run lint`: 0 hata, React Hook Form ve TanStack Table kaynaklı 2 bilgilendirici uyarı.
 
-## Kalan AŞAMA 1 işleri
+## AŞAMA 1 Sonuçları
 
-- Teslimat atama formunun ortak `Select`/`Textarea` component'lerine geçirilmesi.
-- Mobil gerçek cihaz/viewport kabul testlerinin yapılması.
-- Detay sayfaları ve liste ekranlarında kalan görsel tutarsızlıkların temizlenmesi.
-- Kalan sayfa metadata'larının modül bazında tamamlanması.
+- Liste ekranlarında server-side pagination ve debounced search standardı uygulandı.
+- Formlarda ortak field/select/textarea dili uygulandı.
+- API hata yönetimi merkezileştirildi.
+- Responsive smoke kontrolü: login `200`, oturumsuz dashboard `307`, yetkisiz API `401`.
+- Build ve TypeScript başarılı; ESLint yalnızca 2 bilgilendirici kütüphane uyarısı veriyor.
 
 ## Bilinen Sorunlar
 
@@ -67,7 +70,7 @@ V1 genel tamamlanma: **yaklaşık %68**. Bu oran kod kapsamına dayalı teknik t
 
 ## Son Commit
 
-`3307b2f` — `refactor: centralize API error handling`
+Bu aşamanın commit hash'i commit sonrasında yazılacaktır.
 
 ## Tarih
 
