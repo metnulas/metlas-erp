@@ -27,6 +27,9 @@ METLAS ERP V1 geliştirmelerinde kullanıcıyı ve sistemi etkileyen değişikli
 - Kullanılmayan create-next-app public SVG dosyaları kaldırıldı.
 - Runtime log ve pid kalıntıları kaldırıldı.
 - Stok endpoint'i merkezi API error handler kullanacak şekilde sadeleştirildi.
+- Ürün, araç ve personel listelerine server-side pagination ve debounced search eklendi.
+- Müşteri ve sipariş formu not alanları ortak `Textarea` component'ine geçirildi.
+- Ürün, araç, personel, dağıtım ve rapor sayfalarına metadata eklendi.
 
 #### Doğrulama
 

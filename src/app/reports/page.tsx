@@ -4,6 +4,9 @@ import DashboardLayout from "@/components/layout/DashboardLayout";
 import { Button } from "@/components/ui/button";
 import { createDashboardService } from "@/features/dashboard/services/dashboard.service";
 import { getCurrentTenantId } from "@/server/tenancy/tenant-context";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = { title: "Raporlar | METLAS ERP", description: "Operasyon raporlarını inceleyin" };
 
 export default async function ReportsPage() {
   const summary = await createDashboardService().getSummary(await getCurrentTenantId());

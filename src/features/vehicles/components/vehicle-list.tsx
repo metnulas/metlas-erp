@@ -7,15 +7,57 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import EmptyState from "@/shared/components/empty-state";
+import Pagination from "@/shared/components/pagination";
+import { useDebounce } from "@/shared/hooks/use-debounce";
 
 type VehicleRow = { id: string; code: string; plate: string; type: string; brand: string | null; model: string | null; capacity: number; capacityUnit: string; mileage: number; status: string };
-const statusLabels: Record<string, string> = { ACTIVE: "Aktif", MAINTENANCE: "Bakımda", INACTIVE: "Pasif" };
-const statusStyles: Record<string, string> = { ACTIVE: "bg-emerald-50 text-emerald-700", MAINTENANCE: "bg-amber-50 text-amber-700", INACTIVE: "bg-muted text-muted-foreground" };
+const labels: Record<string, string> = { ACTIVE: "Aktif", MAINTENANCE: "Bakımda", INACTIVE: "Pasif" };
+const styles: Record<string, string> = { ACTIVE: "bg-emerald-50 text-emerald-700", MAINTENANCE: "bg-amber-50 text-amber-700", INACTIVE: "bg-muted text-muted-foreground" };
 
 export default function VehicleList() {
-  const [vehicles, setVehicles] = useState<VehicleRow[]>([]); const [search, setSearch] = useState(""); const [isLoading, setIsLoading] = useState(true);
-  useEffect(() => { const controller = new AbortController(); (async () => { try { const response = await fetch(`/api/vehicles?pageSize=100${search ? `&search=${encodeURIComponent(search)}` : ""}`, { signal: controller.signal }); const result = await response.json(); if (!response.ok) throw new Error(result.error?.message ?? "Araçlar yüklenemedi"); setVehicles(result.data.data); } catch (error) { if (error instanceof DOMException && error.name === "AbortError") return; toast.error(error instanceof Error ? error.message : "Araçlar yüklenemedi"); } finally { if (!controller.signal.aborted) setIsLoading(false); } })(); return () => controller.abort(); }, [search]);
-  async function deleteVehicle(id: string) { if (!confirm("Bu aracı silmek istediğinizden emin misiniz?")) return; const response = await fetch(`/api/vehicles/${id}`, { method: "DELETE" }); const result = await response.json(); if (!response.ok) return toast.error(result.error?.message ?? "Araç silinemedi"); setVehicles((current) => current.filter((vehicle) => vehicle.id !== id)); toast.success("Araç silindi"); }
-  const card = (vehicle: VehicleRow) => <article key={vehicle.id} className="rounded-2xl border border-border/70 bg-card p-4 shadow-sm"><div className="flex items-start justify-between gap-3"><div className="min-w-0"><p className="font-mono text-xs text-muted-foreground">{vehicle.code}</p><Link href={`/vehicles/${vehicle.id}`} className="mt-1 block truncate text-base font-semibold hover:text-primary">{vehicle.plate}</Link><p className="mt-1 truncate text-sm text-muted-foreground">{vehicle.brand || ""} {vehicle.model || ""} · {vehicle.type}</p></div><span className={`shrink-0 rounded-full px-2 py-1 text-[11px] font-medium ${statusStyles[vehicle.status] ?? statusStyles.INACTIVE}`}>{statusLabels[vehicle.status] ?? vehicle.status}</span></div><div className="mt-4 grid grid-cols-2 gap-2"><div className="rounded-xl bg-muted/40 p-3"><p className="text-[11px] text-muted-foreground">Kapasite</p><p className="mt-1 text-sm font-semibold">{vehicle.capacity} {vehicle.capacityUnit}</p></div><div className="rounded-xl bg-muted/40 p-3"><p className="text-[11px] text-muted-foreground">Kilometre</p><p className="mt-1 text-sm font-semibold">{vehicle.mileage.toLocaleString("tr-TR")} km</p></div></div><div className="mt-4 flex gap-2"><Button className="min-w-0 flex-1" size="sm" render={<Link href={`/vehicles/${vehicle.id}`} />}>Detay</Button><Button className="min-w-0 flex-1" size="sm" variant="outline" render={<Link href={`/vehicles/${vehicle.id}/edit`} />}>Düzenle</Button><Button size="icon-sm" variant="ghost" aria-label={`${vehicle.plate} aracını sil`} onClick={() => deleteVehicle(vehicle.id)}><Trash2 className="size-4 text-destructive" /></Button></div></article>;
-  return <div className="space-y-6"><div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between"><div><h1 className="text-2xl font-bold tracking-tight sm:text-3xl">Araçlar</h1><p className="mt-1 text-sm text-muted-foreground">Dağıtım araçlarınızı ve belge tarihlerini yönetin.</p></div><Button render={<Link href="/vehicles/new" />}><Plus className="size-4" /> Yeni Araç</Button></div><div className="relative max-w-md"><Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" /><Input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Plaka, kod veya araç tipi ara..." className="pl-9" /></div>{!isLoading && vehicles.length === 0 ? <EmptyState icon={<CarFront className="size-8" />} title="Araç bulunamadı" description="Henüz araç eklenmemiş veya aramanızla eşleşen araç yok." action={<Button render={<Link href="/vehicles/new" />}><Plus className="size-4" /> Yeni Araç Ekle</Button>} /> : <><div className="hidden overflow-hidden rounded-xl border border-border/70 bg-card md:block"><div className="overflow-x-auto"><table className="w-full text-sm"><thead className="border-b bg-muted/30 text-left text-muted-foreground"><tr><th className="px-4 py-3 font-medium">Kod</th><th className="px-4 py-3 font-medium">Plaka</th><th className="px-4 py-3 font-medium">Tip</th><th className="px-4 py-3 font-medium">Kapasite</th><th className="px-4 py-3 font-medium">Durum</th><th className="px-4 py-3 text-right font-medium">İşlem</th></tr></thead><tbody className="divide-y">{vehicles.map((vehicle) => <tr key={vehicle.id} className="hover:bg-muted/20"><td className="px-4 py-3 font-mono text-xs">{vehicle.code}</td><td className="px-4 py-3 font-semibold">{vehicle.plate}</td><td className="px-4 py-3">{vehicle.type}</td><td className="px-4 py-3">{vehicle.capacity} {vehicle.capacityUnit}</td><td className="px-4 py-3"><span className={`rounded-full px-2 py-1 text-xs font-medium ${statusStyles[vehicle.status] ?? statusStyles.INACTIVE}`}>{statusLabels[vehicle.status] ?? vehicle.status}</span></td><td className="px-4 py-3 text-right"><Button variant="ghost" size="icon" aria-label={`${vehicle.plate} aracını sil`} onClick={() => deleteVehicle(vehicle.id)}><Trash2 className="size-4 text-destructive" /></Button></td></tr>)}</tbody></table></div></div><div className="space-y-3 md:hidden">{isLoading ? <div className="rounded-2xl border border-border/70 bg-card p-5 text-center text-sm text-muted-foreground">Araçlar yükleniyor...</div> : vehicles.map(card)}</div></>}</div>;
+  const [items, setItems] = useState<VehicleRow[]>([]);
+  const [search, setSearch] = useState("");
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [loading, setLoading] = useState(true);
+  const debouncedSearch = useDebounce(search);
+
+  useEffect(() => {
+    const controller = new AbortController();
+    async function load() {
+      setLoading(true);
+      try {
+        const query = new URLSearchParams({ page: String(page), pageSize: "20" });
+        if (debouncedSearch) query.set("search", debouncedSearch);
+        const response = await fetch(`/api/vehicles?${query}`, { signal: controller.signal });
+        const result = await response.json();
+        if (!response.ok) throw new Error(result.error?.message ?? "Araçlar yüklenemedi");
+        setItems(result.data.data);
+        setTotalPages(result.data.totalPages ?? 1);
+      } catch (error) {
+        if (error instanceof DOMException && error.name === "AbortError") return;
+        toast.error(error instanceof Error ? error.message : "Araçlar yüklenemedi");
+      } finally {
+        if (!controller.signal.aborted) setLoading(false);
+      }
+    }
+    void load();
+    return () => controller.abort();
+  }, [page, debouncedSearch]);
+
+  async function remove(id: string) {
+    if (!confirm("Bu aracı silmek istediğinizden emin misiniz?")) return;
+    const response = await fetch(`/api/vehicles/${id}`, { method: "DELETE" });
+    const result = await response.json();
+    if (!response.ok) return toast.error(result.error?.message ?? "Araç silinemedi");
+    setItems((current) => current.filter((item) => item.id !== id));
+    toast.success("Araç silindi");
+  }
+
+  return <div className="space-y-6">
+    <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between"><div><h1 className="text-2xl font-bold tracking-tight sm:text-3xl">Araçlar</h1><p className="mt-1 text-sm text-muted-foreground">Dağıtım araçlarınızı ve belge tarihlerini yönetin.</p></div><Button render={<Link href="/vehicles/new" />}><Plus className="size-4" /> Yeni Araç</Button></div>
+    <div className="relative max-w-md"><Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" /><Input value={search} onChange={(event) => { setSearch(event.target.value); setPage(1); }} placeholder="Plaka, kod veya araç tipi ara..." className="pl-9" /></div>
+    {!loading && items.length === 0 ? <EmptyState icon={<CarFront className="size-8" />} title="Araç bulunamadı" description="Henüz araç eklenmemiş veya aramanızla eşleşen araç yok." action={<Button render={<Link href="/vehicles/new" />}><Plus className="size-4" /> Yeni Araç Ekle</Button>} /> : <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">{loading ? <div className="rounded-2xl border border-border/70 bg-card p-5 text-center text-sm text-muted-foreground">Araçlar yükleniyor...</div> : items.map((item) => <article key={item.id} className="rounded-2xl border border-border/70 bg-card p-4 shadow-sm"><div className="flex items-start justify-between gap-3"><div className="min-w-0"><p className="font-mono text-xs text-muted-foreground">{item.code}</p><Link href={`/vehicles/${item.id}`} className="mt-1 block truncate text-base font-semibold hover:text-primary">{item.plate}</Link><p className="mt-1 truncate text-sm text-muted-foreground">{item.brand || ""} {item.model || ""} · {item.type}</p></div><span className={`shrink-0 rounded-full px-2 py-1 text-[11px] font-medium ${styles[item.status] ?? styles.INACTIVE}`}>{labels[item.status] ?? item.status}</span></div><div className="mt-4 grid grid-cols-2 gap-2"><div className="rounded-xl bg-muted/40 p-3"><p className="text-[11px] text-muted-foreground">Kapasite</p><p className="mt-1 text-sm font-semibold">{item.capacity} {item.capacityUnit}</p></div><div className="rounded-xl bg-muted/40 p-3"><p className="text-[11px] text-muted-foreground">Kilometre</p><p className="mt-1 text-sm font-semibold">{item.mileage.toLocaleString("tr-TR")} km</p></div></div><div className="mt-4 flex gap-2"><Button className="min-w-0 flex-1" size="sm" render={<Link href={`/vehicles/${item.id}`} />}>Detay</Button><Button className="min-w-0 flex-1" size="sm" variant="outline" render={<Link href={`/vehicles/${item.id}/edit`} />}>Düzenle</Button><Button size="icon-sm" variant="ghost" aria-label={`${item.plate} aracını sil`} onClick={() => remove(item.id)}><Trash2 className="size-4 text-destructive" /></Button></div></article>)}</div>}
+    <Pagination page={page} totalPages={totalPages} onChange={setPage} />
+  </div>;
 }

@@ -14,7 +14,7 @@
 
 ## AŞAMA 1 Durumu
 
-**Durum:** Büyük ölçüde tamamlandı; son doğrulama ve commit aşamasında.
+**Durum:** Büyük ölçüde tamamlandı; bu paket doğrulandı ve commit aşamasında.
 
 ### Yapılan değişiklikler
 
@@ -28,6 +28,10 @@
 - Sidebar'a mobil dialog semantiği ve backdrop geçişi eklendi.
 - Kullanılmayan scaffold SVG'leri ve runtime log/pid kalıntıları kaldırıldı.
 - Log ve pid dosyaları `.gitignore` kapsamına alındı.
+- Ürün, araç ve personel listelerine 20 kayıtlık server-side pagination eklendi.
+- Bu listelerde arama alanları `useDebounce` ile standardize edildi.
+- Müşteri ve sipariş formu not alanları ortak `Textarea` component'ine geçirildi.
+- Ürün, araç, personel, dağıtım ve raporlar liste sayfalarına metadata eklendi.
 
 ### Doğrulama
 
@@ -37,12 +41,11 @@
 
 ## Kalan AŞAMA 1 işleri
 
-- Tüm listelerin ortak pagination/search standardına geçirilmesi.
-- Tüm formlarda ortak `Textarea`, `Select` ve field düzeninin tamamlanması.
-- API route'larının tamamının merkezi error handler'a geçirilmesi.
+- Tüm API route'larının merkezi error handler'a geçirilmesi.
+- Teslimat atama formunun ortak `Select`/`Textarea` component'lerine geçirilmesi.
 - Mobil gerçek cihaz/viewport kabul testlerinin yapılması.
 - Detay sayfaları ve liste ekranlarında kalan görsel tutarsızlıkların temizlenmesi.
-- Sayfa metadata'larının modül bazında tamamlanması.
+- Kalan sayfa metadata'larının modül bazında tamamlanması.
 
 ## Bilinen Sorunlar
 

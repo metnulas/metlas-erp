@@ -7,6 +7,7 @@ import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { createOrderSchema, type CreateOrderInput } from "../validators/order.schema";
 import { Loader2, Save, X, Plus, Trash2 } from "lucide-react";
 import type { Order, OrderItem } from "@prisma/client";
@@ -303,7 +304,7 @@ export default function OrderForm({ initialData, mode }: OrderFormProps) {
       <section className="rounded-xl border border-border/70 bg-card p-6">
         <h2 className="mb-6 text-lg font-semibold">Notlar</h2>
         <div className="space-y-1.5">
-          <textarea
+          <Textarea
             id="notes"
             rows={3}
             placeholder="Sipariş hakkında notlar..."

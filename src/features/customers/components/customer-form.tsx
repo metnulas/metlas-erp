@@ -7,6 +7,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { createCustomerSchema, type CreateCustomerInput } from "../validators/customer.schema";
 import type { Customer } from "@prisma/client";
 import { Loader2, Save, X } from "lucide-react";
@@ -201,7 +202,7 @@ export default function CustomerForm({ initialData, mode }: CustomerFormProps) {
       <section className="rounded-xl border border-border/70 bg-card p-6">
         <h2 className="mb-6 text-lg font-semibold">Notlar</h2>
         <div className="space-y-1.5">
-          <textarea
+          <Textarea
             id="notes"
             rows={3}
             placeholder="Müşteri hakkında notlar..."
