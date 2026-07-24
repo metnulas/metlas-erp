@@ -67,7 +67,7 @@ V1 genel tamamlanma: **yaklaşık %68**. Bu oran kod kapsamına dayalı teknik t
 
 ## Son Commit
 
-`86c5816` — `refactor: standardize V1 lists and metadata`
+`3307b2f` — `refactor: centralize API error handling`
 
 ## Tarih
 
