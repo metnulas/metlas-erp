@@ -64,7 +64,7 @@ V1 genel tamamlanma: **yaklaşık %68**. Bu oran kod kapsamına dayalı teknik t
 
 ## Son Commit
 
-Bu aşamanın commit hash'i commit sonrasında yazılacaktır.
+`a8fac21` — `refactor: standardize V1 foundation and clean project`
 
 ## Tarih
 
