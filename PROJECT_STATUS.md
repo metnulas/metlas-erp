@@ -32,6 +32,7 @@
 - Bu listelerde arama alanları `useDebounce` ile standardize edildi.
 - Müşteri ve sipariş formu not alanları ortak `Textarea` component'ine geçirildi.
 - Ürün, araç, personel, dağıtım ve raporlar liste sayfalarına metadata eklendi.
+- Tüm API route'larındaki yerel hata handler'ları merkezi `handleApiError` yardımcı işlevine taşındı.
 
 ### Doğrulama
 
@@ -41,7 +42,6 @@
 
 ## Kalan AŞAMA 1 işleri
 
-- Tüm API route'larının merkezi error handler'a geçirilmesi.
 - Teslimat atama formunun ortak `Select`/`Textarea` component'lerine geçirilmesi.
 - Mobil gerçek cihaz/viewport kabul testlerinin yapılması.
 - Detay sayfaları ve liste ekranlarında kalan görsel tutarsızlıkların temizlenmesi.

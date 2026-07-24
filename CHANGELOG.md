@@ -30,6 +30,7 @@ METLAS ERP V1 geliştirmelerinde kullanıcıyı ve sistemi etkileyen değişikli
 - Ürün, araç ve personel listelerine server-side pagination ve debounced search eklendi.
 - Müşteri ve sipariş formu not alanları ortak `Textarea` component'ine geçirildi.
 - Ürün, araç, personel, dağıtım ve rapor sayfalarına metadata eklendi.
+- Tüm API route'larının hata yönetimi merkezi `handleApiError` ile standardize edildi.
 
 #### Doğrulama
 

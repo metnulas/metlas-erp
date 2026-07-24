@@ -1,11 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
-import { ZodError } from "zod";
-import { PrismaClientInitializationError } from "@prisma/client/runtime/library";
 import { getCurrentTenantId } from "@/server/tenancy/tenant-context";
 import { createCustomerService } from "@/features/customers/services/customer.service";
 import { customerQuerySchema, createCustomerSchema } from "@/features/customers/validators/customer.schema";
 import type { ApiResponse } from "@/shared/types";
-import { AppError } from "@/server/errors/app-error";
+import { handleApiError } from "@/server/errors/handle-api-error";
 import { requirePermission } from "@/server/auth/authorization";
 
 const customerService = createCustomerService();
@@ -34,31 +32,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json(response);
   } catch (error) {
-    if (error instanceof ZodError) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: { code: "VALIDATION_ERROR", message: "Geçersiz sorgu parametreleri", details: error.issues },
-        },
-        { status: 400 }
-      );
-    }
-
-    if (error instanceof PrismaClientInitializationError) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: { code: "DATABASE_CONNECTION_ERROR", message: "Veritabanı bağlantısı kurulamadı." },
-        },
-        { status: 503 }
-      );
-    }
-
-    const message = error instanceof Error ? error.message : "Bilinmeyen hata";
-    return NextResponse.json(
-      { success: false, error: { code: "INTERNAL_ERROR", message } },
-      { status: 500 }
-    );
+    return handleApiError(error);
   }
 }
 
@@ -78,37 +52,6 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(response, { status: 201 });
   } catch (error) {
-    if (error instanceof ZodError) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: { code: "VALIDATION_ERROR", message: "Geçersiz veri", details: error.issues },
-        },
-        { status: 400 }
-      );
-    }
-
-    if (error instanceof PrismaClientInitializationError) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: { code: "DATABASE_CONNECTION_ERROR", message: "Veritabanı bağlantısı kurulamadı. Lütfen sistem yöneticisi ile iletişime geçin." },
-        },
-        { status: 503 }
-      );
-    }
-
-    if (error instanceof AppError) {
-      return NextResponse.json(
-        { success: false, error: { code: error.code, message: error.message } },
-        { status: error.statusCode }
-      );
-    }
-
-    const message = error instanceof Error ? error.message : "Bilinmeyen hata";
-    return NextResponse.json(
-      { success: false, error: { code: "INTERNAL_ERROR", message } },
-      { status: 500 }
-    );
+    return handleApiError(error);
   }
 }
