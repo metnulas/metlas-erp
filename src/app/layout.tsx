@@ -7,6 +7,7 @@ import AuthProvider from "@/components/providers/AuthProvider";
 export const metadata: Metadata = {
   title: "METLAS ERP",
   description: "Su dağıtım yönetim sistemi",
+  icons: { icon: "/metlas-logo.png" },
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {

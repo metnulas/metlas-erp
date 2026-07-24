@@ -44,6 +44,11 @@ METLAS ERP V1 geliştirmelerinde kullanıcıyı ve sistemi etkileyen değişikli
 - Dashboard responsive operasyon merkezi düzenine geçirildi.
 - Tahsilat modeli henüz olmadığı için tahsilat KPI'ı eklenmedi.
 
+### Marka Görseli
+
+- METLAS ERP logosu `public/metlas-logo.png` olarak eklendi.
+- Logo Sidebar, login ekranı ve favicon metadata'sında kullanılmaya başlandı.
+
 #### Doğrulama
 
 - TypeScript kontrolü başarılı.

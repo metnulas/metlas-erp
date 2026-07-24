@@ -2,6 +2,7 @@
 
 import { usePathname } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import { useEffect, useRef } from "react";
 import { BarChart3, BriefcaseBusiness, ClipboardList, LayoutDashboard, Package, ReceiptText, Truck, Users, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -64,7 +65,7 @@ export default function Sidebar({ isMobileMenuOpen, onClose }: SidebarProps) {
       >
         <div className="mb-8 flex items-center justify-between px-2">
           <div className="flex items-center gap-3">
-            <div className="grid size-10 place-items-center rounded-xl bg-gradient-to-br from-cyan-400 to-blue-600 font-bold text-slate-950 shadow-lg shadow-cyan-500/20">M</div>
+             <Image src="/metlas-logo.png" alt="METLAS ERP" width={176} height={72} className="h-12 w-44 rounded-lg object-cover object-center" priority />
             <div>
               <h1 className="text-base font-bold tracking-wide text-white">METLAS ERP</h1>
               <p className="text-xs text-slate-500">İş Yönetim Platformu</p>

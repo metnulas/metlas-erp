@@ -81,6 +81,7 @@ Tahsilat veri modeli henüz bulunmadığı için dashboard'a sahte "bekleyen tah
 - Kapsamlı unit, integration ve e2e test altyapısı henüz yok.
 - Cookie varlığına dayalı middleware kontrolü token imzasını/expiry'sini doğrulamıyor.
 - Tahsilat, Kasa ve Ayarlar modülleri henüz uygulanmadı.
+- Marka logosu Sidebar, login ve favicon alanlarına eklendi.
 
 ## Sonraki Aşama
 
