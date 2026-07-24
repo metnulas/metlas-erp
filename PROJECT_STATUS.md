@@ -67,7 +67,7 @@ V1 genel tamamlanma: **yaklaşık %68**. Bu oran kod kapsamına dayalı teknik t
 
 ## Son Commit
 
-`a8fac21` — `refactor: standardize V1 foundation and clean project`
+`86c5816` — `refactor: standardize V1 lists and metadata`
 
 ## Tarih
 
