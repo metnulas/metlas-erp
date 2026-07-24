@@ -35,6 +35,15 @@ METLAS ERP V1 geliştirmelerinde kullanıcıyı ve sistemi etkileyen değişikli
 - Müşteri, sipariş ve login sayfaları için eksik metadata'lar eklendi.
 - AŞAMA 1 tamamlandı; sonraki aşama Dashboard operasyon merkezi çalışmasıdır.
 
+### AŞAMA 2 — Dashboard operasyon merkezi
+
+- Dashboard KPI'ları gerçek sipariş, müşteri, araç, personel ve ciro verilerine genişletildi.
+- Kritik stok ve yaklaşan araç/personel belge uyarıları eklendi.
+- Son siparişler ve durumları dashboard'a eklendi.
+- Yeni sipariş, dağıtım, stok kontrolü ve müşteri ekleme hızlı işlemleri eklendi.
+- Dashboard responsive operasyon merkezi düzenine geçirildi.
+- Tahsilat modeli henüz olmadığı için tahsilat KPI'ı eklenmedi.
+
 #### Doğrulama
 
 - TypeScript kontrolü başarılı.

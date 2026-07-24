@@ -2,7 +2,7 @@
 
 ## Version
 
-`METLAS ERP v1.0 Stable` geliştirme protokolü aktif. Proje şu anda **AŞAMA 1 — Kod temizliği, UI standardizasyonu ve responsive temel** aşamasındadır.
+`METLAS ERP v1.0 Stable` geliştirme protokolü aktif. Proje şu anda **AŞAMA 2 tamamlandı; AŞAMA 3 bekliyor** durumundadır.
 
 ## Tamamlanan Aşamalar
 
@@ -50,6 +50,30 @@
 - Responsive smoke kontrolü: login `200`, oturumsuz dashboard `307`, yetkisiz API `401`.
 - Build ve TypeScript başarılı; ESLint yalnızca 2 bilgilendirici kütüphane uyarısı veriyor.
 
+## AŞAMA 2 Durumu
+
+**Durum:** Tamamlandı.
+
+### Yapılan değişiklikler
+
+- Dashboard gerçek veriden bugünkü sipariş, ciro, aktif müşteri ve bekleyen dağıtım KPI'larını gösteriyor.
+- Kritik stok ürünleri ve 30 gün içindeki araç/personel belge tarihleri uyarı olarak gösteriliyor.
+- Son 5 sipariş ve durumları dashboard'a eklendi.
+- Yeni sipariş, dağıtım, stok kontrolü ve müşteri ekleme hızlı işlemleri eklendi.
+- Mevcut 7 günlük sipariş grafiği korunarak operasyon merkezi düzenine alındı.
+- Dashboard mobilde tek kolon, geniş ekranlarda iki kolonlu operasyon düzeni kullanıyor.
+
+### Sınır
+
+Tahsilat veri modeli henüz bulunmadığı için dashboard'a sahte "bekleyen tahsilat" KPI'ı eklenmedi. Tahsilat modülü tamamlandığında gerçek veriyle bağlanacaktır.
+
+### Doğrulama
+
+- Dashboard authenticated smoke test: HTTP `200`.
+- `npx tsc --noEmit`: başarılı.
+- `npm run build`: başarılı.
+- `npm run lint`: 0 hata, 2 bilgilendirici kütüphane uyarısı.
+
 ## Bilinen Sorunlar
 
 - Next.js 16 middleware convention için `proxy` deprecation uyarısı veriyor.
@@ -60,9 +84,9 @@
 
 ## Sonraki Aşama
 
-**AŞAMA 2 — Dashboard'u gerçek operasyon merkezine dönüştürme.**
+**AŞAMA 3 — Müşteri modülünü tamamla.**
 
-Kapsam: KPI'lar, hızlı işlemler, kritik stok, bekleyen tahsilatlar için V1 hazırlığı, yaklaşan belge tarihleri, son işlemler ve mobil operasyon görünümü.
+Kapsam: sipariş geçmişi, cari hareket bağlantısı, depozito hareketleri, teslimat notları ve tekrar sipariş.
 
 ## Tamamlanma
 
@@ -70,7 +94,7 @@ V1 genel tamamlanma: **yaklaşık %68**. Bu oran kod kapsamına dayalı teknik t
 
 ## Son Commit
 
-`8bc14ae` — `refactor: complete V1 stage 1 standardization`
+Bu aşamanın commit hash'i commit sonrasında yazılacaktır.
 
 ## Tarih
 

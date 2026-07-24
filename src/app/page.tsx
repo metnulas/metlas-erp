@@ -1,19 +1,29 @@
+import Link from "next/link";
+import { AlertTriangle, ArrowUpRight, CalendarClock, ClipboardList, Package, Plus, ShoppingCart, Truck, Users, Wallet } from "lucide-react";
 import SalesChart from "@/components/dashboard/SalesChart";
 import DashboardLayout from "@/components/layout/DashboardLayout";
 import StatCard from "@/components/ui/StatCard";
 import { Button } from "@/components/ui/button";
-import { ArrowUpRight, Plus, ShoppingCart, Truck, Users, Wallet } from "lucide-react";
-import Link from "next/link";
+import { ORDER_STATUS_LABELS, ORDER_STATUS_STYLES } from "@/shared/constants/order-status";
 import { getCurrentTenantId } from "@/server/tenancy/tenant-context";
 import { createDashboardService } from "@/features/dashboard/services/dashboard.service";
 
 export default async function Home() {
   const summary = await createDashboardService().getSummary(await getCurrentTenantId());
-  return (
-    <DashboardLayout>
-       <section className="mb-7 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between"><div><p className="mb-1 text-sm font-medium text-primary">Güncel operasyon</p><h1 className="text-2xl font-bold tracking-tight sm:text-3xl">Operasyon özeti</h1><p className="mt-1 text-sm text-muted-foreground">İşletmenizin güncel performansını buradan takip edin.</p></div><Button className="h-10 px-4" size="lg" render={<Link href="/orders/new" />}><Plus /> Yeni sipariş</Button></section>
-       <div className="grid gap-4 sm:grid-cols-2 sm:gap-5 xl:grid-cols-4"><StatCard title="Bugünkü Sipariş" value={summary.todayOrders.toLocaleString("tr-TR")} icon={<ShoppingCart size={22} />} /><StatCard title="Aktif Müşteri" value={summary.activeCustomers.toLocaleString("tr-TR")} icon={<Users size={22} />} /><StatCard title="Aktif Araç" value={summary.activeVehicles.toLocaleString("tr-TR")} icon={<Truck size={22} />} /><StatCard title="Bugünkü Ciro" value={summary.todayRevenue.toLocaleString("tr-TR", { style: "currency", currency: "TRY" })} icon={<Wallet size={22} />} /></div>
-       <section className="mt-6 rounded-2xl border border-border/70 bg-card p-5 shadow-sm sm:mt-8 sm:p-6 lg:p-8"><div className="flex items-start justify-between gap-4"><div><p className="text-sm font-medium text-muted-foreground">Son 7 gün</p><h2 className="mt-1 text-xl font-bold tracking-tight sm:text-2xl">Sipariş hacmi</h2></div><Button size="sm" variant="outline" render={<Link href="/reports" />}>Detaylar <ArrowUpRight /></Button></div><SalesChart data={summary.weeklyOrders} /></section>
-    </DashboardLayout>
-  );
+  return <DashboardLayout>
+    <div className="space-y-6 sm:space-y-8">
+      <section className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between"><div><p className="mb-1 text-sm font-medium text-primary">Bugünkü operasyon</p><h1 className="text-2xl font-bold tracking-tight sm:text-3xl">Operasyon merkezi</h1><p className="mt-1 text-sm text-muted-foreground">Sipariş, dağıtım ve stok durumunu tek bakışta yönetin.</p></div><Button className="w-full sm:w-auto" size="lg" render={<Link href="/orders/new" />}><Plus /> Yeni sipariş</Button></section>
+      <div className="grid gap-4 sm:grid-cols-2 sm:gap-5 xl:grid-cols-4"><StatCard title="Bugünkü Sipariş" value={summary.todayOrders.toLocaleString("tr-TR")} icon={<ShoppingCart size={22} />} /><StatCard title="Bekleyen Dağıtım" value={summary.pendingDeliveries.toLocaleString("tr-TR")} icon={<ClipboardList size={22} />} /><StatCard title="Aktif Müşteri" value={summary.activeCustomers.toLocaleString("tr-TR")} icon={<Users size={22} />} /><StatCard title="Bugünkü Ciro" value={summary.todayRevenue.toLocaleString("tr-TR", { style: "currency", currency: "TRY" })} icon={<Wallet size={22} />} /></div>
+      <section className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_22rem]"><div className="rounded-2xl border border-border/70 bg-card p-5 shadow-sm sm:p-6 lg:p-8"><div className="flex items-start justify-between gap-4"><div><p className="text-sm font-medium text-muted-foreground">Son 7 gün</p><h2 className="mt-1 text-xl font-bold tracking-tight sm:text-2xl">Sipariş hacmi</h2></div><Button size="sm" variant="outline" render={<Link href="/reports" />}>Raporlar <ArrowUpRight /></Button></div><SalesChart data={summary.weeklyOrders} /></div><div className="rounded-2xl border border-border/70 bg-card p-5 shadow-sm sm:p-6"><div className="flex items-center gap-2"><AlertTriangle className="size-5 text-primary" /><h2 className="font-semibold">Dikkat gerekenler</h2></div><div className="mt-5 space-y-3"><AlertRow href="/products?lowStock=true" icon={<Package />} label="Kritik stok" value={summary.lowStockProducts} /><AlertRow href="/vehicles" icon={<CalendarClock />} label="Yaklaşan belge" value={summary.expiringDocuments} /><AlertRow href="/deliveries" icon={<Truck />} label="Bekleyen dağıtım" value={summary.pendingDeliveries} /></div></div></section>
+      <section className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_22rem]"><div className="rounded-2xl border border-border/70 bg-card p-5 shadow-sm sm:p-6"><div className="flex items-center justify-between gap-3"><div><p className="text-sm font-medium text-muted-foreground">Son hareketler</p><h2 className="mt-1 text-xl font-bold tracking-tight">Son siparişler</h2></div><Button size="sm" variant="outline" render={<Link href="/orders" />}>Tümünü gör</Button></div><div className="mt-4 divide-y divide-border/70">{summary.recentOrders.length === 0 ? <p className="py-6 text-sm text-muted-foreground">Henüz sipariş bulunmuyor.</p> : summary.recentOrders.map((order) => <Link key={order.id} href={`/orders/${order.id}`} className="flex items-center justify-between gap-3 py-3 transition-colors hover:text-primary"><div className="min-w-0"><p className="truncate font-mono text-sm font-semibold">{order.orderCode}</p><p className="truncate text-xs text-muted-foreground">{order.customerName} · {new Date(order.orderDate).toLocaleDateString("tr-TR")}</p></div><div className="shrink-0 text-right"><span className={`rounded-full px-2 py-1 text-[11px] font-medium ${ORDER_STATUS_STYLES[order.status] ?? "bg-muted text-muted-foreground"}`}>{ORDER_STATUS_LABELS[order.status] ?? order.status}</span><p className="mt-1 text-xs font-semibold">{order.grandTotal.toLocaleString("tr-TR", { style: "currency", currency: "TRY" })}</p></div></Link>)}</div></div><div className="rounded-2xl border border-border/70 bg-card p-5 shadow-sm sm:p-6"><p className="text-sm font-medium text-muted-foreground">Hızlı işlemler</p><h2 className="mt-1 text-xl font-bold tracking-tight">Günün kısayolları</h2><div className="mt-5 grid gap-2"><QuickAction href="/orders/new" label="Yeni sipariş" icon={<Plus />} /><QuickAction href="/deliveries" label="Dağıtımı planla" icon={<Truck />} /><QuickAction href="/products" label="Stok kontrolü" icon={<Package />} /><QuickAction href="/customers/new" label="Müşteri ekle" icon={<Users />} /></div></div></section>
+    </div>
+  </DashboardLayout>;
+}
+
+function AlertRow({ href, icon, label, value }: { href: string; icon: React.ReactNode; label: string; value: number }) {
+  return <Link href={href} className="flex items-center justify-between gap-3 rounded-xl bg-muted/40 p-3 transition-colors hover:bg-muted"><span className="flex items-center gap-2 text-sm"><span className="text-primary">{icon}</span>{label}</span><span className="font-semibold">{value}</span></Link>;
+}
+
+function QuickAction({ href, label, icon }: { href: string; label: string; icon: React.ReactNode }) {
+  return <Button className="justify-start" variant="outline" render={<Link href={href} />}><span className="text-primary">{icon}</span>{label}</Button>;
 }
