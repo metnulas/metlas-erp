@@ -10,6 +10,7 @@ const vehicleService = createVehicleService();
 
 export async function GET(request: NextRequest) {
   try {
+    await requirePermission("vehicle:read");
     const { searchParams } = new URL(request.url);
     const query = vehicleQuerySchema.parse({ page: searchParams.get("page") ?? 1, pageSize: searchParams.get("pageSize") ?? 20, search: searchParams.get("search") ?? undefined, type: searchParams.get("type") ?? undefined, status: searchParams.get("status") ?? undefined, sort: searchParams.get("sort") ?? "createdAt", order: searchParams.get("order") ?? "desc" });
     return NextResponse.json({ success: true, data: await vehicleService.list(await getCurrentTenantId(), query) });

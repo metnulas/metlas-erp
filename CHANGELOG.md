@@ -87,11 +87,34 @@ METLAS ERP V1 geliştirmelerinde kullanıcıyı ve sistemi etkileyen değişikli
 - Production build başarılı.
 - ESLint 0 hata, 2 React Compiler uyarısı ile tamamlandı.
 
-### AŞAMA 7 — Araçlar (devam ediyor)
+### AŞAMA 7 — Araçlar
 
 - Araç detayında muayene ve sigorta tarihleri için süre durumu etiketleri eklendi.
 - Araca atanmış siparişler müşteri, teslim tarihi ve durum bilgileriyle gösteriliyor.
 - Atanmış sipariş sorgusu repository/service katmanlarından tenant kapsamıyla yürütülüyor.
+
+#### Doğrulama
+
+- `npm run build`: başarılı.
+- `npm run lint`: 0 hata, 2 React Compiler uyarısı.
+- `git diff --check`: başarılı.
+- AŞAMA 7 `9cf4498` commit'i ile tamamlandı.
+
+### AŞAMA 8 — Güvenlik ve veri bütünlüğü (devam ediyor)
+
+- Middleware'deki cookie-varlığı kontrolü kaldırıldı.
+- Sayfa ve API erişimlerinde NextAuth JWT imzası ve geçerliliği doğrulanıyor.
+- Tenant context içindeki eski authentication geçiş yorumu güncellendi.
+- API GET endpoint'lerine read permission kontrolleri eklendi.
+- Rol bazlı read/write permission matrisi ADMIN, OPERATIONS, COURIER ve ACCOUNTING için ayrıştırıldı.
+- Ürün, sipariş ve teslimat stok düşümlerinde koşullu atomic update kullanılıyor.
+- Tenant bazlı concurrency-safe `OrderSequence` modeli ve migration eklendi.
+
+#### Doğrulama
+
+- `npm run build`: başarılı.
+- `npm run lint`: 0 hata, 2 React Compiler uyarısı.
+- `git diff --check`: başarılı.
 
 ## Önceki Sürümler
 

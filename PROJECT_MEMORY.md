@@ -15,7 +15,7 @@ METLAS ERP is a professional, modern, multi-tenant SaaS ERP for Turkish bottled-
 - Frontend: Next.js App Router, TypeScript, React, TailwindCSS.
 - Backend: Next.js API Routes, Prisma ORM.
 - Database: PostgreSQL on Neon Cloud.
-- Authentication: Auth.js.
+- Authentication: NextAuth Credentials Provider ve JWT session.
 - Validation: Zod.
 - Forms: React Hook Form.
 - Tables: TanStack Table.

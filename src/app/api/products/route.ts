@@ -10,6 +10,7 @@ const productService = createProductService();
 
 export async function GET(request: NextRequest) {
   try {
+    await requirePermission("product:read");
     const { searchParams } = new URL(request.url);
     const query = productQuerySchema.parse({
       page: searchParams.get("page") ?? 1,

@@ -74,16 +74,17 @@ export function createProductRepository(): ProductRepository {
 
     async adjustStock({ id, tenantId, type, quantity, notes, userId }) {
       return prisma.$transaction(async (tx) => {
-        const product = await tx.product.findFirst({ where: { id, tenantId, deletedAt: null } });
-        if (!product) throw new Error("PRODUCT_NOT_FOUND");
-
-        const nextBalance = product.stockQuantity + quantity;
-        if (nextBalance < 0) throw new Error("INSUFFICIENT_STOCK");
-
-        const updated = await tx.product.update({
-          where: { id },
-          data: { stockQuantity: nextBalance, updatedBy: userId ?? null },
+        const result = await tx.product.updateMany({
+          where: { id, tenantId, deletedAt: null, ...(quantity < 0 && { stockQuantity: { gte: Math.abs(quantity) } }) },
+          data: { stockQuantity: { increment: quantity }, updatedBy: userId ?? null },
         });
+        if (result.count === 0) {
+          const product = await tx.product.findFirst({ where: { id, tenantId, deletedAt: null } });
+          if (!product) throw new Error("PRODUCT_NOT_FOUND");
+          throw new Error("INSUFFICIENT_STOCK");
+        }
+
+        const updated = await tx.product.findFirstOrThrow({ where: { id, tenantId, deletedAt: null } });
 
         await tx.stockMovement.create({
           data: {
@@ -91,7 +92,7 @@ export function createProductRepository(): ProductRepository {
             productId: id,
             type,
             quantity,
-            balanceAfter: nextBalance,
+            balanceAfter: updated.stockQuantity,
             notes: notes || null,
             createdBy: userId ?? null,
           },

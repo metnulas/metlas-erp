@@ -2,7 +2,7 @@
 
 ## Version
 
-`METLAS ERP v1.0 Stable` geliştirme protokolü aktif. Proje şu anda **AŞAMA 6 tamamlandı; AŞAMA 7 devam ediyor** durumundadır.
+`METLAS ERP v1.0 Stable` geliştirme protokolü aktif. Proje şu anda **AŞAMA 7 tamamlandı; AŞAMA 8 devam ediyor** durumundadır.
 
 ## Tamamlanan Aşamalar
 
@@ -151,9 +151,9 @@ Cari ve depozito hareket defteri mevcut şemada bulunmadığı için bu aşamada
 
 ## Sonraki Aşama
 
-**AŞAMA 7 — Araçlar.**
+**AŞAMA 8 — Güvenlik ve veri bütünlüğü.**
 
-Kapsam: belgeler, görevler, detay ekranı ve mobil araç yönetimi.
+Kapsam: JWT doğrulaması, tenant izolasyonu testleri, sipariş kodu concurrency güvenliği, atomic stok güncellemeleri ve permission matrisi.
 
 ## AŞAMA 6 Durumu
 
@@ -195,14 +195,39 @@ Kapsam: belgeler, görevler, detay ekranı ve mobil araç yönetimi.
 - `npm run lint`: 0 hata, 2 bilgilendirici kütüphane uyarısı.
 - `git diff --check`: başarılı.
 
+## AŞAMA 8 Durumu
+
+**Durum:** Devam ediyor.
+
+### Tamamlanan alt iş
+
+- Middleware artık yalnızca cookie varlığını kabul etmiyor; NextAuth JWT imzası ve geçerliliği `getToken` ile doğrulanıyor.
+- Geçersiz veya süresi dolmuş token'lar API isteklerinde `401`, sayfa isteklerinde login yönlendirmesi alıyor.
+- Tenant context içindeki eski authentication geçiş yorumu güncellendi.
+- API GET endpoint'lerine rol bazlı read permission kontrolleri eklendi.
+- ADMIN, OPERATIONS, COURIER ve ACCOUNTING rolleri için read/write permission matrisi tanımlandı.
+- Ürün ayarı, sipariş oluşturma ve teslimat stok düşümleri koşullu atomic güncelleme kullanıyor.
+- Sipariş kodu üretimi tenant bazlı `OrderSequence` modeli ve migration ile concurrency-safe hale getirildi.
+
+### Doğrulama
+
+- `npm run build`: başarılı.
+- `npm run lint`: 0 hata, 2 bilgilendirici kütüphane uyarısı.
+- `git diff --check`: başarılı.
+
+### Kalan kapsam
+
+- Tenant izolasyonu otomatik testleri.
+- Audit log ve kapsamlı otomatik test altyapısı.
+
 ## Tamamlanma
 
-V1 genel tamamlanma: **yaklaşık %70**. Bu oran kod kapsamına dayalı teknik tahmindir; ticari kabul oranı değildir.
+V1 genel tamamlanma: **yaklaşık %72**. Bu oran kod kapsamına dayalı teknik tahmindir; ticari kabul oranı değildir.
 
 ## Son Commit
 
-Çalışma ağacında AŞAMA 7 araç detay geliştirmeleri mevcut; henüz commit edilmedi.
+`9cf4498` — `feat: complete vehicle operations` (AŞAMA 7)
 
 ## Tarih
 
-24 Temmuz 2026
+27 Temmuz 2026

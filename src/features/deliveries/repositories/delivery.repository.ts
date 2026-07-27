@@ -35,11 +35,14 @@ export function createDeliveryRepository(): DeliveryRepository {
         if (!order) throw new Error("ORDER_NOT_FOUND");
         for (const item of order.items) {
           if (!item.productId || item.quantity <= 0) continue;
-          const product = await tx.product.findFirst({ where: { id: item.productId, tenantId, deletedAt: null } });
-          if (!product) throw new Error("PRODUCT_NOT_FOUND");
-          const balanceAfter = product.stockQuantity - item.quantity;
-          if (balanceAfter < 0) throw new Error("INSUFFICIENT_STOCK");
-          await tx.product.update({ where: { id: product.id }, data: { stockQuantity: balanceAfter } });
+          const result = await tx.product.updateMany({ where: { id: item.productId, tenantId, deletedAt: null, stockQuantity: { gte: item.quantity } }, data: { stockQuantity: { decrement: item.quantity } } });
+          if (result.count === 0) {
+            const product = await tx.product.findFirst({ where: { id: item.productId, tenantId, deletedAt: null } });
+            if (!product) throw new Error("PRODUCT_NOT_FOUND");
+            throw new Error("INSUFFICIENT_STOCK");
+          }
+          const product = await tx.product.findFirstOrThrow({ where: { id: item.productId, tenantId, deletedAt: null } });
+          const balanceAfter = product.stockQuantity;
           await tx.stockMovement.create({ data: { tenantId, productId: product.id, type: "ORDER", quantity: -item.quantity, balanceAfter, referenceType: "ORDER", referenceId: order.id, notes: "Sipariş teslimi" } });
         }
         return tx.order.update({ where: { id, tenantId }, data, include: includeRelations });

@@ -279,7 +279,7 @@ Clean Architecture: API → Service → Repository → Prisma. Çoklu-kiracı (m
 - **Form/Validation:** react-hook-form + Zod 4.4
 - **Tablo:** @tanstack/react-table 8.21
 - **ORM:** Prisma 6.19 (PostgreSQL/Neon)
-- **Auth:** next-auth 4.24 (henüz entegre değil)
+- **Auth:** next-auth 4.24, Credentials Provider ve JWT session entegre
 - **Toast:** sonner
 
 ## Proje Yapısı
@@ -320,7 +320,7 @@ prisma/
 
 ## Komutlar
 - `npm run dev` → Geliştirme sunucusu
-- `npm run build` → Build (lint + typecheck dahil)
+- `npm run build` → Production build ve TypeScript kontrolü
 - `npm run lint` → ESLint
 - `npm run db:generate` → Prisma Client üret
 - `npm run db:migrate` → Migration uygula

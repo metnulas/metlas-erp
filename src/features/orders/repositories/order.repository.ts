@@ -117,22 +117,13 @@ export function createOrderRepository(): OrderRepository {
       const today = new Date();
       const dateStr = today.toISOString().slice(0, 10).replace(/-/g, "");
       const prefix = `SIP-${dateStr}-`;
-
-      const lastOrder = await prisma.order.findFirst({
-        where: {
-          tenantId,
-          orderCode: { startsWith: prefix },
-        },
-        orderBy: { orderCode: "desc" },
-        select: { orderCode: true },
+      const sequence = await prisma.orderSequence.upsert({
+        where: { tenantId },
+        update: { nextValue: { increment: 1 } },
+        create: { tenant: { connect: { id: tenantId } }, nextValue: 2 },
+        select: { nextValue: true },
       });
-
-      if (lastOrder) {
-        const lastNum = parseInt(lastOrder.orderCode.split("-")[2], 10);
-        return `${prefix}${String(lastNum + 1).padStart(3, "0")}`;
-      }
-
-      return `${prefix}001`;
+      return `${prefix}${String(sequence.nextValue - 1).padStart(3, "0")}`;
     },
   };
 }
@@ -140,11 +131,14 @@ export function createOrderRepository(): OrderRepository {
 async function applyStockOut(tx: Prisma.TransactionClient, tenantId: string, orderId: string, stockItems: StockItem[]) {
   for (const item of stockItems) {
     if (!item.productId || item.quantity <= 0) continue;
-    const product = await tx.product.findFirst({ where: { id: item.productId, tenantId, deletedAt: null } });
-    if (!product) throw new Error("PRODUCT_NOT_FOUND");
-    const balanceAfter = product.stockQuantity - item.quantity;
-    if (balanceAfter < 0) throw new Error("INSUFFICIENT_STOCK");
-    await tx.product.update({ where: { id: product.id }, data: { stockQuantity: balanceAfter } });
+    const result = await tx.product.updateMany({ where: { id: item.productId, tenantId, deletedAt: null, stockQuantity: { gte: item.quantity } }, data: { stockQuantity: { decrement: item.quantity } } });
+    if (result.count === 0) {
+      const product = await tx.product.findFirst({ where: { id: item.productId, tenantId, deletedAt: null } });
+      if (!product) throw new Error("PRODUCT_NOT_FOUND");
+      throw new Error("INSUFFICIENT_STOCK");
+    }
+    const product = await tx.product.findFirstOrThrow({ where: { id: item.productId, tenantId, deletedAt: null } });
+    const balanceAfter = product.stockQuantity;
     await tx.stockMovement.create({
       data: { tenantId, productId: product.id, type: "ORDER", quantity: -item.quantity, balanceAfter, referenceType: "ORDER", referenceId: orderId, notes: "Sipariş teslimi" },
     });

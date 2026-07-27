@@ -21,6 +21,7 @@ model Tenant {
   vehicles  Vehicle[]
   personnel Personnel[]
   users     User[]
+  orderSequence OrderSequence?
 }
 
 enum UserRole {
@@ -44,6 +45,14 @@ model User {
 
   @@index([tenantId, isActive])
   @@index([tenantId, role])
+}
+
+model OrderSequence {
+  tenantId  String   @id
+  nextValue Int      @default(1)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  tenant    Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
 }
 
 model Customer {

@@ -9,7 +9,7 @@ const vehicleService = createVehicleService();
 
 
 export async function GET(_request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  try { const { id } = vehicleIdSchema.parse(await params); return NextResponse.json({ success: true, data: await vehicleService.getById(id, await getCurrentTenantId()) }); } catch (error) { return handleApiError(error); }
+  try { await requirePermission("vehicle:read"); const { id } = vehicleIdSchema.parse(await params); return NextResponse.json({ success: true, data: await vehicleService.getById(id, await getCurrentTenantId()) }); } catch (error) { return handleApiError(error); }
 }
 
 export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {

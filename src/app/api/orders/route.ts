@@ -10,6 +10,7 @@ const orderService = createOrderService();
 
 export async function GET(request: NextRequest) {
   try {
+    await requirePermission("order:read");
     const tenantId = await getCurrentTenantId();
     const { searchParams } = new URL(request.url);
 

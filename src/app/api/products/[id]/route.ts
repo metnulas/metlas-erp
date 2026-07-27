@@ -10,6 +10,7 @@ const productService = createProductService();
 
 export async function GET(_request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
+    await requirePermission("product:read");
     const { id } = productIdSchema.parse(await params);
     const product = await productService.getById(id, await getCurrentTenantId());
     return NextResponse.json({ success: true, data: product });

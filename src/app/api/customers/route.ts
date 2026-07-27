@@ -10,6 +10,7 @@ const customerService = createCustomerService();
 
 export async function GET(request: NextRequest) {
   try {
+    await requirePermission("customer:read");
     const tenantId = await getCurrentTenantId();
     const { searchParams } = new URL(request.url);
 
