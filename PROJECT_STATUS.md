@@ -2,7 +2,7 @@
 
 ## Version
 
-`METLAS ERP v1.0 Stable` geliştirme protokolü aktif. Proje şu anda **AŞAMA 5 tamamlandı; AŞAMA 6 bekliyor** durumundadır.
+`METLAS ERP v1.0 Stable` geliştirme protokolü aktif. Proje şu anda **AŞAMA 6 tamamlandı; AŞAMA 7 bekliyor** durumundadır.
 
 ## Tamamlanan Aşamalar
 
@@ -151,9 +151,32 @@ Cari ve depozito hareket defteri mevcut şemada bulunmadığı için bu aşamada
 
 ## Sonraki Aşama
 
-**AŞAMA 6 — Ürünler ve stok.**
+**AŞAMA 7 — Araçlar.**
 
-Kapsam: kritik stok, depozito, stok hareketleri ve mobil stok kontrolü.
+Kapsam: belgeler, görevler, detay ekranı ve mobil araç yönetimi.
+
+## AŞAMA 6 Durumu
+
+**Durum:** Tamamlandı.
+
+### Yapılan değişiklikler
+
+- Ürün listesine kullanıcı tarafından açılıp kapanabilen kritik stok filtresi eklendi.
+- Kritik stok listesi server-side filtre ve pagination ile çalışıyor.
+- Manuel stok işlemleri sistem hareketlerinden ayrıldı; kullanıcı yalnızca alış, iade ve manuel düzeltme yapabiliyor.
+- Manuel düzeltmede stok artırma/azaltma yönü açıkça seçilebiliyor.
+- Stok hareketleri mobil kart ve masaüstü tablo görünümünde okunabilir hale getirildi.
+- Stok hareket türleri Türkçe etiketlerle gösteriliyor.
+- Depozitolu ürün bilgisi ürün detayında korunuyor.
+
+### Doğrulama
+
+- Ürün API: HTTP `200`.
+- Ürün listesi: HTTP `200`.
+- Ürün detay/stok ekranı: HTTP `200`.
+- `npx tsc --noEmit`: başarılı.
+- `npm run build`: başarılı.
+- `npm run lint`: 0 hata, 2 bilgilendirici kütüphane uyarısı.
 
 ## Tamamlanma
 
@@ -161,7 +184,7 @@ V1 genel tamamlanma: **yaklaşık %68**. Bu oran kod kapsamına dayalı teknik t
 
 ## Son Commit
 
-`0d839c6` — `feat: improve daily delivery operations`
+Bu aşamanın commit hash'i commit sonrasında yazılacaktır.
 
 ## Tarih
 

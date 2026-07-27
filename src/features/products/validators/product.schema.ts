@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-const stockMovementTypeEnum = z.enum(["INITIAL", "PURCHASE", "SALE", "ORDER", "RETURN", "ADJUSTMENT"]);
+const stockMovementTypeEnum = z.enum(["PURCHASE", "RETURN", "ADJUSTMENT"]);
 
 export const createProductSchema = z.object({
   code: z.string().trim().min(1, "Ürün kodu zorunludur").max(50),

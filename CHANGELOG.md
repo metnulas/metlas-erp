@@ -72,6 +72,15 @@ METLAS ERP V1 geliştirmelerinde kullanıcıyı ve sistemi etkileyen değişikli
 - Teslimat tarihleri için format validasyonu eklendi.
 - Dağıtım ve teslim stok düşümü akışları doğrulandı.
 
+### AŞAMA 6 — Ürünler ve stok
+
+- Ürün listesine kritik stok filtresi eklendi.
+- Kritik stok sorgusu server-side pagination ile çalışıyor.
+- Manuel stok hareketleri alış, iade ve düzeltme türleriyle sınırlandırıldı.
+- Manuel stok düzeltmesinde artırma/azaltma yönü seçilebilir hale getirildi.
+- Stok hareketleri mobil kart ve masaüstü tablo görünümünde standardize edildi.
+- Stok hareket türleri Türkçe etiketlerle gösteriliyor.
+
 #### Doğrulama
 
 - TypeScript kontrolü başarılı.
