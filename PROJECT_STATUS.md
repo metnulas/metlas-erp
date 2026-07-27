@@ -140,7 +140,7 @@ V1 genel tamamlanma: **yaklaşık %68**. Bu oran kod kapsamına dayalı teknik t
 
 ## Son Commit
 
-Bu aşamanın commit hash'i commit sonrasında yazılacaktır.
+`17f985d` — `feat: strengthen order workflow transitions`
 
 ## Tarih
 
