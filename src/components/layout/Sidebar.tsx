@@ -65,7 +65,7 @@ export default function Sidebar({ isMobileMenuOpen, onClose }: SidebarProps) {
       >
         <div className="mb-8 flex items-center justify-between px-2">
           <div className="flex items-center gap-3">
-             <Image src="/metlas-logo.png" alt="METLAS ERP" width={176} height={72} className="h-12 w-44 rounded-lg object-cover object-center" priority />
+             <Image src="/metlas-logo.png" alt="METLAS ERP" width={176} height={72} className="h-12 w-44 rounded-lg object-cover object-center" priority unoptimized />
             <div>
               <h1 className="text-base font-bold tracking-wide text-white">METLAS ERP</h1>
               <p className="text-xs text-slate-500">İş Yönetim Platformu</p>

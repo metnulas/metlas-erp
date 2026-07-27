@@ -3,12 +3,17 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Pencil, ArrowLeft, Phone, Mail, MapPin, Package } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
+import { ORDER_STATUS_LABELS, ORDER_STATUS_STYLES } from "@/shared/constants/order-status";
+import type { CustomerOrderHistoryItem } from "../repositories/customer.repository";
+import RepeatOrderButton from "./repeat-order-button";
 
 interface CustomerDetailProps {
   customer: Customer;
+  orders: CustomerOrderHistoryItem[];
 }
 
-export default function CustomerDetail({ customer }: CustomerDetailProps) {
+export default function CustomerDetail({ customer, orders }: CustomerDetailProps) {
+  const latestOrder = orders[0];
   return (
     <div className="space-y-6">
       <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
@@ -25,6 +30,10 @@ export default function CustomerDetail({ customer }: CustomerDetailProps) {
             <Pencil className="size-4" />
             Düzenle
           </Button>
+      </div>
+
+      <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-end">
+        <RepeatOrderButton customerId={customer.id} items={(latestOrder?.items ?? []).map((item) => ({ productId: item.productId, productName: item.productName, quantity: item.quantity, unitPrice: Number(item.unitPrice), notes: item.notes }))} />
       </div>
 
       <div className="grid gap-6 lg:grid-cols-3">
@@ -59,6 +68,11 @@ export default function CustomerDetail({ customer }: CustomerDetailProps) {
                 </div>
               )}
             </div>
+          </section>
+
+          <section className="rounded-xl border border-border/70 bg-card p-6">
+            <div className="flex items-center justify-between gap-3"><div><h2 className="text-lg font-semibold">Sipariş Geçmişi</h2><p className="mt-1 text-sm text-muted-foreground">Son 50 sipariş</p></div><span className="rounded-full bg-muted px-2.5 py-1 text-xs font-medium">{orders.length}</span></div>
+            {orders.length === 0 ? <p className="mt-5 text-sm text-muted-foreground">Bu müşteriye ait sipariş bulunmuyor.</p> : <div className="mt-4 divide-y divide-border/70">{orders.map((order) => <Link key={order.id} href={`/orders/${order.id}`} className="block py-3 transition-colors hover:text-primary"><div className="flex items-start justify-between gap-3"><div><p className="font-mono text-sm font-semibold">{order.orderCode}</p><p className="mt-1 text-xs text-muted-foreground">{new Date(order.orderDate).toLocaleDateString("tr-TR")} · {order.items.length} kalem</p></div><div className="text-right"><span className={`rounded-full px-2 py-1 text-[11px] font-medium ${ORDER_STATUS_STYLES[order.status] ?? "bg-muted text-muted-foreground"}`}>{ORDER_STATUS_LABELS[order.status] ?? order.status}</span><p className="mt-1 text-sm font-semibold">{Number(order.grandTotal).toLocaleString("tr-TR", { style: "currency", currency: "TRY" })}</p></div></div>{order.deliveryNotes && <p className="mt-2 text-xs text-muted-foreground">Teslimat notu: {order.deliveryNotes}</p>}</Link>)}</div>}
           </section>
 
           <section className="rounded-xl border border-border/70 bg-card p-6">

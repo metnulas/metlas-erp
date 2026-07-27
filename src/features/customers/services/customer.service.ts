@@ -2,6 +2,7 @@ import { AppError } from "@/server/errors/app-error";
 import {
   createCustomerRepository,
   type CustomerRepository,
+  type CustomerOrderHistoryItem,
 } from "../repositories/customer.repository";
 import type {
   CustomerQueryInput,
@@ -59,6 +60,7 @@ export interface CustomerService {
     userId?: string
   ): Promise<Customer>;
   softDelete(id: string, tenantId: string): Promise<Customer>;
+  getOrderHistory(id: string, tenantId: string): Promise<CustomerOrderHistoryItem[]>;
 }
 
 function buildSortOrder(
@@ -189,6 +191,11 @@ export function createCustomerService(
       }
 
       return repository.softDelete(id, tenantId);
+    },
+
+    async getOrderHistory(id, tenantId) {
+      await this.getById(id, tenantId);
+      return repository.findOrderHistory(id, tenantId);
     },
   };
 }

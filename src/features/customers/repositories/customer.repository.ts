@@ -16,6 +16,19 @@ export interface CustomerRepository {
   create(data: Prisma.CustomerCreateInput): Promise<Customer>;
   update(id: string, tenantId: string, data: Prisma.CustomerUpdateInput): Promise<Customer>;
   softDelete(id: string, tenantId: string): Promise<Customer>;
+  findOrderHistory(customerId: string, tenantId: string): Promise<CustomerOrderHistoryItem[]>;
+}
+
+export interface CustomerOrderHistoryItem {
+  id: string;
+  orderCode: string;
+  orderDate: Date;
+  deliveryDate: Date | null;
+  deliveredAt: Date | null;
+  deliveryNotes: string | null;
+  status: string;
+  grandTotal: unknown;
+  items: Array<{ id: string; productId: string | null; productName: string; quantity: number; unitPrice: unknown; total: unknown; notes: string | null }>;
 }
 
 export function createCustomerRepository(): CustomerRepository {
@@ -60,6 +73,19 @@ export function createCustomerRepository(): CustomerRepository {
       return prisma.customer.update({
         where: { id, tenantId },
         data: { deletedAt: new Date(), isActive: false },
+      });
+    },
+
+    async findOrderHistory(customerId, tenantId) {
+      return prisma.order.findMany({
+        where: { customerId, tenantId, deletedAt: null },
+        orderBy: { orderDate: "desc" },
+        take: 50,
+        select: {
+          id: true, orderCode: true, orderDate: true, deliveryDate: true, deliveredAt: true,
+          deliveryNotes: true, status: true, grandTotal: true,
+          items: { select: { id: true, productId: true, productName: true, quantity: true, unitPrice: true, total: true, notes: true } },
+        },
       });
     },
   };

@@ -49,6 +49,14 @@ METLAS ERP V1 geliştirmelerinde kullanıcıyı ve sistemi etkileyen değişikli
 - METLAS ERP logosu `public/metlas-logo.png` olarak eklendi.
 - Logo Sidebar, login ekranı ve favicon metadata'sında kullanılmaya başlandı.
 
+### AŞAMA 3 — Müşteri modülü operasyon tamamlaması
+
+- Müşteri detayına son 50 siparişin geçmişi eklendi.
+- Sipariş durumu, tutarı, tarihi, kalem sayısı ve teslimat notları gösteriliyor.
+- Son siparişten tek tıklamayla tekrar sipariş oluşturma aksiyonu eklendi.
+- Müşteri detayındaki gereksiz çift sorgu kaldırıldı.
+- Cari/depozito hareket defteri migration'ı Tahsilatlar aşamasına bırakıldı.
+
 #### Doğrulama
 
 - TypeScript kontrolü başarılı.

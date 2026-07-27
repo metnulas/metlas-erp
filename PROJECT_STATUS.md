@@ -2,7 +2,7 @@
 
 ## Version
 
-`METLAS ERP v1.0 Stable` geliştirme protokolü aktif. Proje şu anda **AŞAMA 2 tamamlandı; AŞAMA 3 bekliyor** durumundadır.
+`METLAS ERP v1.0 Stable` geliştirme protokolü aktif. Proje şu anda **AŞAMA 3 tamamlandı; AŞAMA 4 bekliyor** durumundadır.
 
 ## Tamamlanan Aşamalar
 
@@ -74,6 +74,30 @@ Tahsilat veri modeli henüz bulunmadığı için dashboard'a sahte "bekleyen tah
 - `npm run build`: başarılı.
 - `npm run lint`: 0 hata, 2 bilgilendirici kütüphane uyarısı.
 
+## AŞAMA 3 Durumu
+
+**Durum:** Tamamlandı.
+
+### Yapılan değişiklikler
+
+- Müşteri detayındaki gereksiz çift müşteri sorgusu kaldırıldı.
+- Müşteri detayına son 50 siparişten oluşan sipariş geçmişi eklendi.
+- Sipariş geçmişinde durum, tutar, tarih, kalem sayısı ve teslimat notu gösteriliyor.
+- Son siparişten tek tıklamayla yeni `PENDING` tekrar sipariş oluşturma aksiyonu eklendi.
+- Müşteri detayındaki tekrar sipariş aksiyonu mobilde tam genişlikte kullanılabiliyor.
+
+### Kapsam sınırı
+
+Cari ve depozito hareket defteri mevcut şemada bulunmadığı için bu aşamada yeni migration açılmadı. Gerçek finansal hareket modeli AŞAMA 9 Tahsilatlar kapsamında tasarlanacak.
+
+### Doğrulama
+
+- Müşteri listesi: HTTP `200`.
+- Müşteri detay ve sipariş geçmişi: HTTP `200`.
+- `npx tsc --noEmit`: başarılı.
+- `npm run build`: başarılı.
+- `npm run lint`: 0 hata, 2 bilgilendirici kütüphane uyarısı.
+
 ## Bilinen Sorunlar
 
 - Next.js 16 middleware convention için `proxy` deprecation uyarısı veriyor.
@@ -85,9 +109,9 @@ Tahsilat veri modeli henüz bulunmadığı için dashboard'a sahte "bekleyen tah
 
 ## Sonraki Aşama
 
-**AŞAMA 3 — Müşteri modülünü tamamla.**
+**AŞAMA 4 — Sipariş modülünü tamamla.**
 
-Kapsam: sipariş geçmişi, cari hareket bağlantısı, depozito hareketleri, teslimat notları ve tekrar sipariş.
+Kapsam: tekrar sipariş, durum yönetimi, detay akışı, araç/personel ataması ve Tahsilatlar bağlantı noktaları.
 
 ## Tamamlanma
 
@@ -95,7 +119,7 @@ V1 genel tamamlanma: **yaklaşık %68**. Bu oran kod kapsamına dayalı teknik t
 
 ## Son Commit
 
-`8229287` — `feat: add METLAS ERP branding logo`
+Bu aşamanın commit hash'i commit sonrasında yazılacaktır.
 
 ## Tarih
 
