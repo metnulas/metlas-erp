@@ -2,7 +2,7 @@
 
 ## Version
 
-`METLAS ERP v1.0 Stable` geliştirme protokolü aktif. Proje şu anda **AŞAMA 4 tamamlandı; AŞAMA 5 bekliyor** durumundadır.
+`METLAS ERP v1.0 Stable` geliştirme protokolü aktif. Proje şu anda **AŞAMA 5 tamamlandı; AŞAMA 6 bekliyor** durumundadır.
 
 ## Tamamlanan Aşamalar
 
@@ -128,11 +128,32 @@ Cari ve depozito hareket defteri mevcut şemada bulunmadığı için bu aşamada
 - Tahsilat, Kasa ve Ayarlar modülleri henüz uygulanmadı.
 - Marka logosu Sidebar, login ve favicon alanlarına eklendi.
 
+## AŞAMA 5 Durumu
+
+**Durum:** Tamamlandı.
+
+### Yapılan değişiklikler
+
+- Günlük dağıtım ekranına aktif işler, dağıtımda, teslim edildi ve iptal filtreleri eklendi.
+- Tarih ve durum filtreleri birlikte çalışıyor.
+- Araç/personel ataması ve teslimat notları mobil uyumlu ortak form primitive'leriyle çalışıyor.
+- Teslimata geçişte aktif araç ve personel zorunluluğu korunuyor.
+- Teslim edildiğinde stok düşümü ve stok hareketi oluşturma akışı korunuyor.
+- Dağıtım tarihleri için `YYYY-AA-GG` format validasyonu eklendi.
+
+### Doğrulama
+
+- Dağıtım API: HTTP `200`.
+- Dağıtım sayfası: HTTP `200`.
+- `npx tsc --noEmit`: başarılı.
+- `npm run build`: başarılı.
+- `npm run lint`: 0 hata, 2 bilgilendirici kütüphane uyarısı.
+
 ## Sonraki Aşama
 
-**AŞAMA 5 — Dağıtım modülü.**
+**AŞAMA 6 — Ürünler ve stok.**
 
-Kapsam: günlük dağıtım operasyonu, araç/personel, bekliyor, teslim edildi ve iptal akışları.
+Kapsam: kritik stok, depozito, stok hareketleri ve mobil stok kontrolü.
 
 ## Tamamlanma
 
@@ -140,7 +161,7 @@ V1 genel tamamlanma: **yaklaşık %68**. Bu oran kod kapsamına dayalı teknik t
 
 ## Son Commit
 
-`17f985d` — `feat: strengthen order workflow transitions`
+Bu aşamanın commit hash'i commit sonrasında yazılacaktır.
 
 ## Tarih
 

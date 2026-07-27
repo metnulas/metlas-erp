@@ -64,6 +64,14 @@ METLAS ERP V1 geliştirmelerinde kullanıcıyı ve sistemi etkileyen değişikli
 - Sipariş formu ortak Select primitive'ini kullanacak şekilde standardize edildi.
 - Araç/personel ataması, teslimat notları ve sipariş toplamları Tahsilatlar aşamasına bağlantı noktası olarak korundu.
 
+### AŞAMA 5 — Dağıtım operasyonu
+
+- Günlük dağıtım ekranına aktif işler, dağıtımda, teslim edildi ve iptal filtreleri eklendi.
+- Tarih ve durum filtreleri birlikte çalışacak şekilde düzenlendi.
+- Araç/personel ataması ve teslimat notları mobil uyumlu ortak form yapısıyla korundu.
+- Teslimat tarihleri için format validasyonu eklendi.
+- Dağıtım ve teslim stok düşümü akışları doğrulandı.
+
 #### Doğrulama
 
 - TypeScript kontrolü başarılı.

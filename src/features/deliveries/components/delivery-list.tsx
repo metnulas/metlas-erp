@@ -24,12 +24,15 @@ function today() { return new Date().toISOString().slice(0, 10); }
 
 export default function DeliveryList() {
   const [date, setDate] = useState(today);
+  const [status, setStatus] = useState("");
   const [items, setItems] = useState<Delivery[]>([]);
   const [loading, setLoading] = useState(true);
 
   const load = useCallback(async () => {
     try {
-      const response = await fetch(`/api/deliveries?date=${date}&includeUnscheduled=true`);
+      const query = new URLSearchParams({ date, includeUnscheduled: "true" });
+      if (status) query.set("status", status);
+      const response = await fetch(`/api/deliveries?${query}`);
       const result = await response.json();
       if (!response.ok) throw new Error(result.error?.message ?? "Dağıtımlar yüklenemedi");
       setItems(result.data);
@@ -38,7 +41,7 @@ export default function DeliveryList() {
     } finally {
       setLoading(false);
     }
-  }, [date]);
+  }, [date, status]);
 
   useEffect(() => {
     const timer = window.setTimeout(() => { void load(); }, 0);
@@ -47,10 +50,13 @@ export default function DeliveryList() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+       <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div><h1 className="text-2xl font-bold tracking-tight sm:text-3xl">Günlük Dağıtım</h1><p className="mt-1 text-sm text-muted-foreground">Siparişleri araç ve personele atayın, teslimat akışını yönetin.</p></div>
         <label className="flex w-full items-center gap-2 text-sm font-medium sm:w-auto"><CalendarDays className="size-4 text-muted-foreground" /><Input className="w-full sm:w-40" type="date" value={date} onChange={(event) => { setLoading(true); setDate(event.target.value); }} /></label>
-      </div>
+       </div>
+       <div className="flex gap-2 overflow-x-auto pb-1" aria-label="Dağıtım durum filtresi">
+         {[{ value: "", label: "Aktif işler" }, { value: "DELIVERING", label: "Dağıtımda" }, { value: "DELIVERED", label: "Teslim edildi" }, { value: "CANCELLED", label: "İptal" }].map((filter) => <Button key={filter.value} size="sm" variant={status === filter.value ? "default" : "outline"} className="shrink-0" onClick={() => { setLoading(true); setStatus(filter.value); }}>{filter.label}</Button>)}
+       </div>
       {!loading && items.length === 0 ? (
         <EmptyState icon={<ClipboardList className="size-8" />} title="Bu tarihte dağıtım yok" description="Seçili tarihte bekleyen veya dağıtımda olan sipariş bulunmuyor." action={<Button render={<Link href="/orders" />}>Siparişlere Git</Button>} />
       ) : (
