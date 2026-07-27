@@ -17,7 +17,10 @@ export interface VehicleRepository {
   create(data: Prisma.VehicleCreateInput): Promise<Vehicle>;
   update(id: string, tenantId: string, data: Prisma.VehicleUpdateInput): Promise<Vehicle>;
   softDelete(id: string, tenantId: string): Promise<Vehicle>;
+  findAssignedOrders(vehicleId: string, tenantId: string): Promise<AssignedVehicleOrder[]>;
 }
+
+export interface AssignedVehicleOrder { id: string; orderCode: string; status: string; deliveryDate: Date | null; customer: { id: string; fullName: string; phone: string } }
 
 export function createVehicleRepository(): VehicleRepository {
   return {
@@ -31,5 +34,8 @@ export function createVehicleRepository(): VehicleRepository {
     async create(data) { return prisma.vehicle.create({ data }); },
     async update(id, tenantId, data) { return prisma.vehicle.update({ where: { id, tenantId }, data }); },
     async softDelete(id, tenantId) { return prisma.vehicle.update({ where: { id, tenantId }, data: { deletedAt: new Date(), isActive: false, status: "INACTIVE" } }); },
+    async findAssignedOrders(vehicleId, tenantId) {
+      return prisma.order.findMany({ where: { vehicleId, tenantId, deletedAt: null, status: { not: "CANCELLED" } }, orderBy: [{ deliveryDate: "asc" }, { orderDate: "desc" }], take: 30, select: { id: true, orderCode: true, status: true, deliveryDate: true, customer: { select: { id: true, fullName: true, phone: true } } } });
+    },
   };
 }

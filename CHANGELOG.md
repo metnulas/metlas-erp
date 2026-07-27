@@ -87,6 +87,12 @@ METLAS ERP V1 geliştirmelerinde kullanıcıyı ve sistemi etkileyen değişikli
 - Production build başarılı.
 - ESLint 0 hata, 2 React Compiler uyarısı ile tamamlandı.
 
+### AŞAMA 7 — Araçlar (devam ediyor)
+
+- Araç detayında muayene ve sigorta tarihleri için süre durumu etiketleri eklendi.
+- Araca atanmış siparişler müşteri, teslim tarihi ve durum bilgileriyle gösteriliyor.
+- Atanmış sipariş sorgusu repository/service katmanlarından tenant kapsamıyla yürütülüyor.
+
 ## Önceki Sürümler
 
 - Customer, Order, Product, Vehicle, Personnel ve Delivery temel modülleri.

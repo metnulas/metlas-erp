@@ -1,6 +1,6 @@
 import { Prisma, type Vehicle } from "@prisma/client";
 import { AppError } from "@/server/errors/app-error";
-import { createVehicleRepository, type VehicleRepository } from "../repositories/vehicle.repository";
+import { createVehicleRepository, type VehicleRepository, type AssignedVehicleOrder } from "../repositories/vehicle.repository";
 import type { CreateVehicleOutput, UpdateVehicleOutput, VehicleQueryInput } from "../validators/vehicle.schema";
 
 export interface PaginatedVehicles { data: Vehicle[]; total: number; page: number; pageSize: number; totalPages: number; }
@@ -11,6 +11,7 @@ export interface VehicleService {
   create(tenantId: string, input: CreateVehicleOutput, userId?: string): Promise<Vehicle>;
   update(id: string, tenantId: string, input: UpdateVehicleOutput, userId?: string): Promise<Vehicle>;
   softDelete(id: string, tenantId: string): Promise<Vehicle>;
+  getAssignedOrders(id: string, tenantId: string): Promise<AssignedVehicleOrder[]>;
 }
 
 function buildSortOrder(sort: VehicleQueryInput["sort"], order: VehicleQueryInput["order"]): Prisma.VehicleOrderByWithRelationInput {
@@ -75,6 +76,10 @@ export function createVehicleService(repository: VehicleRepository = createVehic
     async softDelete(id, tenantId) {
       await this.getById(id, tenantId);
       return repository.softDelete(id, tenantId);
+    },
+    async getAssignedOrders(id, tenantId) {
+      await this.getById(id, tenantId);
+      return repository.findAssignedOrders(id, tenantId);
     },
   };
 }

@@ -2,7 +2,7 @@
 
 ## Version
 
-`METLAS ERP v1.0 Stable` geliştirme protokolü aktif. Proje şu anda **AŞAMA 6 tamamlandı; AŞAMA 7 bekliyor** durumundadır.
+`METLAS ERP v1.0 Stable` geliştirme protokolü aktif. Proje şu anda **AŞAMA 6 tamamlandı; AŞAMA 7 devam ediyor** durumundadır.
 
 ## Tamamlanan Aşamalar
 
@@ -178,13 +178,30 @@ Kapsam: belgeler, görevler, detay ekranı ve mobil araç yönetimi.
 - `npm run build`: başarılı.
 - `npm run lint`: 0 hata, 2 bilgilendirici kütüphane uyarısı.
 
+## AŞAMA 7 Durumu
+
+**Durum:** Tamamlandı.
+
+### Yapılan değişiklikler
+
+- Araç detayında muayene ve sigorta tarihleri için geçmiş, 30 gün içi ve geçerli durumları gösterildi.
+- Araç detayına tenant kapsamlı atanmış siparişler bölümü eklendi.
+- Araç listesinde süresi geçmiş veya 30 gün içinde dolacak belgeler görünür uyarı olarak gösteriliyor.
+- Araç liste ve detay aksiyonları mobil ekranlarda tam genişlik ve kırılabilir düzeni destekliyor.
+
+### Doğrulama
+
+- `npm run build`: başarılı.
+- `npm run lint`: 0 hata, 2 bilgilendirici kütüphane uyarısı.
+- `git diff --check`: başarılı.
+
 ## Tamamlanma
 
-V1 genel tamamlanma: **yaklaşık %68**. Bu oran kod kapsamına dayalı teknik tahmindir; ticari kabul oranı değildir.
+V1 genel tamamlanma: **yaklaşık %70**. Bu oran kod kapsamına dayalı teknik tahmindir; ticari kabul oranı değildir.
 
 ## Son Commit
 
-`4cc40ee` — `feat: strengthen product stock operations`
+Çalışma ağacında AŞAMA 7 araç detay geliştirmeleri mevcut; henüz commit edilmedi.
 
 ## Tarih
 
