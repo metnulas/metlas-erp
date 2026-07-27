@@ -13,6 +13,14 @@ function dateRange(date: string) {
   return { gte: new Date(`${date}T00:00:00.000Z`), lte: new Date(`${date}T23:59:59.999Z`) };
 }
 
+const allowedTransitions: Record<OrderStatus, OrderStatus[]> = {
+  PENDING: ["PENDING", "CONFIRMED", "CANCELLED"],
+  CONFIRMED: ["CONFIRMED", "DELIVERING", "CANCELLED"],
+  DELIVERING: ["DELIVERING", "DELIVERED", "CANCELLED"],
+  DELIVERED: ["DELIVERED"],
+  CANCELLED: ["CANCELLED"],
+};
+
 export function createDeliveryService(repository: DeliveryRepository = createDeliveryRepository()): DeliveryService {
   return {
     async list(tenantId, { date, status, includeUnscheduled }) {
@@ -29,6 +37,7 @@ export function createDeliveryService(repository: DeliveryRepository = createDel
     async assign(id, tenantId, input, userId) {
       const order = await this.getById(id, tenantId);
       if (order.status === "DELIVERED" || order.status === "CANCELLED") throw new AppError("Teslim edilmiş veya iptal edilmiş siparişin dağıtımı değiştirilemez", 400, "DELIVERY_IMMUTABLE");
+      if (input.status && !allowedTransitions[order.status].includes(input.status)) throw new AppError("Sipariş durumu bu aşamadan geriye alınamaz", 400, "ORDER_STATUS_TRANSITION_INVALID");
       if (input.vehicleId && !(await repository.findVehicle(input.vehicleId, tenantId))) throw new AppError("Aktif araç bulunamadı", 400, "VEHICLE_NOT_AVAILABLE");
       if (input.personnelId && !(await repository.findPersonnel(input.personnelId, tenantId))) throw new AppError("Aktif personel bulunamadı", 400, "PERSONNEL_NOT_AVAILABLE");
       const finalVehicleId = input.vehicleId === undefined ? order.vehicleId : input.vehicleId;

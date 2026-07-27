@@ -2,7 +2,7 @@
 
 ## Version
 
-`METLAS ERP v1.0 Stable` geliştirme protokolü aktif. Proje şu anda **AŞAMA 3 tamamlandı; AŞAMA 4 bekliyor** durumundadır.
+`METLAS ERP v1.0 Stable` geliştirme protokolü aktif. Proje şu anda **AŞAMA 4 tamamlandı; AŞAMA 5 bekliyor** durumundadır.
 
 ## Tamamlanan Aşamalar
 
@@ -98,6 +98,27 @@ Cari ve depozito hareket defteri mevcut şemada bulunmadığı için bu aşamada
 - `npm run build`: başarılı.
 - `npm run lint`: 0 hata, 2 bilgilendirici kütüphane uyarısı.
 
+## AŞAMA 4 Durumu
+
+**Durum:** Tamamlandı.
+
+### Yapılan değişiklikler
+
+- Sipariş durumları için ileri yönlü geçiş kuralları eklendi; geriye dönüşler engellendi.
+- Teslimat servisi aynı durum geçiş kurallarını kullanıyor.
+- Sipariş detay GET endpoint'inden gereksiz `order:write` yetkisi kaldırıldı.
+- Sipariş formu müşteri, ürün ve durum seçimlerinde ortak `Select` primitive'ini kullanıyor.
+- Mevcut araç/personel teslimat ataması ve teslimat notları sipariş detayında korunuyor.
+- Tahsilat için sipariş toplamı ve müşteri bağlantısı sonraki finansal modele hazır bırakıldı; henüz sahte ödeme alanı eklenmedi.
+
+### Doğrulama
+
+- Sipariş listesi: HTTP `200`.
+- Sipariş detay: HTTP `200`.
+- `npx tsc --noEmit`: başarılı.
+- `npm run build`: başarılı.
+- `npm run lint`: 0 hata, 2 bilgilendirici kütüphane uyarısı.
+
 ## Bilinen Sorunlar
 
 - Next.js 16 middleware convention için `proxy` deprecation uyarısı veriyor.
@@ -109,9 +130,9 @@ Cari ve depozito hareket defteri mevcut şemada bulunmadığı için bu aşamada
 
 ## Sonraki Aşama
 
-**AŞAMA 4 — Sipariş modülünü tamamla.**
+**AŞAMA 5 — Dağıtım modülü.**
 
-Kapsam: tekrar sipariş, durum yönetimi, detay akışı, araç/personel ataması ve Tahsilatlar bağlantı noktaları.
+Kapsam: günlük dağıtım operasyonu, araç/personel, bekliyor, teslim edildi ve iptal akışları.
 
 ## Tamamlanma
 
@@ -119,7 +140,7 @@ V1 genel tamamlanma: **yaklaşık %68**. Bu oran kod kapsamına dayalı teknik t
 
 ## Son Commit
 
-`22dd6a9` — `feat: complete customer operational workflow`
+Bu aşamanın commit hash'i commit sonrasında yazılacaktır.
 
 ## Tarih
 

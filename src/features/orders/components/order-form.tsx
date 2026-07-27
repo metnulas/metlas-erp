@@ -7,6 +7,7 @@ import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Select } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { createOrderSchema, type CreateOrderInput } from "../validators/order.schema";
 import { Loader2, Save, X, Plus, Trash2 } from "lucide-react";
@@ -153,7 +154,7 @@ export default function OrderForm({ initialData, mode }: OrderFormProps) {
             <label htmlFor="customerId" className="text-sm font-medium">
               Müşteri <span className="text-destructive">*</span>
             </label>
-            <select
+             <Select
               id="customerId"
               className="flex h-9 w-full rounded-lg border border-input bg-transparent px-3 py-1 text-base transition-colors placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm"
               {...register("customerId")}
@@ -164,7 +165,7 @@ export default function OrderForm({ initialData, mode }: OrderFormProps) {
                   {c.fullName} - {c.phone}
                 </option>
               ))}
-            </select>
+             </Select>
             {errors.customerId && (
               <p className="text-xs text-destructive">{errors.customerId.message}</p>
             )}
@@ -187,7 +188,7 @@ export default function OrderForm({ initialData, mode }: OrderFormProps) {
           </div>
           <div className="space-y-1.5">
             <label htmlFor="status" className="text-sm font-medium">Durum</label>
-            <select
+             <Select
               id="status"
               className="flex h-9 w-full rounded-lg border border-input bg-transparent px-3 py-1 text-base transition-colors placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm"
               {...register("status")}
@@ -197,7 +198,7 @@ export default function OrderForm({ initialData, mode }: OrderFormProps) {
               <option value="DELIVERING">Teslimatta</option>
               <option value="DELIVERED">Teslim Edildi</option>
               <option value="CANCELLED">İptal</option>
-            </select>
+             </Select>
           </div>
           <div className="space-y-1.5">
             <label htmlFor="discount" className="text-sm font-medium">İndirim (₺)</label>
@@ -229,7 +230,7 @@ export default function OrderForm({ initialData, mode }: OrderFormProps) {
               <div className="grid gap-3 sm:grid-cols-12 sm:items-end">
                 <div className="space-y-1.5 sm:col-span-5">
                   <label className="text-xs font-medium text-muted-foreground">Ürün Adı</label>
-                  <select
+                   <Select
                     className="flex h-9 w-full rounded-lg border border-input bg-transparent px-3 py-1 text-sm"
                     {...register(`items.${index}.productId`, {
                       onChange: (event) => {
@@ -240,10 +241,10 @@ export default function OrderForm({ initialData, mode }: OrderFormProps) {
                         }
                       },
                     })}
-                  >
+                   >
                     <option value="">Ürün seçin</option>
                     {products.map((product) => <option key={product.id} value={product.id}>{product.code} - {product.name}</option>)}
-                  </select>
+                   </Select>
                   <input type="hidden" {...register(`items.${index}.productName`)} />
                   {products.length === 0 && <p className="text-xs text-muted-foreground">Ürün kataloğu boş. Önce Ürünler bölümünden ürün ekleyin.</p>}
                 </div>

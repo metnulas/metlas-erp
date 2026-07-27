@@ -14,7 +14,6 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    await requirePermission("order:write");
     const tenantId = await getCurrentTenantId();
     const { id } = await params;
     const { id: validId } = orderIdSchema.parse({ id });

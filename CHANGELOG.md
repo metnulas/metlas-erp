@@ -57,6 +57,13 @@ METLAS ERP V1 geliştirmelerinde kullanıcıyı ve sistemi etkileyen değişikli
 - Müşteri detayındaki gereksiz çift sorgu kaldırıldı.
 - Cari/depozito hareket defteri migration'ı Tahsilatlar aşamasına bırakıldı.
 
+### AŞAMA 4 — Sipariş operasyon akışı
+
+- Sipariş ve teslimat durumları için ileri yönlü geçiş kuralları eklendi.
+- Sipariş detay GET endpoint'inin gereksiz write yetkisi kaldırıldı.
+- Sipariş formu ortak Select primitive'ini kullanacak şekilde standardize edildi.
+- Araç/personel ataması, teslimat notları ve sipariş toplamları Tahsilatlar aşamasına bağlantı noktası olarak korundu.
+
 #### Doğrulama
 
 - TypeScript kontrolü başarılı.

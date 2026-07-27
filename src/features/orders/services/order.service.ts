@@ -65,6 +65,20 @@ function calculateTotals(
   return { totalAmount, grandTotal };
 }
 
+const allowedTransitions: Record<OrderStatus, OrderStatus[]> = {
+  PENDING: ["PENDING", "CONFIRMED", "CANCELLED"],
+  CONFIRMED: ["CONFIRMED", "DELIVERING", "CANCELLED"],
+  DELIVERING: ["DELIVERING", "DELIVERED", "CANCELLED"],
+  DELIVERED: ["DELIVERED"],
+  CANCELLED: ["CANCELLED"],
+};
+
+function assertStatusTransition(current: OrderStatus, next?: OrderStatus) {
+  if (next && !allowedTransitions[current].includes(next)) {
+    throw new AppError("Sipariş durumu bu aşamadan geriye alınamaz", 400, "ORDER_STATUS_TRANSITION_INVALID");
+  }
+}
+
 async function validateReferences(repository: OrderRepository, tenantId: string, customerId: string, items: Array<{ productId?: string | null }>) {
   if (!(await repository.findCustomer(customerId, tenantId))) throw new AppError("Müşteri bulunamadı veya bu işletmeye ait değil", 400, "CUSTOMER_NOT_AVAILABLE");
   const requestedProductIds = [...new Set(items.flatMap((item) => item.productId ? [item.productId] : []))];
@@ -198,6 +212,7 @@ export function createOrderService(
       if (existing.status === "DELIVERED" || existing.status === "CANCELLED") {
         throw new AppError("Teslim edilmiş veya iptal edilmiş sipariş düzenlenemez", 400, "ORDER_IMMUTABLE");
       }
+      assertStatusTransition(existing.status, input.status);
       if (input.status === "DELIVERED") throw new AppError("Teslim edilen sipariş dağıtım ekranından tamamlanmalıdır", 400, "DELIVERY_WORKFLOW_REQUIRED");
       if (input.customerId || input.items) await validateReferences(repository, tenantId, input.customerId ?? existing.customer.id, input.items ?? existing.items);
 
