@@ -7,7 +7,7 @@ import { requirePermission } from "@/server/auth/authorization";
 
 export async function POST(_request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const session = await requirePermission("customer:write");
+    const session = await requirePermission("customers.edit");
     const { id } = customerIdSchema.parse(await params);
     return NextResponse.json({ success: true, data: await createCustomerService().geocode(id, await getCurrentTenantId(), session.user.id) });
   } catch (error) { return handleApiError(error); }

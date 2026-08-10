@@ -10,7 +10,7 @@ const customerService = createCustomerService();
 
 export async function GET(request: NextRequest) {
   try {
-    await requirePermission("customer:read");
+    await requirePermission("customers.view");
     const tenantId = await getCurrentTenantId();
     const { searchParams } = new URL(request.url);
 
@@ -39,7 +39,7 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const session = await requirePermission("customer:write");
+    const session = await requirePermission("customers.create");
     const tenantId = await getCurrentTenantId();
     const body = await request.json();
     const input = createCustomerSchema.parse(body);

@@ -4,26 +4,31 @@ import { usePathname } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import { useEffect, useRef } from "react";
+import { useSession } from "next-auth/react";
 import { BarChart3, BriefcaseBusiness, ClipboardCheck, ClipboardList, History, LayoutDashboard, Package, PanelLeftClose, PanelLeftOpen, ReceiptText, Truck, Users, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 const navigationItems = [
-  { label: "Dashboard", icon: LayoutDashboard, href: "/" },
-  { label: "Müşteriler", icon: Users, href: "/customers" },
-  { label: "Siparişler", icon: ReceiptText, href: "/orders" },
-  { label: "Ürünler", icon: Package, href: "/products" },
-  { label: "Araçlar", icon: Truck, href: "/vehicles" },
-  { label: "Personeller", icon: BriefcaseBusiness, href: "/personnel" },
-  { label: "Dağıtım", icon: ClipboardList, href: "/deliveries" },
-  { label: "Raporlar", icon: BarChart3, href: "/reports" },
-  { label: "Geçmiş Rotalar", icon: History, href: "/route-histories" },
-  { label: "Denetim", icon: ClipboardCheck, href: "/audit-logs" },
+  { label: "Dashboard", icon: LayoutDashboard, href: "/", permission: "dashboard.view" },
+  { label: "Müşteriler", icon: Users, href: "/customers", permission: "customers.view" },
+  { label: "Siparişler", icon: ReceiptText, href: "/orders", permission: "orders.view" },
+  { label: "Ürünler", icon: Package, href: "/products", permission: "products.view" },
+  { label: "Araçlar", icon: Truck, href: "/vehicles", permission: "vehicles.view" },
+  { label: "Personeller", icon: BriefcaseBusiness, href: "/personnel", permission: "personnel.view" },
+  { label: "Dağıtım", icon: ClipboardList, href: "/deliveries", permission: "routes.view" },
+  { label: "Raporlar", icon: BarChart3, href: "/reports", permission: "reports.view" },
+  { label: "Geçmiş Rotalar", icon: History, href: "/route-histories", permission: "routes.view" },
+  { label: "Roller", icon: Users, href: "/roles", permission: "roles.view" },
+  { label: "Kullanıcılar", icon: Users, href: "/users", permission: "users.view" },
+  { label: "Denetim", icon: ClipboardCheck, href: "/audit-logs", permission: "audit.view" },
 ];
 
 type SidebarProps = { isMobileMenuOpen: boolean; isCollapsed: boolean; onClose: () => void; onToggleCollapse: () => void };
 
 export default function Sidebar({ isMobileMenuOpen, isCollapsed, onClose, onToggleCollapse }: SidebarProps) {
   const pathname = usePathname();
+  const { data: session } = useSession();
+  const permissions = session?.user.permissions ?? [];
   const closeButtonRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
@@ -59,7 +64,8 @@ export default function Sidebar({ isMobileMenuOpen, isCollapsed, onClose, onTogg
           onClick={onClose}
         />
       )}
-       <aside
+        <aside
+         className={`fixed inset-y-0 left-0 z-[1200] flex flex-col overflow-y-auto border-r border-[#9bb8d0] px-4 py-5 text-[#17324d] shadow-[12px_0_35px_-25px_rgba(30,64,95,0.42)] transition-[width,transform] duration-300 ease-in-out lg:translate-x-0 ${isCollapsed ? "w-20" : "w-72"} ${isMobileMenuOpen ? "translate-x-0" : "-translate-x-full"}`}
          style={{ backgroundImage: "linear-gradient(180deg, rgba(196,217,235,0.72), rgba(196,217,235,0.84)), url('/sidebar-wallpaper-final.png')", backgroundPosition: "center", backgroundSize: "cover" }}
         role="dialog"
         aria-modal={isMobileMenuOpen}
@@ -85,7 +91,7 @@ export default function Sidebar({ isMobileMenuOpen, isCollapsed, onClose, onTogg
           </Button>
         </div>
         <nav aria-label="Ana menü" className="space-y-1">
-          {navigationItems.map(({ label, icon: Icon, href }) => {
+           {navigationItems.filter(({ permission }) => permissions.includes(permission)).map(({ label, icon: Icon, href }) => {
             const isActive = href === "/" ? pathname === "/" : pathname.startsWith(href);
             return (
               <Link

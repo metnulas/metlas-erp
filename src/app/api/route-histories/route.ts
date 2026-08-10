@@ -7,14 +7,14 @@ import { listRouteHistories, saveRouteHistory } from "@/features/routes/services
 
 export async function GET() {
   try {
-    await requirePermission("delivery:read");
+    await requirePermission("routes.view");
     return NextResponse.json({ success: true, data: await listRouteHistories(await getCurrentTenantId()) });
   } catch (error) { return handleApiError(error); }
 }
 
 export async function POST(request: NextRequest) {
   try {
-    await requirePermission("delivery:write");
+    await requirePermission("routes.manage");
     const input = routeHistoryInputSchema.parse(await request.json());
     return NextResponse.json({ success: true, data: await saveRouteHistory(await getCurrentTenantId(), input) });
   } catch (error) { return handleApiError(error); }

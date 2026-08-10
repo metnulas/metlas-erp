@@ -9,7 +9,7 @@ const auditService = createAuditService();
 
 export async function GET(request: NextRequest) {
   try {
-    await requirePermission("audit:read");
+    await requirePermission("audit.view");
     const searchParams = new URL(request.url).searchParams;
     const query = auditQuerySchema.parse({ page: searchParams.get("page") ?? 1, pageSize: searchParams.get("pageSize") ?? 25, action: searchParams.get("action") ?? undefined, entityType: searchParams.get("entityType") ?? undefined });
     return NextResponse.json({ success: true, data: await auditService.list(await getCurrentTenantId(), query) });

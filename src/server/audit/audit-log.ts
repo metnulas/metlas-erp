@@ -3,7 +3,7 @@ import { prisma } from "@/lib/db/prisma";
 import { logger } from "@/server/logger/logger";
 
 export interface AuditInput {
-  tenantId: string;
+  tenantId: string | null;
   actorId?: string;
   action: string;
   entityType: string;

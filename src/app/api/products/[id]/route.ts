@@ -10,7 +10,7 @@ const productService = createProductService();
 
 export async function GET(_request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
-    await requirePermission("product:read");
+    await requirePermission("products.view");
     const { id } = productIdSchema.parse(await params);
     const product = await productService.getById(id, await getCurrentTenantId());
     return NextResponse.json({ success: true, data: product });
@@ -21,7 +21,7 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
 
 export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const session = await requirePermission("product:write");
+    const session = await requirePermission("products.edit");
     const { id } = await params;
     const input = updateProductSchema.parse({ ...(await request.json()), id });
     const product = await productService.update(id, await getCurrentTenantId(), input, session.user.id);
@@ -33,7 +33,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
 
 export async function DELETE(_request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const session = await requirePermission("product:write");
+    const session = await requirePermission("products.delete");
     const { id } = productIdSchema.parse(await params);
     await productService.softDelete(id, await getCurrentTenantId(), session.user.id);
     return NextResponse.json({ success: true, data: { deleted: true } });

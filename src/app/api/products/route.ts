@@ -10,7 +10,7 @@ const productService = createProductService();
 
 export async function GET(request: NextRequest) {
   try {
-    await requirePermission("product:read");
+    await requirePermission("products.view");
     const { searchParams } = new URL(request.url);
     const query = productQuerySchema.parse({
       page: searchParams.get("page") ?? 1,
@@ -31,7 +31,7 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const session = await requirePermission("product:write");
+    const session = await requirePermission("products.create");
     const input = createProductSchema.parse(await request.json());
     const product = await productService.create(await getCurrentTenantId(), input, session.user.id);
     return NextResponse.json({ success: true, data: product }, { status: 201 });

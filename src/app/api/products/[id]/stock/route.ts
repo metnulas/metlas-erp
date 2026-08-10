@@ -9,7 +9,7 @@ const productService = createProductService();
 
 export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const session = await requirePermission("stock:write");
+    const session = await requirePermission("products.stock.manage");
     const { id } = productIdSchema.parse(await params);
     const input = stockAdjustmentSchema.parse(await request.json());
     const product = await productService.adjustStock(id, await getCurrentTenantId(), input, session.user.id);

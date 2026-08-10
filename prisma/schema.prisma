@@ -21,13 +21,18 @@ model Tenant {
   vehicles  Vehicle[]
   personnel Personnel[]
   users     User[]
+  roles     Role[]
+  permissionGroups PermissionGroup[]
+  permissions Permission[]
+  userRoles UserRole[]
+  rolePermissions RolePermission[]
   orderSequence OrderSequence?
   auditLogs AuditLog[]
   customerAccountEntries CustomerAccountEntry[]
   routeHistories RouteHistory[]
 }
 
-enum UserRole {
+enum LegacyUserRole {
   ADMIN
   OPERATIONS
   COURIER
@@ -36,18 +41,120 @@ enum UserRole {
 
 model User {
   id           String   @id @default(cuid())
-  tenantId     String
+  tenantId     String?
   email        String   @unique
   name         String
   passwordHash String
-  role         UserRole @default(OPERATIONS)
+  role         LegacyUserRole @default(OPERATIONS)
+  permissionVersion Int @default(1)
   isActive     Boolean  @default(true)
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
-  tenant       Tenant   @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  tenant       Tenant?  @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  roleAssignments UserRole[]
 
   @@index([tenantId, isActive])
   @@index([tenantId, role])
+}
+
+model PermissionGroup {
+  id          String   @id @default(cuid())
+  tenantId    String?
+  key         String
+  name        String
+  description String?
+  sortOrder   Int      @default(0)
+  isSystem    Boolean  @default(false)
+  isActive    Boolean  @default(true)
+  deletedAt   DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  tenant      Tenant?  @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  permissions  Permission[]
+
+  @@unique([tenantId, key])
+  @@index([tenantId, isActive, deletedAt])
+}
+
+model Permission {
+  id          String   @id @default(cuid())
+  tenantId    String?
+  groupId     String
+  key         String
+  name        String
+  description String?
+  isSystem    Boolean  @default(false)
+  isActive    Boolean  @default(true)
+  deletedAt   DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  tenant      Tenant?  @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  group       PermissionGroup @relation(fields: [groupId], references: [id], onDelete: Restrict)
+  rolePermissions RolePermission[]
+
+  @@unique([tenantId, key])
+  @@index([groupId, isActive, deletedAt])
+  @@index([tenantId, isActive, deletedAt])
+}
+
+model Role {
+  id           String   @id @default(cuid())
+  tenantId     String?
+  key          String
+  name         String
+  description  String?
+  color        String?
+  icon         String?
+  isSystem     Boolean  @default(false)
+  isSuperAdmin Boolean  @default(false)
+  isActive     Boolean  @default(true)
+  deletedAt    DateTime?
+  createdBy    String?
+  updatedBy    String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  tenant       Tenant?  @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  userRoles    UserRole[]
+  permissions  RolePermission[]
+
+  @@unique([tenantId, key])
+  @@index([tenantId, isActive, deletedAt])
+  @@index([isSuperAdmin, isActive])
+}
+
+model RolePermission {
+  id           String   @id @default(cuid())
+  tenantId     String?
+  roleId       String
+  permissionId String
+  deletedAt    DateTime?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  tenant       Tenant?  @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  role         Role     @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  permission   Permission @relation(fields: [permissionId], references: [id], onDelete: Restrict)
+
+  @@unique([tenantId, roleId, permissionId])
+  @@index([roleId, deletedAt])
+  @@index([permissionId, deletedAt])
+}
+
+model UserRole {
+  id         String   @id @default(cuid())
+  tenantId   String?
+  userId     String
+  roleId     String
+  deletedAt  DateTime?
+  assignedBy String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  tenant     Tenant?  @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role       Role     @relation(fields: [roleId], references: [id], onDelete: Cascade)
+
+  @@unique([tenantId, userId, roleId])
+  @@index([userId, deletedAt])
+  @@index([roleId, deletedAt])
 }
 
 model OrderSequence {
@@ -60,14 +167,14 @@ model OrderSequence {
 
 model AuditLog {
   id         String   @id @default(cuid())
-  tenantId   String
+  tenantId   String?
   actorId    String?
   action     String
   entityType String
   entityId   String
   metadata   Json?
   createdAt  DateTime @default(now())
-  tenant     Tenant   @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  tenant     Tenant?  @relation(fields: [tenantId], references: [id], onDelete: Restrict)
 
   @@index([tenantId, createdAt])
   @@index([tenantId, entityType, entityId])

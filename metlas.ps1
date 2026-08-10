@@ -113,7 +113,7 @@ if ($args[0] -eq "start-background") {
         exit 2
     }
 
-    $command = "npm.cmd run dev >> `"$logFile`" 2>&1"
+    $command = "npm.cmd run dev:https >> `"$logFile`" 2>&1"
     try {
         $child = Start-Process -FilePath "cmd.exe" `
             -ArgumentList @('/d', '/c', $command) `

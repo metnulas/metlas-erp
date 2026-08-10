@@ -10,7 +10,7 @@ const orderService = createOrderService();
 
 export async function GET(request: NextRequest) {
   try {
-    await requirePermission("order:read");
+    await requirePermission("orders.view");
     const tenantId = await getCurrentTenantId();
     const { searchParams } = new URL(request.url);
 
@@ -41,7 +41,7 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const session = await requirePermission("order:write");
+    const session = await requirePermission("orders.create");
     const tenantId = await getCurrentTenantId();
     const body = await request.json();
     const input = createOrderSchema.parse(body);

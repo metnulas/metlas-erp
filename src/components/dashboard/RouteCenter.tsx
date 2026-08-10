@@ -71,6 +71,7 @@ export default function RouteCenter({ orders }: { orders: RouteOrder[] }) {
   const [geocodingId, setGeocodingId] = useState<string | null>(null);
   const [updatingStatus, setUpdatingStatus] = useState<string | null>(null);
   const [courierPosition, setCourierPosition] = useState<[number, number] | null>(null);
+  const [isLocating, setIsLocating] = useState(false);
   const mappedOrders = useMemo(() => orders
     .filter((order) => order.customer.latitude !== null && order.customer.longitude !== null)
     .sort((a, b) => {
@@ -79,12 +80,36 @@ export default function RouteCenter({ orders }: { orders: RouteOrder[] }) {
       return first - second;
     }), [orders]);
   const activeMappedOrders = useMemo(() => mappedOrders.filter((order) => order.status !== "DELIVERED"), [mappedOrders]);
-  const routeOrigin = useMemo(() => courierPosition ?? (activeMappedOrders[0] ? [activeMappedOrders[0].customer.latitude!, activeMappedOrders[0].customer.longitude!] as [number, number] : null), [activeMappedOrders, courierPosition]);
+  const routeOrigin = useMemo(() => courierPosition ?? (activeMappedOrders[0] ?? mappedOrders[0] ? [
+    (activeMappedOrders[0] ?? mappedOrders[0]).customer.latitude!,
+    (activeMappedOrders[0] ?? mappedOrders[0]).customer.longitude!,
+  ] as [number, number] : null), [activeMappedOrders, courierPosition, mappedOrders]);
+  const routeVehicle = useMemo(() => activeMappedOrders.find((order) => order.vehicle)?.vehicle ?? mappedOrders.find((order) => order.vehicle)?.vehicle ?? null, [activeMappedOrders, mappedOrders]);
 
   useEffect(() => {
     if (!navigator.geolocation) return;
     navigator.geolocation.getCurrentPosition(({ coords }) => setCourierPosition([coords.latitude, coords.longitude]), () => undefined, { enableHighAccuracy: true, maximumAge: 300000, timeout: 10000 });
   }, []);
+
+  function refreshCourierLocation() {
+    if (!navigator.geolocation) {
+      toast.error("Bu tarayıcı GPS konumunu desteklemiyor");
+      return;
+    }
+    setIsLocating(true);
+    navigator.geolocation.getCurrentPosition(
+      ({ coords }) => {
+        setCourierPosition([coords.latitude, coords.longitude]);
+        setIsLocating(false);
+        toast.success("Konum güncellendi");
+      },
+      (error) => {
+        setIsLocating(false);
+        toast.error(error.code === error.PERMISSION_DENIED ? "Konum izni verilmedi" : "Güncel konum alınamadı");
+      },
+      { enableHighAccuracy: true, maximumAge: 0, timeout: 15000 },
+    );
+  }
 
   const saveRouteSnapshot = useCallback(async (distanceKm: number, stops: RouteStop[]) => {
     try {
@@ -134,7 +159,8 @@ export default function RouteCenter({ orders }: { orders: RouteOrder[] }) {
     const courierPoint = routeOrigin ? L.latLng(routeOrigin[0], routeOrigin[1]) : null;
     map.fitBounds(L.latLngBounds(courierPoint ? [...points, courierPoint] : points), { padding: [24, 24] });
     if (courierPoint) {
-      const courierMarker = L.marker(courierPoint, { icon: courierIcon(), draggable: true }).addTo(map).bindPopup("Kurye konumunu sürükleyerek başlangıç noktasını değiştirin");
+       const vehicleLabel = routeVehicle ? `Kargo aracı: ${routeVehicle.plate}` : "Kargo aracı";
+       const courierMarker = L.marker(courierPoint, { icon: courierIcon(), draggable: true, zIndexOffset: 1000 }).addTo(map).bindPopup(`${vehicleLabel}<br><span style="font-size:12px">Konumu sürükleyerek başlangıç noktasını değiştirin</span>`);
       courierMarker.on("dragend", () => { const position = courierMarker.getLatLng(); setCourierPosition([position.lat, position.lng]); });
     }
     points.forEach((point, index) => {
@@ -190,7 +216,7 @@ export default function RouteCenter({ orders }: { orders: RouteOrder[] }) {
       void saveRouteSnapshot(0, snapshotStops);
     }
     return () => { controller.abort(); try { map.remove(); } catch { /* Leaflet container already removed */ } };
-  }, [activeMappedOrders, courierPosition, mappedOrders, routeOrigin, saveRouteSnapshot, updateStatus]);
+  }, [activeMappedOrders, courierPosition, mappedOrders, routeOrigin, routeVehicle, saveRouteSnapshot, updateStatus]);
 
   async function geocodeCustomer(customerId: string) {
     setGeocodingId(customerId);
@@ -215,10 +241,11 @@ export default function RouteCenter({ orders }: { orders: RouteOrder[] }) {
         <div>
           <p className="flex items-center gap-2 text-sm font-medium text-primary"><Route className="size-4" /> Bugünün rotası</p>
           <h2 className="mt-1 text-xl font-bold tracking-tight sm:text-2xl">Dağıtım rota merkezi</h2>
-          <p className="mt-1 text-sm text-muted-foreground">{activeMappedOrders.length} aktif teslimat rotada. Mavi kurye simgesini sürükleyerek başlangıç noktasını değiştirin; rota en yakından en uzağa hesaplanır.</p>
-        </div>
-        <div className="flex flex-wrap gap-2">
-          {allRouteUrl && <Button size="sm" variant="outline" render={<a href={allRouteUrl} target="_blank" rel="noreferrer" />}><ExternalLink className="size-4" /> Google Maps rotası</Button>}
+           <p className="mt-1 text-sm text-muted-foreground">{activeMappedOrders.length} aktif teslimat rotada. Mavi araç simgesini sürükleyerek konumu manuel değiştirin; rota en yakından en uzağa hesaplanır.</p>
+         </div>
+         <div className="flex flex-wrap gap-2">
+           <Button size="sm" variant="outline" onClick={refreshCourierLocation} disabled={isLocating}><LocateFixed className="size-4" /> {isLocating ? "Konum alınıyor..." : "Konumumu yenile"}</Button>
+           {allRouteUrl && <Button size="sm" variant="outline" render={<a href={allRouteUrl} target="_blank" rel="noreferrer" />}><ExternalLink className="size-4" /> Google Maps rotası</Button>}
           <Button size="sm" variant="outline" render={<Link href="/deliveries" />}><MapPinned className="size-4" /> Dağıtımları yönet</Button>
         </div>
       </div>

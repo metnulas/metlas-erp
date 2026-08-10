@@ -1,0 +1,12 @@
+import Link from "next/link";
+import { Copy, Pencil, Plus, ShieldCheck } from "lucide-react";
+import DashboardLayout from "@/components/layout/DashboardLayout";
+import { Button } from "@/components/ui/button";
+import { requirePermission } from "@/server/auth/authorization";
+import { listRoles } from "@/features/roles/services/role.service";
+
+export default async function RolesPage() {
+  const session = await requirePermission("roles.view");
+  const roles = await listRoles(session.user.tenantId);
+  return <DashboardLayout><div className="space-y-6"><div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-end"><div><p className="flex items-center gap-2 text-sm font-medium text-primary"><ShieldCheck className="size-4" /> Yetki merkezi</p><h1 className="mt-1 text-3xl font-bold tracking-tight">Rol Yönetimi</h1><p className="mt-2 text-sm text-muted-foreground">Tenant rollerini ve permission setlerini yönetin.</p></div><Button render={<Link href="/roles/new" />}><Plus className="size-4" /> Yeni rol oluştur</Button></div><div className="overflow-hidden rounded-2xl border border-border/70 bg-card shadow-sm"><div className="divide-y divide-border/70">{roles.map((role) => <div key={role.id} className="flex flex-col gap-4 p-5 sm:flex-row sm:items-center sm:justify-between"><div className="flex min-w-0 items-center gap-3"><span className="grid size-10 shrink-0 place-items-center rounded-xl text-white" style={{ backgroundColor: role.color ?? "#2563eb" }}><ShieldCheck className="size-5" /></span><div className="min-w-0"><p className="font-semibold">{role.name} {role.isSuperAdmin && <span className="ml-2 rounded-full bg-amber-100 px-2 py-1 text-[10px] text-amber-700">Kilitli</span>}</p><p className="truncate text-xs text-muted-foreground">{role.key} · {role.permissions.length} permission · {role._count.userRoles} kullanıcı</p>{role.description && <p className="mt-1 truncate text-sm text-muted-foreground">{role.description}</p>}</div></div><div className="flex gap-2"><Button size="sm" variant="outline" render={<Link href={`/roles/${role.id}/edit`} />}><Pencil className="size-4" /> Düzenle</Button><Button size="sm" variant="ghost" render={<Link href={`/roles/${role.id}/edit?clone=1`} />}><Copy className="size-4" /> Kopyala</Button></div></div>)}{roles.length === 0 && <p className="p-8 text-center text-sm text-muted-foreground">Henüz rol bulunmuyor.</p>}</div></div></div></DashboardLayout>;
+}

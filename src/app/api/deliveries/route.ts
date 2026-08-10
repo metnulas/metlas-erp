@@ -9,7 +9,7 @@ const deliveryService = createDeliveryService();
 
 export async function GET(request: NextRequest) {
   try {
-    await requirePermission("delivery:read");
+    await requirePermission("deliveries.view");
     const { searchParams } = new URL(request.url);
     const query = deliveryQuerySchema.parse({ date: searchParams.get("date") ?? undefined, status: searchParams.get("status") ?? undefined, includeUnscheduled: searchParams.get("includeUnscheduled") ?? false });
     return NextResponse.json({ success: true, data: await deliveryService.list(await getCurrentTenantId(), query) });

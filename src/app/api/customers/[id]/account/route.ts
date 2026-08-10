@@ -10,7 +10,7 @@ const accountEntryService = createAccountEntryService();
 
 export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
-    await requirePermission("customer:read");
+    await requirePermission("customers.view");
     const { id } = customerIdSchema.parse(await params);
     const searchParams = new URL(request.url).searchParams;
     const query = accountEntryQuerySchema.parse({ page: searchParams.get("page") ?? 1, pageSize: searchParams.get("pageSize") ?? 20 });
@@ -20,7 +20,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 
 export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const session = await requirePermission("customer:write");
+    const session = await requirePermission("finance.manage");
     const { id } = customerIdSchema.parse(await params);
     const input = createAccountEntrySchema.parse(await request.json());
     return NextResponse.json({ success: true, data: await accountEntryService.create(id, await getCurrentTenantId(), input, session.user.id) }, { status: 201 });

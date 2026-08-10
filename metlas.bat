@@ -231,13 +231,13 @@ echo %C_CYAN%+==================================================================
 echo %C_CYAN%#        DEVELOPER MODU                   #%C_RESET%
 echo %C_CYAN%+================================================================================================+%C_RESET%
 echo.
-echo %C_YELLOW%npm run dev baslatiliyor...%C_RESET%
+echo %C_YELLOW%npm run dev:https baslatiliyor...%C_RESET%
 echo %C_GRAY%Durdurmak icin Ctrl+C kullanin.%C_RESET%
 echo %C_GRAY%--------------------------------------------------%C_RESET%
 echo.
 
 cd /d "%SCRIPT_DIR%"
-cmd /c "npm run dev"
+cmd /c "npm run dev:https"
 
 echo.
 echo %C_CYAN%+================================================================================================+%C_RESET%
@@ -307,8 +307,8 @@ if "%SRV_STATUS%"=="RUNNING" (
     echo  %C_BOLD%PID             :%C_RESET% %SRV_PID%
     echo  %C_BOLD%Port            :%C_RESET% 3000
     echo.
-    echo  %C_BOLD%Localhost       :%C_RESET% %C_CYAN%http://localhost:3000%C_RESET%
-    echo  %C_BOLD%Yerel Ag       :%C_RESET% %C_CYAN%http://%SRV_IP%:3000%C_RESET%
+    echo  %C_BOLD%Localhost       :%C_RESET% %C_CYAN%https://localhost:3000%C_RESET%
+    echo  %C_BOLD%Yerel Ag       :%C_RESET% %C_CYAN%https://%SRV_IP%:3000%C_RESET%
     echo.
     echo  %C_BOLD%Calisma Suresi  :%C_RESET% %SRV_UPTIME%
 ) else (
@@ -338,8 +338,8 @@ goto MENU
 :: =============================================
 :TARAYICI_AC
 echo.
-echo %C_CYAN%[*] http://localhost:3000 aciliyor...%C_RESET%
-start http://localhost:3000
+echo %C_CYAN%[*] https://localhost:3000 aciliyor...%C_RESET%
+start https://localhost:3000
 timeout /t 1 /nobreak >nul
 goto MENU
 

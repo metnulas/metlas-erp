@@ -14,7 +14,7 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    await requirePermission("order:read");
+    await requirePermission("orders.view");
     const tenantId = await getCurrentTenantId();
     const { id } = await params;
     const { id: validId } = orderIdSchema.parse({ id });
@@ -37,7 +37,7 @@ export async function PUT(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const session = await requirePermission("order:write");
+    const session = await requirePermission("orders.edit");
     const tenantId = await getCurrentTenantId();
     const { id } = await params;
     const body = await request.json();
@@ -61,7 +61,7 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const session = await requirePermission("order:write");
+    const session = await requirePermission("orders.delete");
     const tenantId = await getCurrentTenantId();
     const { id } = await params;
     const { id: validId } = orderIdSchema.parse({ id });
