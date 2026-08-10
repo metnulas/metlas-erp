@@ -65,55 +65,58 @@ export default function Sidebar({ isMobileMenuOpen, isCollapsed, onClose, onTogg
         />
       )}
         <aside
-         className={`fixed inset-y-0 left-0 z-[1200] flex flex-col overflow-y-auto border-r border-[#9bb8d0] px-4 py-5 text-[#17324d] shadow-[12px_0_35px_-25px_rgba(30,64,95,0.42)] transition-[width,transform] duration-300 ease-in-out lg:translate-x-0 ${isCollapsed ? "w-20" : "w-72"} ${isMobileMenuOpen ? "translate-x-0" : "-translate-x-full"}`}
-         style={{ backgroundImage: "linear-gradient(180deg, rgba(196,217,235,0.72), rgba(196,217,235,0.84)), url('/sidebar-wallpaper-final.png')", backgroundPosition: "center", backgroundSize: "cover" }}
+         className={`fixed inset-y-0 left-0 z-[1200] flex flex-col overflow-y-auto border-r border-blue-300/25 bg-[#0f172a] px-4 py-5 text-sky-50 shadow-[12px_0_35px_-18px_rgba(4,25,48,0.72)] transition-[width,transform] duration-300 ease-in-out lg:translate-x-0 ${isCollapsed ? "w-24" : "w-72"} ${isMobileMenuOpen ? "translate-x-0" : "-translate-x-full"}`}
         role="dialog"
         aria-modal={isMobileMenuOpen}
         aria-label="Ana navigasyon"
-      >
-         <div className={`mb-8 flex items-start gap-2 px-1 ${isCollapsed ? "justify-center" : "justify-between"}`}>
-           <div className={isCollapsed ? "w-12" : "min-w-0 flex-1"}>
-             <Image src="/metlas-logo.png" alt="METLAS ERP" width={230} height={110} className={`${isCollapsed ? "h-12 w-12" : "h-24 w-full"} rounded-xl object-cover object-center shadow-sm`} priority unoptimized />
-              {!isCollapsed && <p className="mt-3 px-1 text-xs font-semibold uppercase tracking-[0.16em] text-[#315774]">İş Yönetim Platformu</p>}
+       >
+         <div aria-hidden="true" className="pointer-events-none absolute inset-0 scale-110 bg-[url('/sidebar-wallpaper-final.png')] bg-cover bg-center opacity-45 blur-[5px]" />
+         <div aria-hidden="true" className="pointer-events-none absolute inset-0 bg-[linear-gradient(180deg,rgba(15,23,42,0.68),rgba(30,58,138,0.78))]" />
+         <Button aria-label={isCollapsed ? "Menüyü genişlet" : "Menüyü daralt"} className="absolute right-0 top-1/2 z-30 hidden h-20 w-7 translate-x-1/2 -translate-y-1/2 rounded-full border border-cyan-100/45 bg-[#0b5278]/90 p-0 text-cyan-50 shadow-[0_8px_22px_-10px_rgba(0,0,0,0.8)] backdrop-blur-xl hover:bg-[#0d6b98] lg:inline-flex" onClick={onToggleCollapse} size="icon" variant="ghost">
+           {isCollapsed ? <PanelLeftOpen className="size-4" /> : <PanelLeftClose className="size-4" />}
+         </Button>
+         <div className="relative z-10 flex min-h-full flex-col">
+          <div className={`mb-8 flex items-start gap-2 rounded-2xl border border-white/20 bg-white/10 p-2 shadow-[0_12px_30px_-18px_rgba(0,0,0,0.75)] backdrop-blur-xl ${isCollapsed ? "justify-center" : "justify-between"}`}>
+            <div className={isCollapsed ? "size-16 overflow-hidden rounded-2xl bg-white/15 shadow-[0_10px_24px_-15px_rgba(0,0,0,0.85)]" : "min-w-0 flex-1"}>
+              {isCollapsed ? <Image src="/metlas-logo.png" alt="METLAS" width={360} height={240} className="relative left-[-70px] top-[-80px] h-[240px] w-[360px] max-w-none shrink-0" priority unoptimized /> : <Image src="/metlas-logo.png" alt="METLAS ERP" width={300} height={150} className="h-32 w-full rounded-2xl bg-white/15 p-2 object-contain object-center shadow-[0_10px_24px_-15px_rgba(0,0,0,0.85)]" priority unoptimized />}
+              {!isCollapsed && <p className="mt-3 px-1 text-xs font-semibold uppercase tracking-[0.16em] text-cyan-100/75">İş Yönetim Platformu</p>}
            </div>
           <Button
             ref={closeButtonRef}
             aria-label="Menüyü kapat"
-             className="size-8 text-[#315774] hover:bg-white/70 hover:text-slate-900 lg:hidden"
+              className="size-8 text-cyan-50 hover:bg-white/15 hover:text-white lg:hidden"
             onClick={onClose}
             size="icon"
             variant="ghost"
           >
             <X className="size-5" />
           </Button>
-           <Button aria-label={isCollapsed ? "Menüyü genişlet" : "Menüyü daralt"} className="hidden size-8 text-[#315774] hover:bg-white/70 hover:text-slate-900 lg:inline-flex" onClick={onToggleCollapse} size="icon" variant="ghost">
-            {isCollapsed ? <PanelLeftOpen className="size-4" /> : <PanelLeftClose className="size-4" />}
-          </Button>
-        </div>
-        <nav aria-label="Ana menü" className="space-y-1">
+         </div>
+         <nav aria-label="Ana menü" className={isCollapsed ? "space-y-2" : "space-y-1"}>
            {navigationItems.filter(({ permission }) => permissions.includes(permission)).map(({ label, icon: Icon, href }) => {
             const isActive = href === "/" ? pathname === "/" : pathname.startsWith(href);
             return (
               <Link
                 href={href}
                 key={label}
-                  className={`flex items-center rounded-xl py-2.5 text-sm font-medium transition-colors ${isCollapsed ? "justify-center px-2" : "gap-3 px-3"} ${isActive ? "bg-white/90 text-[#1c5d91] shadow-sm ring-1 ring-white" : "hover:bg-white/55 hover:text-[#17324d]"}`}
+                   className={`relative flex h-12 items-center rounded-2xl border text-sm font-medium transition-all ${isCollapsed ? "justify-center px-2.5" : "gap-3 px-3"} ${isActive ? "border-blue-300/45 bg-blue-600/70 text-white shadow-[0_8px_22px_-14px_rgba(96,165,250,0.9)] backdrop-blur-xl before:absolute before:left-0 before:top-1/2 before:h-6 before:w-1 before:-translate-y-1/2 before:rounded-r-full before:bg-blue-200" : "border-transparent text-sky-100/80 hover:translate-x-[3px] hover:border-white/15 hover:bg-white/12 hover:text-white hover:backdrop-blur-xl"}`}
                  onClick={onClose}
                  title={isCollapsed ? label : undefined}
                >
-                 <Icon className="size-4" />
+                  <Icon className={isCollapsed ? "size-5 stroke-[2.2]" : "size-4"} />
                  {!isCollapsed && label}
               </Link>
             );
           })}
         </nav>
-         <div className={`mt-auto rounded-xl border border-white/70 bg-white/45 p-4 ${isCollapsed ? "flex justify-center" : ""}`}>
-            {isCollapsed ? <span className="text-xs font-bold text-[#17324d]">M</span> : <>
-            <p className="text-xs font-medium text-[#17324d]">METLAS ERP v1.0</p>
-            <p className="mt-1 text-xs leading-5 text-[#315774]">Tüm operasyonlarınız tek ekranda.</p>
-           </>}
-        </div>
-      </aside>
+          <div className={`mt-auto rounded-2xl border border-white/20 bg-white/10 p-4 shadow-[0_12px_30px_-18px_rgba(0,0,0,0.65)] backdrop-blur-xl ${isCollapsed ? "flex justify-center" : ""}`}>
+             {isCollapsed ? <span className="text-xs font-bold text-cyan-100">M</span> : <>
+             <p className="text-xs font-medium text-cyan-50">METLAS ERP v1.0</p>
+             <p className="mt-1 text-xs leading-5 text-sky-100/70">Tüm operasyonlarınız tek ekranda.</p>
+            </>}
+         </div>
+         </div>
+       </aside>
     </>
   );
 }

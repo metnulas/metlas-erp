@@ -236,7 +236,7 @@ export default function RouteCenter({ orders }: { orders: RouteOrder[] }) {
   const allRouteUrl = googleMapsRouteUrl(activeMappedOrders, routeOrigin);
 
   return (
-    <section className="rounded-2xl border border-border/70 bg-card p-5 shadow-sm sm:p-6 lg:p-8">
+    <section className="rounded-[20px] border border-slate-200 bg-white p-6 shadow-[0_18px_45px_-30px_rgba(15,23,42,0.55)] sm:p-6 lg:p-6">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <p className="flex items-center gap-2 text-sm font-medium text-primary"><Route className="size-4" /> Bugünün rotası</p>
@@ -250,16 +250,16 @@ export default function RouteCenter({ orders }: { orders: RouteOrder[] }) {
         </div>
       </div>
       <div className="mt-6 grid gap-5 lg:grid-cols-[minmax(0,1fr)_18rem]">
-        <div className="relative z-0 isolate min-h-[320px] overflow-hidden rounded-2xl border border-border/70 bg-muted">
+         <div className="relative z-0 isolate min-h-[320px] overflow-hidden rounded-[18px] border border-slate-200 bg-slate-100 shadow-inner">
           {mappedOrders.length === 0 ? <div className="absolute inset-0 grid place-items-center p-8 text-center"><div><MapPinned className="mx-auto size-8 text-muted-foreground" /><p className="mt-3 font-medium">Haritada gösterilecek koordinat yok</p><p className="mt-1 text-sm text-muted-foreground">Sağdaki siparişlerden “Konumu bul” ile adresleri otomatik çözebilirsiniz.</p></div></div> : <div ref={mapRef} className="absolute inset-0" />}
           {routeError && <div className="absolute inset-x-4 top-4 z-[1000] rounded-lg bg-red-50 p-3 text-xs text-red-700 shadow">{routeError}</div>}
         </div>
-        <div className="max-h-[440px] space-y-2 overflow-y-auto pr-1">
+         <div className="max-h-[440px] space-y-2 overflow-y-auto pr-1">
           {orders.map((order) => {
             const hasCoordinates = mappedOrders.some((mapped) => mapped.id === order.id);
             const delivered = order.status === "DELIVERED";
             const nextStatuses = (ORDER_STATUS_TRANSITIONS[order.status] ?? []).filter((status) => status !== order.status);
-            return <div key={order.id} className={`rounded-xl border-l-4 p-3 transition-colors hover:bg-muted ${delivered ? "border-l-emerald-500" : "border-l-red-500"}`}>
+             return <div key={order.id} className={`rounded-xl border border-slate-200 border-l-4 bg-white p-4 transition-all duration-200 hover:-translate-y-px hover:border-blue-200 hover:shadow-sm ${delivered ? "border-l-emerald-500" : "border-l-red-500"}`}>
               <div className="flex items-start gap-3"><span className={`grid size-7 shrink-0 place-items-center rounded-full text-xs font-bold ${delivered ? "bg-emerald-100 text-emerald-700" : "bg-red-100 text-red-700"}`}>{orders.indexOf(order) + 1}</span><div className="min-w-0 flex-1"><div className="flex items-start justify-between gap-2"><Link href={`/orders/${order.id}`} className="font-mono text-xs font-semibold hover:text-primary">{order.orderCode}</Link><span className="text-[11px] font-medium text-muted-foreground">{ORDER_STATUS_LABELS[order.status] ?? order.status}</span></div><p className="mt-1 truncate text-sm font-medium">{order.customer.fullName}</p><p className="truncate text-xs text-muted-foreground">{order.customer.district || order.customer.address || "Adres yok"}</p></div></div>
               <div className="mt-3 flex justify-end">
                 <DropdownMenu>
