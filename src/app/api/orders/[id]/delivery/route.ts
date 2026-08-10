@@ -9,9 +9,9 @@ const deliveryService = createDeliveryService();
 
 export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
-    await requirePermission("delivery:write");
+    const session = await requirePermission("delivery:write");
     const { id } = await params;
     const input = assignDeliverySchema.parse(await request.json());
-    return NextResponse.json({ success: true, data: await deliveryService.assign(id, await getCurrentTenantId(), input) });
+    return NextResponse.json({ success: true, data: await deliveryService.assign(id, await getCurrentTenantId(), input, session.user.id) });
   } catch (error) { return handleApiError(error); }
 }

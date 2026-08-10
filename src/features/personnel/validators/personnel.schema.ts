@@ -3,7 +3,7 @@ import { z } from "zod";
 const personnelStatusEnum = z.enum(["ACTIVE", "ON_LEAVE", "INACTIVE"]);
 
 export const createPersonnelSchema = z.object({
-  employeeCode: z.string().trim().min(1, "Personel kodu zorunludur").max(50),
+  employeeCode: z.string().trim().max(50).optional().or(z.literal("")),
   fullName: z.string().trim().min(2, "Ad soyad zorunludur").max(160),
   phone: z.string().trim().min(5, "Telefon zorunludur").max(30),
   email: z.string().trim().email("Geçerli bir e-posta girin").optional().or(z.literal("")),

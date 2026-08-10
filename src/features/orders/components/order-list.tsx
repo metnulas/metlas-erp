@@ -3,14 +3,15 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { ReceiptText, Plus } from "lucide-react";
+import { ChevronDown, ReceiptText, Plus } from "lucide-react";
 import DataTable from "@/shared/components/data-table";
 import EmptyState from "@/shared/components/empty-state";
 import OrderFilters from "./order-filters";
 import { getOrderColumns, type OrderRow } from "./order-table";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { ORDER_STATUS_LABELS, ORDER_STATUS_STYLES } from "@/shared/constants/order-status";
+import { ORDER_STATUS_LABELS, ORDER_STATUS_STYLES, ORDER_STATUS_TRANSITIONS } from "@/shared/constants/order-status";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 
 interface OrderListData {
   data: OrderRow[];
@@ -129,7 +130,20 @@ export default function OrderList() {
     [fetchData]
   );
 
-  const columns = getOrderColumns({ onDelete: handleDelete });
+  const handleStatusUpdate = useCallback(async (order: OrderRow, nextStatus: string) => {
+    if (nextStatus === "DELIVERED" && !confirm("Siparişi teslim edildi olarak işaretlemek ve stok düşümü yapmak istiyor musunuz?")) return;
+    if (nextStatus === "CANCELLED" && !confirm("Siparişi iptal etmek istediğinizden emin misiniz?")) return;
+    try {
+      const deliveryDate = order.deliveryDate ? new Date(order.deliveryDate).toISOString().slice(0, 10) : "";
+      const response = await fetch(`/api/orders/${order.id}/delivery`, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ vehicleId: order.vehicle?.id, personnelId: order.personnel?.id, deliveryDate, status: nextStatus }) });
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error?.message ?? "Sipariş durumu güncellenemedi");
+      toast.success(nextStatus === "DELIVERING" && (!order.vehicle || !order.personnel) ? "Durum güncellendi, uygun araç/personel otomatik atandı" : `Sipariş ${ORDER_STATUS_LABELS[nextStatus]?.toLowerCase() ?? "güncellendi"}`);
+      fetchData();
+    } catch (error) { toast.error(error instanceof Error ? error.message : "Sipariş durumu güncellenemedi"); }
+  }, [fetchData]);
+
+  const columns = getOrderColumns({ onDelete: handleDelete, onStatusUpdate: handleStatusUpdate });
   const renderMobileOrderCard = (order: OrderRow) => {
     return (
       <article className="rounded-2xl border border-border/70 bg-card p-4 shadow-sm">
@@ -142,7 +156,7 @@ export default function OrderList() {
           <div className="rounded-xl bg-muted/40 p-3"><p className="text-[11px] text-muted-foreground">Genel toplam</p><p className="mt-1 truncate text-sm font-semibold text-primary">{Number(order.grandTotal).toLocaleString("tr-TR", { style: "currency", currency: "TRY" })}</p></div>
         </div>
         <div className="mt-3 flex items-center justify-between text-xs text-muted-foreground"><span>{order.items.length} kalem</span><span>{order.customer.phone}</span></div>
-        <div className="mt-4 flex gap-2"><Button className="min-w-0 flex-1" size="sm" render={<Link href={`/orders/${order.id}`} />}>Detay</Button><Button className="min-w-0 flex-1" size="sm" variant="outline" render={<Link href={`/orders/${order.id}/edit`} />}>Düzenle</Button><Button size="icon-sm" variant="ghost" aria-label={`${order.orderCode} siparişini sil`} onClick={() => handleDelete(order.id)}><span aria-hidden="true">×</span></Button></div>
+         <div className="mt-4 grid grid-cols-2 gap-2"><Button className="min-w-0" size="sm" render={<Link href={`/orders/${order.id}`} />}>Detay</Button><Button className="min-w-0" size="sm" variant="outline" render={<Link href={`/orders/${order.id}/edit`} />}>Düzenle</Button></div><div className="mt-2 flex gap-2"><DropdownMenu><DropdownMenuTrigger render={<Button className="min-w-0 flex-1" size="sm" variant="secondary"><ChevronDown className="size-4" /> Durumu Güncelle</Button>} /><DropdownMenuContent align="start">{(ORDER_STATUS_TRANSITIONS[order.status] ?? []).filter((nextStatus) => nextStatus !== order.status).map((nextStatus) => <DropdownMenuItem key={nextStatus} onClick={() => handleStatusUpdate(order, nextStatus)}>{ORDER_STATUS_LABELS[nextStatus] ?? nextStatus}</DropdownMenuItem>)}</DropdownMenuContent></DropdownMenu><Button size="icon-sm" variant="ghost" aria-label={`${order.orderCode} siparişini sil`} onClick={() => handleDelete(order.id)}><span aria-hidden="true">×</span></Button></div>
       </article>
     );
   };

@@ -11,7 +11,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { ORDER_STATUS_LABELS, ORDER_STATUS_STYLES } from "@/shared/constants/order-status";
+import { ORDER_STATUS_LABELS, ORDER_STATUS_STYLES, ORDER_STATUS_TRANSITIONS } from "@/shared/constants/order-status";
 
 export interface OrderRow {
   id: string;
@@ -26,13 +26,16 @@ export interface OrderRow {
   notes: string | null;
   items: Array<{ id: string; productName: string; quantity: number; unitPrice: number; total: number }>;
   createdAt: string;
+  vehicle: { id: string; plate: string } | null;
+  personnel: { id: string; fullName: string } | null;
 }
 
 interface OrderTableColumnsProps {
   onDelete: (id: string) => void;
+  onStatusUpdate: (order: OrderRow, nextStatus: string) => void;
 }
 
-export function getOrderColumns({ onDelete }: OrderTableColumnsProps): ColumnDef<OrderRow>[] {
+export function getOrderColumns({ onDelete, onStatusUpdate }: OrderTableColumnsProps): ColumnDef<OrderRow>[] {
   return [
     {
       accessorKey: "orderCode",
@@ -143,6 +146,7 @@ export function getOrderColumns({ onDelete }: OrderTableColumnsProps): ColumnDef
                 <Pencil className="size-4" />
                 Düzenle
               </DropdownMenuItem>
+              {ORDER_STATUS_TRANSITIONS[order.status]?.filter((status) => status !== order.status).map((status) => <DropdownMenuItem key={status} onClick={() => onStatusUpdate(order, status)}>{ORDER_STATUS_LABELS[status] ?? status}</DropdownMenuItem>)}
               <DropdownMenuSeparator />
               <DropdownMenuItem
                 variant="destructive"

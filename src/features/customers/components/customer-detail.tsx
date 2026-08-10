@@ -1,4 +1,4 @@
-import type { Customer } from "@prisma/client";
+import type { Customer, CustomerAccountEntry } from "@prisma/client";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Pencil, ArrowLeft, Phone, Mail, MapPin, Package } from "lucide-react";
@@ -6,13 +6,15 @@ import { Separator } from "@/components/ui/separator";
 import { ORDER_STATUS_LABELS, ORDER_STATUS_STYLES } from "@/shared/constants/order-status";
 import type { CustomerOrderHistoryItem } from "../repositories/customer.repository";
 import RepeatOrderButton from "./repeat-order-button";
+import AccountEntryPanel from "./account-entry-panel";
 
 interface CustomerDetailProps {
   customer: Customer;
   orders: CustomerOrderHistoryItem[];
+  accountEntries: CustomerAccountEntry[];
 }
 
-export default function CustomerDetail({ customer, orders }: CustomerDetailProps) {
+export default function CustomerDetail({ customer, orders, accountEntries }: CustomerDetailProps) {
   const latestOrder = orders[0];
   return (
     <div className="space-y-6">
@@ -38,6 +40,7 @@ export default function CustomerDetail({ customer, orders }: CustomerDetailProps
 
       <div className="grid gap-6 lg:grid-cols-3">
         <div className="lg:col-span-2 space-y-6">
+          <AccountEntryPanel customerId={customer.id} initialEntries={accountEntries} />
           <section className="rounded-xl border border-border/70 bg-card p-6">
             <h2 className="mb-4 text-lg font-semibold">İletişim Bilgileri</h2>
             <div className="space-y-3">

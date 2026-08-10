@@ -7,6 +7,8 @@ import {
 } from "../repositories/order.repository";
 import type { OrderQueryInput } from "../validators/order.schema";
 import { Prisma, type OrderStatus } from "@prisma/client";
+import { recordAudit } from "@/server/audit/audit-log";
+import { ORDER_STATUS_LABELS, ORDER_STATUS_TRANSITIONS } from "@/shared/constants/order-status";
 
 export interface PaginatedOrders {
   data: OrderWithItems[];
@@ -53,7 +55,7 @@ export interface OrderService {
   getById(id: string, tenantId: string): Promise<OrderWithItems>;
   create(tenantId: string, input: CreateOrderData, userId?: string): Promise<OrderWithItems>;
   update(id: string, tenantId: string, input: UpdateOrderData, userId?: string): Promise<OrderWithItems>;
-  softDelete(id: string, tenantId: string): Promise<void>;
+  softDelete(id: string, tenantId: string, userId?: string): Promise<void>;
 }
 
 function calculateTotals(
@@ -65,17 +67,10 @@ function calculateTotals(
   return { totalAmount, grandTotal };
 }
 
-const allowedTransitions: Record<OrderStatus, OrderStatus[]> = {
-  PENDING: ["PENDING", "CONFIRMED", "CANCELLED"],
-  CONFIRMED: ["CONFIRMED", "DELIVERING", "CANCELLED"],
-  DELIVERING: ["DELIVERING", "DELIVERED", "CANCELLED"],
-  DELIVERED: ["DELIVERED"],
-  CANCELLED: ["CANCELLED"],
-};
-
 function assertStatusTransition(current: OrderStatus, next?: OrderStatus) {
-  if (next && !allowedTransitions[current].includes(next)) {
-    throw new AppError("Sipariş durumu bu aşamadan geriye alınamaz", 400, "ORDER_STATUS_TRANSITION_INVALID");
+  if (next && !ORDER_STATUS_TRANSITIONS[current].includes(next)) {
+    const allowed = ORDER_STATUS_TRANSITIONS[current].filter((status) => status !== current).map((status) => ORDER_STATUS_LABELS[status]).join(", ");
+    throw new AppError(allowed ? `Bu sipariş için geçerli sonraki durumlar: ${allowed}` : "Bu sipariş artık durum değişikliğine kapalı", 400, "ORDER_STATUS_TRANSITION_INVALID");
   }
 }
 
@@ -111,7 +106,7 @@ export function createOrderService(
       };
 
       if (status) {
-        where.status = status;
+        where.status = status === "WAITING_DELIVERY" ? { in: ["PENDING", "CONFIRMED", "DELIVERING"] } : status;
       }
 
       if (customerId) {
@@ -170,7 +165,7 @@ export function createOrderService(
       const stockItems: StockItem[] = [];
 
       try {
-        return await repository.create(
+        const order = await repository.create(
           tenantId,
         {
           orderCode,
@@ -196,6 +191,8 @@ export function createOrderService(
         })),
         stockItems
         );
+        await recordAudit({ tenantId, actorId: userId, action: "CREATE", entityType: "Order", entityId: order.id, metadata: { orderCode: order.orderCode } });
+        return order;
       } catch (error) {
         if (error instanceof Error && error.message === "PRODUCT_NOT_FOUND") throw new AppError("Siparişte geçersiz ürün bulundu", 400, "PRODUCT_NOT_FOUND");
         if (error instanceof Error && error.message === "INSUFFICIENT_STOCK") throw new AppError("Sipariş için yeterli stok bulunmuyor", 400, "INSUFFICIENT_STOCK");
@@ -257,7 +254,9 @@ export function createOrderService(
       const stockItems: StockItem[] = [];
 
       try {
-        return await repository.update(id, tenantId, updateData, items, stockItems);
+        const order = await repository.update(id, tenantId, updateData, items, stockItems);
+        await recordAudit({ tenantId, actorId: userId, action: "UPDATE", entityType: "Order", entityId: id, metadata: input.status ? { status: input.status } : undefined });
+        return order;
       } catch (error) {
         if (error instanceof Error && error.message === "PRODUCT_NOT_FOUND") throw new AppError("Siparişte geçersiz ürün bulundu", 400, "PRODUCT_NOT_FOUND");
         if (error instanceof Error && error.message === "INSUFFICIENT_STOCK") throw new AppError("Sipariş için yeterli stok bulunmuyor", 400, "INSUFFICIENT_STOCK");
@@ -265,7 +264,7 @@ export function createOrderService(
       }
     },
 
-    async softDelete(id, tenantId) {
+    async softDelete(id, tenantId, userId) {
       const existing = await repository.findById(id, tenantId);
       if (!existing) {
         throw new AppError("Sipariş bulunamadı", 404, "ORDER_NOT_FOUND");
@@ -276,6 +275,7 @@ export function createOrderService(
       }
 
       await repository.softDelete(id, tenantId);
+      await recordAudit({ tenantId, actorId: userId, action: "DELETE", entityType: "Order", entityId: id });
     },
   };
 }

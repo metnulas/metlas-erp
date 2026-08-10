@@ -1,4 +1,6 @@
 import { AppError } from "@/server/errors/app-error";
+import { recordAudit } from "@/server/audit/audit-log";
+import { geocodeAddress } from "@/server/geocoding/nominatim";
 import {
   createCustomerRepository,
   type CustomerRepository,
@@ -8,6 +10,7 @@ import type {
   CustomerQueryInput,
 } from "../validators/customer.schema";
 import { Prisma, type Customer } from "@prisma/client";
+import { nextTenantCode } from "@/server/codes/auto-code";
 
 export interface PaginatedCustomers {
   data: Customer[];
@@ -18,7 +21,7 @@ export interface PaginatedCustomers {
 }
 
 export interface CreateCustomerData {
-  customerCode: string;
+  customerCode?: string;
   fullName: string;
   phone: string;
   phone2?: string;
@@ -27,6 +30,8 @@ export interface CreateCustomerData {
   city?: string;
   district?: string;
   location?: string;
+  latitude?: number;
+  longitude?: number;
   balance?: number;
   depositBottleCount?: number;
   emptyBottleCount?: number;
@@ -43,6 +48,8 @@ export interface UpdateCustomerData {
   city?: string;
   district?: string;
   location?: string;
+  latitude?: number;
+  longitude?: number;
   balance?: number;
   depositBottleCount?: number;
   emptyBottleCount?: number;
@@ -59,7 +66,8 @@ export interface CustomerService {
     input: UpdateCustomerData,
     userId?: string
   ): Promise<Customer>;
-  softDelete(id: string, tenantId: string): Promise<Customer>;
+  softDelete(id: string, tenantId: string, userId?: string): Promise<Customer>;
+  geocode(id: string, tenantId: string, userId?: string): Promise<Customer>;
   getOrderHistory(id: string, tenantId: string): Promise<CustomerOrderHistoryItem[]>;
 }
 
@@ -129,13 +137,15 @@ export function createCustomerService(
     },
 
     async create(tenantId, input, userId) {
-      const existing = await repository.findByCode(input.customerCode, tenantId);
+      const customerCode = input.customerCode || await nextTenantCode("MUS", await repository.count({ tenantId }), (code) => repository.findByCode(code, tenantId).then(Boolean));
+      const existing = await repository.findByCode(customerCode, tenantId);
       if (existing) {
         throw new AppError("Bu müşteri kodu zaten kullanılıyor", 409, "CUSTOMER_CODE_EXISTS");
       }
 
-      return repository.create({
-        customerCode: input.customerCode,
+      const coordinates = input.latitude === undefined || input.longitude === undefined ? await geocodeAddress(input.address, input.district, input.city, input.location) : null;
+      const customer = await repository.create({
+         customerCode,
         fullName: input.fullName,
         phone: input.phone,
         phone2: input.phone2 || null,
@@ -144,6 +154,8 @@ export function createCustomerService(
         city: input.city || null,
         district: input.district || null,
         location: input.location || null,
+        latitude: input.latitude ?? coordinates?.latitude ?? null,
+        longitude: input.longitude ?? coordinates?.longitude ?? null,
         balance: input.balance ?? 0,
         depositBottleCount: input.depositBottleCount ?? 0,
         emptyBottleCount: input.emptyBottleCount ?? 0,
@@ -152,21 +164,25 @@ export function createCustomerService(
         createdBy: userId ?? null,
         updatedBy: userId ?? null,
       });
+      await recordAudit({ tenantId, actorId: userId, action: "CREATE", entityType: "Customer", entityId: customer.id });
+      return customer;
     },
 
     async update(id, tenantId, input, userId) {
-      const customer = await repository.findById(id, tenantId);
-      if (!customer) {
+      const existingCustomer = await repository.findById(id, tenantId);
+      if (!existingCustomer) {
         throw new AppError("Müşteri bulunamadı", 404, "CUSTOMER_NOT_FOUND");
       }
 
-      if (input.customerCode && input.customerCode !== customer.customerCode) {
+      if (input.customerCode && input.customerCode !== existingCustomer.customerCode) {
         const existing = await repository.findByCode(input.customerCode, tenantId);
         if (existing) {
           throw new AppError("Bu müşteri kodu zaten kullanılıyor", 409, "CUSTOMER_CODE_EXISTS");
         }
       }
 
+      const addressChanged = input.address !== undefined || input.district !== undefined || input.city !== undefined || input.location !== undefined;
+      const coordinates = addressChanged || existingCustomer.latitude === null || existingCustomer.longitude === null ? await geocodeAddress(input.address ?? existingCustomer.address, input.district ?? existingCustomer.district, input.city ?? existingCustomer.city, input.location ?? existingCustomer.location) : null;
       const updateData: Prisma.CustomerUpdateInput = {
         ...(input.customerCode !== undefined && { customerCode: input.customerCode }),
         ...(input.fullName !== undefined && { fullName: input.fullName }),
@@ -177,20 +193,39 @@ export function createCustomerService(
         city: input.city ?? null,
         district: input.district ?? null,
         location: input.location ?? null,
+        ...(input.latitude !== undefined && { latitude: input.latitude ?? null }),
+        ...(input.longitude !== undefined && { longitude: input.longitude ?? null }),
+        ...(coordinates && input.latitude === undefined && { latitude: coordinates.latitude }),
+        ...(coordinates && input.longitude === undefined && { longitude: coordinates.longitude }),
+        ...(addressChanged && input.latitude === undefined && !coordinates && { latitude: null }),
+        ...(addressChanged && input.longitude === undefined && !coordinates && { longitude: null }),
         notes: input.notes ?? null,
         updatedBy: userId ?? null,
       };
 
-      return repository.update(id, tenantId, updateData);
+      const customer = await repository.update(id, tenantId, updateData);
+      await recordAudit({ tenantId, actorId: userId, action: "UPDATE", entityType: "Customer", entityId: id });
+      return customer;
     },
 
-    async softDelete(id, tenantId) {
+    async softDelete(id, tenantId, userId) {
       const customer = await repository.findById(id, tenantId);
       if (!customer) {
         throw new AppError("Müşteri bulunamadı", 404, "CUSTOMER_NOT_FOUND");
       }
 
-      return repository.softDelete(id, tenantId);
+      const deleted = await repository.softDelete(id, tenantId);
+      await recordAudit({ tenantId, actorId: userId, action: "DELETE", entityType: "Customer", entityId: id });
+      return deleted;
+    },
+
+    async geocode(id, tenantId, userId) {
+      const customer = await this.getById(id, tenantId);
+      const coordinates = await geocodeAddress(customer.address, customer.district, customer.city, customer.location);
+      if (!coordinates) throw new AppError("Adres haritada bulunamadı. Adres, mahalle ve şehir bilgilerini kontrol edin", 400, "CUSTOMER_LOCATION_NOT_FOUND");
+      const updated = await repository.update(id, tenantId, { latitude: coordinates.latitude, longitude: coordinates.longitude, updatedBy: userId ?? null });
+      await recordAudit({ tenantId, actorId: userId, action: "GEOCODE", entityType: "Customer", entityId: id, metadata: { latitude: coordinates.latitude, longitude: coordinates.longitude } });
+      return updated;
     },
 
     async getOrderHistory(id, tenantId) {

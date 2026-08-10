@@ -96,9 +96,9 @@ export default function CustomerForm({ initialData, mode }: CustomerFormProps) {
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           <div className="space-y-1.5">
             <label htmlFor="customerCode" className="text-sm font-medium">
-              Müşteri Kodu <span className="text-destructive">*</span>
+              Müşteri Kodu
             </label>
-            <Input id="customerCode" placeholder="MUS-0001" {...register("customerCode")} />
+            <Input id="customerCode" placeholder={mode === "create" ? "Otomatik oluşturulur" : "MUS-0001"} readOnly={mode === "create"} {...register("customerCode")} />
             {errors.customerCode && (
               <p className="text-xs text-destructive">{errors.customerCode.message}</p>
             )}
@@ -169,6 +169,7 @@ export default function CustomerForm({ initialData, mode }: CustomerFormProps) {
               <p className="text-xs text-destructive">{errors.location.message}</p>
             )}
           </div>
+          <p className="text-xs text-muted-foreground sm:col-span-2 lg:col-span-3">Adres kaydedildiğinde konum OpenStreetMap üzerinden otomatik bulunur. Daha doğru rota için mahalle, sokak ve bina numarasını eksiksiz girin.</p>
         </div>
       </section>
 

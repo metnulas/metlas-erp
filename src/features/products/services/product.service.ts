@@ -1,7 +1,9 @@
 import { Prisma, type Product, type StockMovementType } from "@prisma/client";
 import { AppError } from "@/server/errors/app-error";
+import { recordAudit } from "@/server/audit/audit-log";
 import { createProductRepository, type ProductRepository, type ProductWithMovements } from "../repositories/product.repository";
 import type { CreateProductOutput, ProductQueryInput, StockAdjustmentOutput, UpdateProductOutput } from "../validators/product.schema";
+import { nextTenantCode } from "@/server/codes/auto-code";
 
 export interface PaginatedProducts {
   data: Product[];
@@ -16,7 +18,7 @@ export interface ProductService {
   getById(id: string, tenantId: string): Promise<ProductWithMovements>;
   create(tenantId: string, input: CreateProductOutput, userId?: string): Promise<Product>;
   update(id: string, tenantId: string, input: UpdateProductOutput, userId?: string): Promise<Product>;
-  softDelete(id: string, tenantId: string): Promise<Product>;
+  softDelete(id: string, tenantId: string, userId?: string): Promise<Product>;
   adjustStock(id: string, tenantId: string, input: StockAdjustmentOutput, userId?: string): Promise<Product>;
 }
 
@@ -61,11 +63,12 @@ export function createProductService(repository: ProductRepository = createProdu
     },
 
     async create(tenantId, input, userId) {
-      if (await repository.findByCode(input.code, tenantId)) {
+      const code = input.code || await nextTenantCode("URN", await repository.count({ tenantId }), (candidate) => repository.findByCode(candidate, tenantId).then(Boolean));
+      if (await repository.findByCode(code, tenantId)) {
         throw new AppError("Bu ürün kodu zaten kullanılıyor", 409, "PRODUCT_CODE_EXISTS");
       }
-      return repository.create({
-        code: input.code,
+      const product = await repository.create({
+        code,
         name: input.name,
         category: input.category || null,
         unit: input.unit,
@@ -81,12 +84,14 @@ export function createProductService(repository: ProductRepository = createProdu
         updatedBy: userId ?? null,
         stockMovements: input.stockQuantity > 0 ? { create: { tenantId, type: "INITIAL", quantity: input.stockQuantity, balanceAfter: input.stockQuantity, notes: "İlk stok" } } : undefined,
       });
+      await recordAudit({ tenantId, actorId: userId, action: "CREATE", entityType: "Product", entityId: product.id });
+      return product;
     },
 
     async update(id, tenantId, input, userId) {
-      const product = await repository.findById(id, tenantId);
-      if (!product) throw new AppError("Ürün bulunamadı", 404, "PRODUCT_NOT_FOUND");
-      if (input.code && input.code !== product.code && (await repository.findByCode(input.code, tenantId))) {
+      const existingProduct = await repository.findById(id, tenantId);
+      if (!existingProduct) throw new AppError("Ürün bulunamadı", 404, "PRODUCT_NOT_FOUND");
+      if (input.code && input.code !== existingProduct.code && (await repository.findByCode(input.code, tenantId))) {
         throw new AppError("Bu ürün kodu zaten kullanılıyor", 409, "PRODUCT_CODE_EXISTS");
       }
       const data: Prisma.ProductUpdateInput = {
@@ -102,18 +107,24 @@ export function createProductService(repository: ProductRepository = createProdu
         ...(input.depositAmount !== undefined && { depositAmount: input.depositAmount }),
         updatedBy: userId ?? null,
       };
-      return repository.update(id, tenantId, data);
+      const product = await repository.update(id, tenantId, data);
+      await recordAudit({ tenantId, actorId: userId, action: "UPDATE", entityType: "Product", entityId: id });
+      return product;
     },
 
-    async softDelete(id, tenantId) {
+    async softDelete(id, tenantId, userId) {
       const product = await repository.findById(id, tenantId);
       if (!product) throw new AppError("Ürün bulunamadı", 404, "PRODUCT_NOT_FOUND");
-      return repository.softDelete(id, tenantId);
+      const deleted = await repository.softDelete(id, tenantId);
+      await recordAudit({ tenantId, actorId: userId, action: "DELETE", entityType: "Product", entityId: id });
+      return deleted;
     },
 
     async adjustStock(id, tenantId, input, userId) {
       try {
-        return await repository.adjustStock({ id, tenantId, type: input.type as StockMovementType, quantity: input.quantity, notes: input.notes, userId });
+        const product = await repository.adjustStock({ id, tenantId, type: input.type as StockMovementType, quantity: input.quantity, notes: input.notes, userId });
+        await recordAudit({ tenantId, actorId: userId, action: "STOCK_ADJUSTMENT", entityType: "Product", entityId: id, metadata: { type: input.type, quantity: input.quantity } });
+        return product;
       } catch (error) {
         if (error instanceof Error && error.message === "PRODUCT_NOT_FOUND") throw new AppError("Ürün bulunamadı", 404, "PRODUCT_NOT_FOUND");
         if (error instanceof Error && error.message === "INSUFFICIENT_STOCK") throw new AppError("Yeterli stok bulunmuyor", 400, "INSUFFICIENT_STOCK");

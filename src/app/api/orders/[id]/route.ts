@@ -37,13 +37,13 @@ export async function PUT(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    await requirePermission("order:write");
+    const session = await requirePermission("order:write");
     const tenantId = await getCurrentTenantId();
     const { id } = await params;
     const body = await request.json();
     const input = updateOrderSchema.parse({ ...body, id });
 
-    const order = await orderService.update(id, tenantId, input);
+    const order = await orderService.update(id, tenantId, input, session.user.id);
 
     const response: ApiResponse<typeof order> = {
       success: true,
@@ -61,12 +61,12 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    await requirePermission("order:write");
+    const session = await requirePermission("order:write");
     const tenantId = await getCurrentTenantId();
     const { id } = await params;
     const { id: validId } = orderIdSchema.parse({ id });
 
-    await orderService.softDelete(validId, tenantId);
+    await orderService.softDelete(validId, tenantId, session.user.id);
 
     return NextResponse.json({ success: true, data: { deleted: true } });
   } catch (error) {

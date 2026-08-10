@@ -31,9 +31,9 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    await requirePermission("product:write");
+    const session = await requirePermission("product:write");
     const input = createProductSchema.parse(await request.json());
-    const product = await productService.create(await getCurrentTenantId(), input);
+    const product = await productService.create(await getCurrentTenantId(), input, session.user.id);
     return NextResponse.json({ success: true, data: product }, { status: 201 });
   } catch (error) {
     return handleApiError(error);

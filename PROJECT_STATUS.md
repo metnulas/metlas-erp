@@ -2,7 +2,7 @@
 
 ## Version
 
-`METLAS ERP v1.0 Stable` geliştirme protokolü aktif. Proje şu anda **AŞAMA 7 tamamlandı; AŞAMA 8 devam ediyor** durumundadır.
+`METLAS ERP v1.0 Stable` geliştirme protokolü aktif. Proje şu anda **AŞAMA 8 tamamlandı; AŞAMA 9 devam ediyor** durumundadır.
 
 ## Tamamlanan Aşamalar
 
@@ -151,9 +151,9 @@ Cari ve depozito hareket defteri mevcut şemada bulunmadığı için bu aşamada
 
 ## Sonraki Aşama
 
-**AŞAMA 8 — Güvenlik ve veri bütünlüğü.**
+**AŞAMA 9 — Finansal çekirdek.**
 
-Kapsam: JWT doğrulaması, tenant izolasyonu testleri, sipariş kodu concurrency güvenliği, atomic stok güncellemeleri ve permission matrisi.
+Kapsam: cari hareketler, tahsilat/ödeme, kasa, giderler, depozito hareketleri ve finansal raporlar.
 
 ## AŞAMA 6 Durumu
 
@@ -197,7 +197,7 @@ Kapsam: JWT doğrulaması, tenant izolasyonu testleri, sipariş kodu concurrency
 
 ## AŞAMA 8 Durumu
 
-**Durum:** Devam ediyor.
+**Durum:** Tamamlandı.
 
 ### Tamamlanan alt iş
 
@@ -208,6 +208,12 @@ Kapsam: JWT doğrulaması, tenant izolasyonu testleri, sipariş kodu concurrency
 - ADMIN, OPERATIONS, COURIER ve ACCOUNTING rolleri için read/write permission matrisi tanımlandı.
 - Ürün ayarı, sipariş oluşturma ve teslimat stok düşümleri koşullu atomic güncelleme kullanıyor.
 - Sipariş kodu üretimi tenant bazlı `OrderSequence` modeli ve migration ile concurrency-safe hale getirildi.
+- Tenant ilişkili `AuditLog` modeli ve migration eklendi.
+- Müşteri, sipariş, ürün/stok, araç, personel ve teslimat write işlemleri actor, işlem ve entity bilgisiyle audit ediliyor.
+- Audit log listeleme API'si ve `/audit-logs` ekranı eklendi.
+- Audit ekranında işlem ve entity filtreleri ile pagination bulunuyor.
+- Permission matrisi ve audit service için otomatik testler eklendi.
+- `OrderSequence` ve `AuditLog` migration'ları veritabanına uygulandı.
 
 ### Doğrulama
 
@@ -218,15 +224,57 @@ Kapsam: JWT doğrulaması, tenant izolasyonu testleri, sipariş kodu concurrency
 ### Kalan kapsam
 
 - Tenant izolasyonu otomatik testleri.
-- Audit log ve kapsamlı otomatik test altyapısı.
+- Geniş kapsamlı integration ve E2E testleri sonraki kalite fazında sürdürülecek.
+
+## AŞAMA 9 Durumu
+
+**Durum:** Devam ediyor.
+
+### Tamamlanan alt iş
+
+- Tenant ilişkili `CustomerAccountEntry` modeli ve migration eklendi.
+- `CHARGE`, `PAYMENT`, `DEPOSIT_IN` ve `DEPOSIT_OUT` hareket türleri tanımlandı.
+- Bakiye ve depozito düşümleri transaction içinde koşullu atomic güncelleniyor.
+- Müşteri hareketleri için tenant kapsamlı GET/POST API eklendi.
+- Müşteri detayına cari/depozito hareket paneli ve yeni hareket formu eklendi.
+- Hareketler actor ve audit log kaydıyla ilişkilendiriliyor.
+- Migration Neon veritabanına uygulandı.
+- Sipariş detayına Onayla, Dağıtıma Çıkar, Teslim Edildi ve İptal Et hızlı durum aksiyonları eklendi.
+- Teslim edildi aksiyonu mevcut stok düşümü ve araç/personel doğrulama akışını kullanıyor.
+- Sipariş düzenleme ve dağıtım formlarında yalnızca geçerli sonraki durumlar gösteriliyor; kafa karıştıran geri geçiş hataları önlendi.
+- Onaylanan veya dağıtıma çıkarılan siparişlerde boş araç/personel alanları, aynı gün en az işi olan aktif adaylarla otomatik dolduruluyor.
+- Manuel araç/personel seçimi korunuyor; otomatik atama yalnızca ilgili alan boşsa çalışıyor.
+- Sipariş mobil kartlarında ve masaüstü işlem menüsünde doğrudan durum güncelleme aksiyonu bulunuyor.
+- Dashboard'daki sipariş hacmi alanı OpenStreetMap + OSRM uyumlu rota merkeziyle değiştirildi.
+- Müşterilere enlem/boylam alanları eklendi; bugünün koordinatlı teslimatları harita ve optimize edilmiş rota için hazırlanıyor.
+- Harita için API anahtarı gerekmiyor; OpenStreetMap attribution ve OSRM rota servisi kullanılıyor.
+- Müşteri adresleri kaydedilirken Nominatim/OpenStreetMap ile koordinata otomatik çevriliyor; kullanıcı koordinat girmek zorunda değil.
+- OSRM Trip API çağrısında rota başlangıç ve bitiş durakları açıkça sabitlendi; public servis kaynaklı `400` hatası giderildi.
+- Geocoding sonuçları şehir/ilçe ile doğrulanıyor; detaylı adresler için düşük hassasiyetli şehir merkezi sonuçları reddediliyor.
+- Nominatim eşleşmesi yetersiz kaldığında ArcGIS World Geocoder ile sokak/bina seviyesinde ikinci doğrulama yapılıyor; adres bulunamazsa koordinat yazılmıyor.
+- Rota OSRM'de `source=first`, `destination=last` ve `roundtrip=false` ile son teslimatta bitiyor; başlangıç noktasına dönüş yapılmıyor.
+- Rota merkezine sipariş durum aksiyonları ve sipariş/multi-stop Google Maps yol tarifi bağlantıları eklendi.
+- Teslim edilen siparişler aktif OSRM/Google Maps rotasından çıkarılıyor; yeşil geçmiş marker olarak haritada tutuluyor.
+- Günlük rota snapshot'ı, duraklar, km, tahmini yakıt, yakıt maliyeti ve teslim ciro metrikleriyle `RouteHistory` modeline kaydediliyor.
+- `/route-histories` ekranı ve sidebar bağlantısı eklendi; yakıt varsayımları `ROUTE_FUEL_PRICE_PER_LITER` ve `ROUTE_FUEL_CONSUMPTION_L_PER_100KM` ile ayarlanabiliyor.
+- Sipariş UI durumları `Bekleyen dağıtım` ve `Teslim edildi` görünümünde sadeleştirildi; `PENDING`, `CONFIRMED` ve `DELIVERING` iç durumları tek etikette birleştirildi, durum filtresi de gruplanmış hale getirildi.
+- Yeni müşteri, ürün, araç ve personel kayıtlarında kodlar sunucu tarafında tenant bazlı otomatik üretiliyor (`MUS-0001`, `URN-0001`, `ARAC-0001`, `PER-0001`); yeni siparişte teslim tarihi varsayılan olarak bugünün tarihi.
+- Haritaya tarayıcı konumundan başlayan sürüklenebilir kurye marker'ı eklendi; marker bırakıldığında aktif teslimatlar kurye noktasından yakından uzağa sabit sırayla OSRM rotasına gönderiliyor.
+- Aynı müşterinin aynı gündeki birden fazla siparişi marker üzerinde adet rozetiyle gösteriliyor; aktif tekrar siparişi kırmızı marker olarak teslim edilmiş yeşil marker'ın üzerinde kalıyor.
+
+### Kalan kapsam
+
+- Kasa ve gider yönetimi.
+- Finansal raporlar ve tahsilat raporları.
+- Sipariş teslimiyle cari/depozito otomatik eşleştirme kuralları.
 
 ## Tamamlanma
 
-V1 genel tamamlanma: **yaklaşık %72**. Bu oran kod kapsamına dayalı teknik tahmindir; ticari kabul oranı değildir.
+V1 genel tamamlanma: **yaklaşık %85**. Bu oran kod kapsamına dayalı teknik tahmindir; ticari kabul oranı değildir.
 
 ## Son Commit
 
-`9cf4498` — `feat: complete vehicle operations` (AŞAMA 7)
+Çalışma ağacında AŞAMA 8 kapanış ve AŞAMA 9 geliştirmeleri mevcut; commit bekliyor.
 
 ## Tarih
 

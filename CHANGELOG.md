@@ -100,7 +100,7 @@ METLAS ERP V1 geliştirmelerinde kullanıcıyı ve sistemi etkileyen değişikli
 - `git diff --check`: başarılı.
 - AŞAMA 7 `9cf4498` commit'i ile tamamlandı.
 
-### AŞAMA 8 — Güvenlik ve veri bütünlüğü (devam ediyor)
+### AŞAMA 8 — Güvenlik ve veri bütünlüğü
 
 - Middleware'deki cookie-varlığı kontrolü kaldırıldı.
 - Sayfa ve API erişimlerinde NextAuth JWT imzası ve geçerliliği doğrulanıyor.
@@ -109,12 +109,56 @@ METLAS ERP V1 geliştirmelerinde kullanıcıyı ve sistemi etkileyen değişikli
 - Rol bazlı read/write permission matrisi ADMIN, OPERATIONS, COURIER ve ACCOUNTING için ayrıştırıldı.
 - Ürün, sipariş ve teslimat stok düşümlerinde koşullu atomic update kullanılıyor.
 - Tenant bazlı concurrency-safe `OrderSequence` modeli ve migration eklendi.
+- Tenant ilişkili `AuditLog` modeli ve migration eklendi.
+- Müşteri, sipariş, ürün/stok, araç, personel ve teslimat write işlemlerine audit kayıtları bağlandı.
+- Audit yazma hataları ana operasyonu bozmayacak şekilde logger ile kaydediliyor.
+- `/audit-logs` ekranı ve tenant kapsamlı audit GET API'si eklendi.
+- Audit filtreleri, pagination ve temel permission/tenant servis testleri eklendi.
+- `OrderSequence` ve `AuditLog` migration'ları Neon veritabanına uygulandı.
+
+#### AŞAMA 8 Sonucu
+
+- AŞAMA 8 güvenlik ve veri bütünlüğü kapsamı tamamlandı.
+- Sonraki geliştirme odağı finansal çekirdektir.
+
+### AŞAMA 9 — Finansal çekirdek (devam ediyor)
+
+- `CustomerAccountEntry` modeli ile cari/depozito hareket defteri eklendi.
+- Borç, tahsilat, depozito giriş ve depozito çıkış hareketleri destekleniyor.
+- Bakiye ve depozito güncellemeleri transaction ve koşullu atomic kontrol ile korunuyor.
+- Müşteri detayına hareket listeleme ve yeni hareket ekleme paneli eklendi.
+- Cari hareket API'si tenant ve permission kapsamıyla eklendi.
+- Sipariş detayına tek tıkla Onayla, Dağıtıma Çıkar, Teslim Edildi ve İptal Et aksiyonları eklendi.
+- Hızlı durum aksiyonlarında teslimat ve iptal için onay adımı bulunuyor.
+- Sipariş durum seçimleri mevcut akışa göre filtrelenerek geçersiz geri geçiş seçenekleri kaldırıldı.
+- Geçiş hataları izin verilen sonraki durumları açıklayacak şekilde iyileştirildi.
+- Onaylanan ve dağıtıma çıkarılan siparişlerde en az işi olan aktif araç/personel otomatik atanıyor.
+- Manuel araç/personel seçimi otomatik atamanın önceliğini koruyor.
+- Sipariş kartı ve masaüstü işlem menüsünden doğrudan durum güncelleme eklendi.
+- Dashboard'daki sipariş hacmi bölümü OpenStreetMap + OSRM uyumlu günlük rota merkezine dönüştürüldü.
+- Müşteri koordinat alanları ve bugünkü teslimat rota veri akışı eklendi.
+- Harita altyapısı OpenStreetMap + Leaflet + OSRM olarak standardize edildi; API anahtarı gerekmiyor.
+- Müşteri adreslerini otomatik koordinata çevirmek için Nominatim geocoding akışı eklendi; Google API anahtarı gerekmiyor.
+- OSRM Trip API isteğinde `source=first&destination=last` parametreleri kullanılarak public rota servisinin `400` hatası giderildi.
+- Geocoding sonuçları şehir/ilçe eşleşmesiyle doğrulanıyor ve detaylı adreslerde düşük hassasiyetli şehir merkezi sonuçları kullanılmıyor.
+- Nominatim sonucu bulunamadığında ArcGIS World Geocoder ile sokak/bina seviyesinde ikinci geocoding sağlayıcısı kullanılıyor; eşleşme yoksa yanlış koordinat kaydedilmiyor.
+- OSRM rota başlangıç ve bitiş durakları sabitlenerek rota son teslimatta bitiriliyor; başlangıç noktasına dönüş kaldırıldı.
+- Rota merkezindeki sipariş kartlarına durum güncelleme ve Google Maps yol tarifi butonları eklendi.
+- Teslim edilen siparişler aktif günlük rotadan çıkarılıyor, yeşil marker olarak haritada kalıyor.
+- Günlük rota snapshot'ı ve `RouteHistory` migration'ı eklendi.
+- `/route-histories` ekranında günlük mesafe, tahmini yakıt/yakıt maliyeti ve teslim ciro bilgileri gösteriliyor.
+- Yakıt varsayımları `ROUTE_FUEL_PRICE_PER_LITER` ve `ROUTE_FUEL_CONSUMPTION_L_PER_100KM` ortam değişkenlerine taşındı.
+- Sipariş durum arayüzü `Bekleyen dağıtım` ve `Teslim edildi` olarak sadeleştirildi; `Onaylandı` ve `Bekliyor` seçenekleri kaldırıldı.
+- Müşteri, ürün, araç ve personel kodları yeni kayıtlarda otomatik üretiliyor; yeni sipariş teslim tarihi bugünün tarihiyle başlıyor.
+- Haritaya sürüklenebilir kurye marker'ı eklendi; rota kurye konumundan başlayıp teslimatları yakından uzağa sıralıyor.
+- Aynı müşterinin aynı gün içindeki tekrar siparişleri marker üzerinde adet sayısıyla gösteriliyor; aktif sipariş kırmızı olarak öne alınıyor.
 
 #### Doğrulama
 
 - `npm run build`: başarılı.
 - `npm run lint`: 0 hata, 2 React Compiler uyarısı.
 - `git diff --check`: başarılı.
+- `npm test`: 2 test başarılı.
 
 ## Önceki Sürümler
 

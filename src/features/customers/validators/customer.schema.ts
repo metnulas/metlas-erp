@@ -4,12 +4,11 @@ const emptyToUndefined = z.preprocess(
   (val) => (val === "" || val === null || val === undefined ? undefined : val),
   z.string().optional()
 );
+const optionalLatitude = z.preprocess((value) => value === "" || value === null || value === undefined ? undefined : value, z.coerce.number().min(-90).max(90).optional());
+const optionalLongitude = z.preprocess((value) => value === "" || value === null || value === undefined ? undefined : value, z.coerce.number().min(-180).max(180).optional());
 
 export const createCustomerSchema = z.object({
-  customerCode: z
-    .string()
-    .min(1, "Müşteri kodu zorunludur")
-    .max(50, "Müşteri kodu en fazla 50 karakter olabilir"),
+  customerCode: z.string().max(50, "Müşteri kodu en fazla 50 karakter olabilir").optional().or(z.literal("")),
   fullName: z
     .string()
     .min(1, "Ad Soyad zorunludur")
@@ -24,6 +23,8 @@ export const createCustomerSchema = z.object({
   city: z.string().max(100, "Şehir en fazla 100 karakter olabilir").optional().or(z.literal("")),
   district: z.string().max(100, "İlçe en fazla 100 karakter olabilir").optional().or(z.literal("")),
   location: z.string().max(200, "Konum en fazla 200 karakter olabilir").optional().or(z.literal("")),
+  latitude: optionalLatitude,
+  longitude: optionalLongitude,
   balance: z.coerce.number().min(0, "Bakiye negatif olamaz").optional().default(0),
   depositBottleCount: z.coerce.number().int().min(0, "Depozito şişe sayısı negatif olamaz").optional().default(0),
   emptyBottleCount: z.coerce.number().int().min(0, "Boş şişe sayısı negatif olamaz").optional().default(0),

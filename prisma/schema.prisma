@@ -22,6 +22,9 @@ model Tenant {
   personnel Personnel[]
   users     User[]
   orderSequence OrderSequence?
+  auditLogs AuditLog[]
+  customerAccountEntries CustomerAccountEntry[]
+  routeHistories RouteHistory[]
 }
 
 enum UserRole {
@@ -55,6 +58,22 @@ model OrderSequence {
   tenant    Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
 }
 
+model AuditLog {
+  id         String   @id @default(cuid())
+  tenantId   String
+  actorId    String?
+  action     String
+  entityType String
+  entityId   String
+  metadata   Json?
+  createdAt  DateTime @default(now())
+  tenant     Tenant   @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+
+  @@index([tenantId, createdAt])
+  @@index([tenantId, entityType, entityId])
+  @@index([tenantId, actorId, createdAt])
+}
+
 model Customer {
   id                 String    @id @default(cuid())
   tenantId           String
@@ -67,6 +86,8 @@ model Customer {
   city               String?
   district           String?
   location           String?
+  latitude           Float?
+  longitude          Float?
   balance            Decimal   @default(0) @db.Decimal(14, 2)
   depositBottleCount Int       @default(0)
   emptyBottleCount   Int       @default(0)
@@ -79,11 +100,60 @@ model Customer {
   updatedAt          DateTime  @updatedAt
   tenant             Tenant    @relation(fields: [tenantId], references: [id], onDelete: Restrict)
   orders             Order[]
+  accountEntries     CustomerAccountEntry[]
 
   @@unique([tenantId, customerCode])
   @@index([tenantId, fullName])
   @@index([tenantId, isActive])
   @@index([tenantId, deletedAt])
+}
+
+enum CustomerAccountEntryType {
+  CHARGE
+  PAYMENT
+  DEPOSIT_IN
+  DEPOSIT_OUT
+}
+
+model CustomerAccountEntry {
+  id                 String                    @id @default(cuid())
+  tenantId           String
+  customerId         String
+  type               CustomerAccountEntryType
+  amount             Decimal                   @default(0) @db.Decimal(14, 2)
+  balanceAfter       Decimal                   @default(0) @db.Decimal(14, 2)
+  depositChange      Int                       @default(0)
+  depositBalanceAfter Int                      @default(0)
+  referenceType      String?
+  referenceId        String?
+  notes              String?                   @db.Text
+  createdBy          String?
+  createdAt          DateTime                  @default(now())
+  tenant             Tenant                    @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  customer           Customer                  @relation(fields: [customerId], references: [id], onDelete: Restrict)
+
+  @@index([tenantId, customerId, createdAt])
+  @@index([tenantId, type, createdAt])
+  @@index([referenceType, referenceId])
+}
+
+model RouteHistory {
+  id                    String   @id @default(cuid())
+  tenantId              String
+  routeDate             DateTime @db.Date
+  distanceKm            Float    @default(0)
+  estimatedFuelLiters   Float    @default(0)
+  fuelPricePerLiter     Decimal  @default(0) @db.Decimal(14, 2)
+  estimatedFuelCost     Decimal  @default(0) @db.Decimal(14, 2)
+  revenue               Decimal  @default(0) @db.Decimal(14, 2)
+  orderCount            Int      @default(0)
+  stops                 Json
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+  tenant                Tenant   @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+
+  @@unique([tenantId, routeDate])
+  @@index([tenantId, routeDate])
 }
 
 enum OrderStatus {

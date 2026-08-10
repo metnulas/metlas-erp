@@ -26,14 +26,14 @@ export default function Header({ onMenuClick }: HeaderProps) {
   };
 
   return (
-    <header className="sticky top-0 z-30 flex h-[4.5rem] shrink-0 items-center gap-3 border-b border-border/70 bg-background/95 px-4 sm:px-6 lg:px-8">
+    <header className="sticky top-0 z-30 flex h-[4.5rem] shrink-0 items-center gap-3 border-b border-border/70 bg-background/80 px-4 shadow-[0_12px_30px_-24px_black] backdrop-blur-xl sm:px-6 lg:px-10">
       <Button aria-label="Menüyü aç" className="lg:hidden" onClick={onMenuClick} size="icon" variant="ghost"><Menu /></Button>
-      <div className="relative hidden max-w-xl flex-1 sm:block">
+        <div className="relative hidden max-w-xl flex-1 sm:block">
         <Search className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
         <Input aria-label="Genel arama" className="h-10 border-transparent bg-muted/70 pl-9 shadow-none transition-colors focus-visible:border-primary/50 focus-visible:bg-background" placeholder="Müşteri, sipariş veya araç ara..." />
       </div>
       <div className="ml-auto flex items-center gap-1.5 sm:gap-2">
-        <Button aria-label={isDark ? "Aydınlık temaya geç" : "Karanlık temaya geç"} onClick={toggleTheme} size="icon" variant="ghost">{isDark ? <Sun /> : <Moon />}</Button>
+        <Button className="border border-border/70 bg-card/60 hover:bg-accent" aria-label={isDark ? "Aydınlık temaya geç" : "Karanlık temaya geç"} onClick={toggleTheme} size="icon" variant="ghost">{isDark ? <Sun /> : <Moon />}</Button>
         <DropdownMenu>
           <DropdownMenuTrigger aria-label="Kullanıcı menüsünü aç" className="ml-1 inline-flex items-center gap-2 rounded-lg p-1 outline-none transition-colors hover:bg-muted focus-visible:ring-3 focus-visible:ring-ring/50">
             <Avatar className="bg-primary text-primary-foreground"><AvatarFallback className="bg-primary text-xs font-semibold text-primary-foreground">{(session?.user?.name ?? "M").slice(0, 2).toUpperCase()}</AvatarFallback></Avatar>

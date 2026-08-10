@@ -3,7 +3,7 @@ import { z } from "zod";
 const vehicleStatusEnum = z.enum(["ACTIVE", "MAINTENANCE", "INACTIVE"]);
 
 export const createVehicleSchema = z.object({
-  code: z.string().trim().min(1, "Araç kodu zorunludur").max(50),
+  code: z.string().trim().max(50).optional().or(z.literal("")),
   plate: z.string().trim().min(1, "Plaka zorunludur").max(20),
   type: z.string().trim().min(1, "Araç tipi zorunludur").max(80),
   brand: z.string().trim().max(80).optional().or(z.literal("")),

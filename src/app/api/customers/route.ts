@@ -39,12 +39,12 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    await requirePermission("customer:write");
+    const session = await requirePermission("customer:write");
     const tenantId = await getCurrentTenantId();
     const body = await request.json();
     const input = createCustomerSchema.parse(body);
 
-    const customer = await customerService.create(tenantId, input);
+    const customer = await customerService.create(tenantId, input, session.user.id);
 
     const response: ApiResponse<typeof customer> = {
       success: true,

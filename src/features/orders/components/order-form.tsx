@@ -66,7 +66,7 @@ export default function OrderForm({ initialData, mode }: OrderFormProps) {
       : {
           customerId: "",
           orderDate: new Date().toISOString().slice(0, 10),
-          deliveryDate: "",
+           deliveryDate: new Date().toISOString().slice(0, 10),
           status: "PENDING",
           discount: 0,
           notes: "",
@@ -87,7 +87,6 @@ export default function OrderForm({ initialData, mode }: OrderFormProps) {
     0
   );
   const grandTotal = Math.max(0, totalAmount - Number(watchedDiscount ?? 0));
-
   useEffect(() => {
     async function fetchCustomers() {
       try {
@@ -186,20 +185,7 @@ export default function OrderForm({ initialData, mode }: OrderFormProps) {
               <p className="text-xs text-destructive">{errors.deliveryDate.message}</p>
             )}
           </div>
-          <div className="space-y-1.5">
-            <label htmlFor="status" className="text-sm font-medium">Durum</label>
-             <Select
-              id="status"
-              className="flex h-9 w-full rounded-lg border border-input bg-transparent px-3 py-1 text-base transition-colors placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm"
-              {...register("status")}
-            >
-              <option value="PENDING">Beklemede</option>
-              <option value="CONFIRMED">Onaylandı</option>
-              <option value="DELIVERING">Teslimatta</option>
-              <option value="DELIVERED">Teslim Edildi</option>
-              <option value="CANCELLED">İptal</option>
-             </Select>
-          </div>
+          <input type="hidden" {...register("status")} />
           <div className="space-y-1.5">
             <label htmlFor="discount" className="text-sm font-medium">İndirim (₺)</label>
             <Input id="discount" type="number" step="0.01" {...register("discount")} />

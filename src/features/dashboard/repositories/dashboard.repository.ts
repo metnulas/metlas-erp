@@ -13,6 +13,7 @@ export interface DashboardRepository {
   countExpiringPersonnelDocuments(tenantId: string, today: Date, limit: Date): Promise<number>;
   findLowStockProducts(tenantId: string): Promise<Array<{ id: string; name: string; stockQuantity: number; minStockLevel: number; unit: string }>>;
   findRecentOrders(tenantId: string): Promise<Array<{ id: string; orderCode: string; status: string; grandTotal: unknown; orderDate: Date; customer: { fullName: string } }>>;
+  findTodayRouteOrders(tenantId: string, start: Date, end: Date): Promise<Array<{ id: string; orderCode: string; status: string; deliveryDate: Date | null; customer: { id: string; fullName: string; address: string | null; district: string | null; latitude: number | null; longitude: number | null }; vehicle: { id: string; plate: string } | null; personnel: { id: string; fullName: string } | null }>>;
 }
 
 export function createDashboardRepository(): DashboardRepository {
@@ -29,5 +30,6 @@ export function createDashboardRepository(): DashboardRepository {
     countExpiringPersonnelDocuments(tenantId, today, limit) { return prisma.personnel.count({ where: { tenantId, deletedAt: null, isActive: true, licenseExpiryDate: { gte: today, lte: limit } } }); },
     findLowStockProducts(tenantId) { return prisma.$queryRaw<Array<{ id: string; name: string; stockQuantity: number; minStockLevel: number; unit: string }>>`SELECT id, name, "stockQuantity", "minStockLevel", unit FROM "Product" WHERE "tenantId" = ${tenantId} AND "deletedAt" IS NULL AND "isActive" = true AND "stockQuantity" <= "minStockLevel" ORDER BY ("minStockLevel" - "stockQuantity") DESC, name ASC LIMIT 5`; },
     findRecentOrders(tenantId) { return prisma.order.findMany({ where: { tenantId, deletedAt: null }, orderBy: { createdAt: "desc" }, take: 5, select: { id: true, orderCode: true, status: true, grandTotal: true, orderDate: true, customer: { select: { fullName: true } } } }); },
+     findTodayRouteOrders(tenantId, start, end) { return prisma.order.findMany({ where: { tenantId, deletedAt: null, status: { in: ["PENDING", "CONFIRMED", "DELIVERING", "DELIVERED"] }, OR: [{ deliveryDate: { gte: start, lt: end } }, { deliveryDate: null, orderDate: { gte: start, lt: end } }] }, orderBy: { deliveryDate: "asc" }, select: { id: true, orderCode: true, status: true, deliveryDate: true, customer: { select: { id: true, fullName: true, address: true, district: true, latitude: true, longitude: true } }, vehicle: { select: { id: true, plate: true } }, personnel: { select: { id: true, fullName: true } } } }); },
   };
 }

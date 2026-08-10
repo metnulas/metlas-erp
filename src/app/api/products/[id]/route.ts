@@ -21,10 +21,10 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
 
 export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
-    await requirePermission("product:write");
+    const session = await requirePermission("product:write");
     const { id } = await params;
     const input = updateProductSchema.parse({ ...(await request.json()), id });
-    const product = await productService.update(id, await getCurrentTenantId(), input);
+    const product = await productService.update(id, await getCurrentTenantId(), input, session.user.id);
     return NextResponse.json({ success: true, data: product });
   } catch (error) {
     return handleApiError(error);
@@ -33,9 +33,9 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
 
 export async function DELETE(_request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
-    await requirePermission("product:write");
+    const session = await requirePermission("product:write");
     const { id } = productIdSchema.parse(await params);
-    await productService.softDelete(id, await getCurrentTenantId());
+    await productService.softDelete(id, await getCurrentTenantId(), session.user.id);
     return NextResponse.json({ success: true, data: { deleted: true } });
   } catch (error) {
     return handleApiError(error);

@@ -19,8 +19,8 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    await requirePermission("vehicle:write");
-    const vehicle = await vehicleService.create(await getCurrentTenantId(), createVehicleSchema.parse(await request.json()));
+    const session = await requirePermission("vehicle:write");
+    const vehicle = await vehicleService.create(await getCurrentTenantId(), createVehicleSchema.parse(await request.json()), session.user.id);
     return NextResponse.json({ success: true, data: vehicle }, { status: 201 });
   } catch (error) { return handleApiError(error); }
 }

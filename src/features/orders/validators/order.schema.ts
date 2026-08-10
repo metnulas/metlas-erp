@@ -1,6 +1,7 @@
 import { z } from "zod";
 
 const orderStatusEnum = z.enum(["PENDING", "CONFIRMED", "DELIVERING", "DELIVERED", "CANCELLED"]);
+const orderQueryStatusEnum = orderStatusEnum.or(z.literal("WAITING_DELIVERY"));
 
 const orderItemSchema = z.object({
   id: z.string().optional(),
@@ -39,7 +40,7 @@ export const orderQuerySchema = z.object({
   page: z.coerce.number().int().min(1).default(1),
   pageSize: z.coerce.number().int().min(1).max(100).default(20),
   search: z.string().optional(),
-  status: orderStatusEnum.optional(),
+  status: orderQueryStatusEnum.optional(),
   customerId: z.string().optional(),
   dateFrom: z.string().optional(),
   dateTo: z.string().optional(),

@@ -41,12 +41,12 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    await requirePermission("order:write");
+    const session = await requirePermission("order:write");
     const tenantId = await getCurrentTenantId();
     const body = await request.json();
     const input = createOrderSchema.parse(body);
 
-    const order = await orderService.create(tenantId, input);
+    const order = await orderService.create(tenantId, input, session.user.id);
 
     const response: ApiResponse<typeof order> = {
       success: true,

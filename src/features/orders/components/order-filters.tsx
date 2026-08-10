@@ -8,10 +8,8 @@ import { Search, X } from "lucide-react";
 
 const statuses = [
   { value: "", label: "Tümü" },
-  { value: "PENDING", label: "Beklemede" },
-  { value: "CONFIRMED", label: "Onaylandı" },
-  { value: "DELIVERING", label: "Teslimatta" },
-  { value: "DELIVERED", label: "Teslim" },
+  { value: "WAITING_DELIVERY", label: "Bekleyen dağıtım" },
+  { value: "DELIVERED", label: "Teslim edildi" },
   { value: "CANCELLED", label: "İptal" },
 ];
 

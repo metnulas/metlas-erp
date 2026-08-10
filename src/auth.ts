@@ -6,10 +6,16 @@ import { verifyPassword } from "@/lib/auth-password";
 export const authOptions: NextAuthOptions = {
   session: { strategy: "jwt" },
   pages: { signIn: "/login" },
+  cookies: {
+    sessionToken: { name: "next-auth.session-token", options: { httpOnly: true, sameSite: "lax", path: "/", secure: false } },
+    callbackUrl: { name: "next-auth.callback-url", options: { sameSite: "lax", path: "/", secure: false } },
+    csrfToken: { name: "next-auth.csrf-token", options: { httpOnly: true, sameSite: "lax", path: "/", secure: false } },
+  },
   providers: [CredentialsProvider({ name: "credentials", credentials: { email: { label: "E-posta", type: "email" }, password: { label: "Şifre", type: "password" } }, async authorize(credentials) {
     if (!credentials?.email || !credentials.password) return null;
     const user = await prisma.user.findUnique({ where: { email: String(credentials.email).trim().toLowerCase() } });
-    if (!user || !user.isActive || !(await verifyPassword(String(credentials.password), user.passwordHash))) return null;
+    const passwordMatches = user ? await verifyPassword(String(credentials.password), user.passwordHash) : false;
+    if (!user || !user.isActive || !passwordMatches) return null;
     return { id: user.id, name: user.name, email: user.email, tenantId: user.tenantId, role: user.role };
   } })],
   callbacks: {

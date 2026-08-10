@@ -40,7 +40,7 @@ export default function VehicleForm({ initialData, mode }: { initialData?: Vehic
   const errorText = (field: keyof typeof errors) => errors[field]?.message?.toString();
   return <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
     <section className="rounded-xl border border-border/70 bg-card p-6"><h2 className="mb-6 text-lg font-semibold">Araç Bilgileri</h2><div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-      <Field label="Araç Kodu" error={errorText("code")}><Input placeholder="ARAC-0001" {...register("code")} /></Field>
+       <Field label="Araç Kodu" error={errorText("code")}><Input placeholder={mode === "create" ? "Otomatik oluşturulur" : "ARAC-0001"} readOnly={mode === "create"} {...register("code")} /></Field>
       <Field label="Plaka" error={errorText("plate")}><Input placeholder="34 ABC 123" className="uppercase" {...register("plate")} /></Field>
       <Field label="Araç Tipi" error={errorText("type")}><Input placeholder="Damacana Dağıtım Aracı" {...register("type")} /></Field>
       <Field label="Marka" error={errorText("brand")}><Input placeholder="Ford" {...register("brand")} /></Field>

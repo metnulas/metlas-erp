@@ -69,7 +69,7 @@ export default function ProductForm({ initialData, mode }: { initialData?: Produ
       <section className="rounded-xl border border-border/70 bg-card p-6">
         <h2 className="mb-6 text-lg font-semibold">Ürün Bilgileri</h2>
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          <Field label="Ürün Kodu" error={fieldError("code")}><Input placeholder="URN-0001" {...register("code")} /></Field>
+          <Field label="Ürün Kodu" error={fieldError("code")}><Input placeholder={mode === "create" ? "Otomatik oluşturulur" : "URN-0001"} readOnly={mode === "create"} {...register("code")} /></Field>
           <Field label="Ürün Adı" error={fieldError("name")}><Input placeholder="19L Damacana Su" {...register("name")} /></Field>
           <Field label="Kategori" error={fieldError("category")}><Input placeholder="Damacana" {...register("category")} /></Field>
           <Field label="Birim" error={fieldError("unit")}><Input placeholder="ADET" {...register("unit")} /></Field>
