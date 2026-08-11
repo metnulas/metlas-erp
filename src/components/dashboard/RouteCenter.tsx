@@ -71,6 +71,7 @@ export default function RouteCenter({ orders }: { orders: RouteOrder[] }) {
   const [geocodingId, setGeocodingId] = useState<string | null>(null);
   const [updatingStatus, setUpdatingStatus] = useState<string | null>(null);
   const [courierPosition, setCourierPosition] = useState<[number, number] | null>(null);
+  const [routeStartPosition, setRouteStartPosition] = useState<[number, number] | null>(null);
   const [isLocating, setIsLocating] = useState(false);
   const mappedOrders = useMemo(() => orders
     .filter((order) => order.customer.latitude !== null && order.customer.longitude !== null)
@@ -88,8 +89,13 @@ export default function RouteCenter({ orders }: { orders: RouteOrder[] }) {
 
   useEffect(() => {
     if (!navigator.geolocation) return;
-    navigator.geolocation.getCurrentPosition(({ coords }) => setCourierPosition([coords.latitude, coords.longitude]), () => undefined, { enableHighAccuracy: true, maximumAge: 300000, timeout: 10000 });
+    navigator.geolocation.getCurrentPosition(({ coords }) => { const position: [number, number] = [coords.latitude, coords.longitude]; setCourierPosition(position); setRouteStartPosition((current) => current ?? position); }, () => undefined, { enableHighAccuracy: true, maximumAge: 300000, timeout: 10000 });
   }, []);
+
+  const getFreshLocation = useCallback(() => new Promise<[number, number] | null>((resolve) => {
+    if (!navigator.geolocation) { resolve(null); return; }
+    navigator.geolocation.getCurrentPosition(({ coords }) => resolve([coords.latitude, coords.longitude]), () => resolve(null), { enableHighAccuracy: true, maximumAge: 0, timeout: 10000 });
+  }), []);
 
   function refreshCourierLocation() {
     if (!navigator.geolocation) {
@@ -99,7 +105,9 @@ export default function RouteCenter({ orders }: { orders: RouteOrder[] }) {
     setIsLocating(true);
     navigator.geolocation.getCurrentPosition(
       ({ coords }) => {
-        setCourierPosition([coords.latitude, coords.longitude]);
+        const position: [number, number] = [coords.latitude, coords.longitude];
+        setCourierPosition(position);
+        setRouteStartPosition((current) => current ?? position);
         setIsLocating(false);
         toast.success("Konum güncellendi");
       },
@@ -125,10 +133,14 @@ export default function RouteCenter({ orders }: { orders: RouteOrder[] }) {
     setUpdatingStatus(`${order.id}:${nextStatus}`);
     try {
       const deliveryDate = order.deliveryDate ? new Date(order.deliveryDate).toISOString().slice(0, 10) : "";
+      const freshLocation = nextStatus === "DELIVERED" ? await getFreshLocation() : null;
+      const deliveryLocation = freshLocation ?? courierPosition;
+      const startLocation = routeStartPosition ?? courierPosition;
+      if (freshLocation) setCourierPosition(freshLocation);
       const response = await fetch(`/api/orders/${order.id}/delivery`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ vehicleId: order.vehicle?.id, personnelId: order.personnel?.id, deliveryDate, status: nextStatus }),
+        body: JSON.stringify({ vehicleId: order.vehicle?.id, personnelId: order.personnel?.id, deliveryDate, status: nextStatus, ...(deliveryLocation && nextStatus === "DELIVERED" && { deliveryLocation: { latitude: deliveryLocation[0], longitude: deliveryLocation[1] } }), ...(startLocation && nextStatus === "DELIVERED" && { routeStartLocation: { latitude: startLocation[0], longitude: startLocation[1] } }) }),
       });
       const result = await response.json();
       if (!response.ok) throw new Error(result.error?.message ?? "Sipariş durumu güncellenemedi");
@@ -139,7 +151,7 @@ export default function RouteCenter({ orders }: { orders: RouteOrder[] }) {
     } finally {
       setUpdatingStatus(null);
     }
-  }, [router]);
+  }, [courierPosition, getFreshLocation, routeStartPosition, router]);
 
   useEffect(() => {
     if (!mapRef.current || !mapRef.current.isConnected || mappedOrders.length === 0) return;

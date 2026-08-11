@@ -2,7 +2,7 @@ import { Prisma, type Order } from "@prisma/client";
 import { prisma } from "@/lib/db/prisma";
 
 export type DeliveryOrder = Order & {
-  customer: { id: string; fullName: string; phone: string; address: string | null; district: string | null };
+  customer: { id: string; fullName: string; phone: string; address: string | null; district: string | null; latitude: number | null; longitude: number | null };
   vehicle: { id: string; code: string; plate: string; type: string } | null;
   personnel: { id: string; employeeCode: string; fullName: string; phone: string } | null;
 };
@@ -19,7 +19,7 @@ export interface DeliveryRepository {
 }
 
 const includeRelations = {
-  customer: { select: { id: true, fullName: true, phone: true, address: true, district: true } },
+  customer: { select: { id: true, fullName: true, phone: true, address: true, district: true, latitude: true, longitude: true } },
   vehicle: { select: { id: true, code: true, plate: true, type: true } },
   personnel: { select: { id: true, employeeCode: true, fullName: true, phone: true } },
 };

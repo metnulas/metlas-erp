@@ -249,6 +249,12 @@ model RouteHistory {
   tenantId              String
   routeDate             DateTime @db.Date
   distanceKm            Float    @default(0)
+  actualDistanceKm      Float?
+  actualStartLatitude   Float?
+  actualStartLongitude  Float?
+  lastLatitude          Float?
+  lastLongitude         Float?
+  distanceSource        String   @default("PLANNED")
   estimatedFuelLiters   Float    @default(0)
   fuelPricePerLiter     Decimal  @default(0) @db.Decimal(14, 2)
   estimatedFuelCost     Decimal  @default(0) @db.Decimal(14, 2)

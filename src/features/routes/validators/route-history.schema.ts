@@ -16,3 +16,5 @@ export const routeHistoryInputSchema = z.object({
 });
 
 export type RouteHistoryInput = z.infer<typeof routeHistoryInputSchema>;
+
+export const updateFuelPriceSchema = z.object({ fuelPricePerLiter: z.number().positive().max(10000) });

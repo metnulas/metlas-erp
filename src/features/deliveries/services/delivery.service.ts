@@ -4,6 +4,8 @@ import { createDeliveryRepository, type DeliveryOrder, type DeliveryRepository }
 import type { AssignDeliveryInput, DeliveryQueryInput } from "../validators/delivery.schema";
 import { recordAudit } from "@/server/audit/audit-log";
 import { ORDER_STATUS_LABELS, ORDER_STATUS_TRANSITIONS } from "@/shared/constants/order-status";
+import { recordActualDeliveryDistance } from "@/features/routes/services/route-history.service";
+import { logger } from "@/server/logger/logger";
 
 export interface DeliveryService {
   list(tenantId: string, query: DeliveryQueryInput): Promise<DeliveryOrder[]>;
@@ -68,7 +70,14 @@ export function createDeliveryService(repository: DeliveryRepository = createDel
         updatedBy: userId ?? null,
       };
       try {
-        const updated = input.status === "DELIVERED" ? await repository.deliver(id, tenantId, data) : await repository.update(id, tenantId, data);
+         const updated = input.status === "DELIVERED" ? await repository.deliver(id, tenantId, data) : await repository.update(id, tenantId, data);
+         if (input.status === "DELIVERED") {
+           try {
+             await recordActualDeliveryDistance(tenantId, { orderId: order.id, orderCode: order.orderCode, customerName: order.customer.fullName, customerLatitude: order.customer.latitude, customerLongitude: order.customer.longitude, deliveryLocation: input.deliveryLocation, routeStartLocation: input.routeStartLocation, routeDate: targetDate });
+           } catch (trackingError) {
+             logger.error("Gerçek rota mesafesi kaydedilemedi", { error: trackingError instanceof Error ? trackingError.message : String(trackingError), orderId: order.id, tenantId });
+           }
+         }
          await recordAudit({ tenantId, actorId: userId, action: input.status === "DELIVERED" ? "DELIVER" : "ASSIGN", entityType: "Order", entityId: id, metadata: { vehicleId: finalVehicleId ?? null, personnelId: finalPersonnelId ?? null, status: input.status ?? null, autoAssignedVehicle, autoAssignedPersonnel } });
         return updated;
       } catch (error) {

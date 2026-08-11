@@ -1,0 +1,6 @@
+ALTER TABLE "RouteHistory" ADD COLUMN "actualDistanceKm" DOUBLE PRECISION;
+ALTER TABLE "RouteHistory" ADD COLUMN "actualStartLatitude" DOUBLE PRECISION;
+ALTER TABLE "RouteHistory" ADD COLUMN "actualStartLongitude" DOUBLE PRECISION;
+ALTER TABLE "RouteHistory" ADD COLUMN "lastLatitude" DOUBLE PRECISION;
+ALTER TABLE "RouteHistory" ADD COLUMN "lastLongitude" DOUBLE PRECISION;
+ALTER TABLE "RouteHistory" ADD COLUMN "distanceSource" TEXT NOT NULL DEFAULT 'PLANNED';
