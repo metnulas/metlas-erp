@@ -1,0 +1,2 @@
+import Link from "next/link";
+export default function ContactPage() { return <main className="min-h-screen bg-slate-950 px-6 py-16 text-white"><div className="mx-auto max-w-3xl"><Link href="/" className="text-cyan-300">← Ana sayfa</Link><h1 className="mt-10 text-5xl font-black">Bir demo planlayalım.</h1><p className="mt-5 text-lg text-slate-300">Satış ve onboarding ekibimizle görüşmek için bize ulaşın.</p><a href="mailto:hello@metlas.erp" className="mt-8 inline-block text-cyan-300">hello@metlas.erp</a></div></main>; }

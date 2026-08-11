@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { passwordSchema } from "@/features/auth/validators/register.schema";
 
 const key = z.string().trim().min(2).max(80).regex(/^[a-z0-9_.-]+$/, "Key yalnızca küçük harf, sayı, nokta, tire ve alt çizgi içerebilir");
 
@@ -17,9 +18,12 @@ export const cloneRoleSchema = z.object({ key, name: z.string().trim().min(2).ma
 export const createPermissionGroupSchema = z.object({ key, name: z.string().trim().min(2).max(80), description: z.string().trim().max(500).optional().nullable() });
 export const createPermissionSchema = z.object({ groupId: z.string().cuid(), key, name: z.string().trim().min(2).max(100), description: z.string().trim().max(500).optional().nullable() });
 export const assignUserRolesSchema = z.object({ roleIds: z.array(z.string().cuid()) });
+export const updateUserSchema = z.object({ name: z.string().trim().min(2).max(100), phone: z.string().trim().min(7).max(24).regex(/^[+()\-\s\d]+$/, "Telefon formatı geçersiz") });
+export const resetUserPasswordSchema = z.object({ password: passwordSchema });
 export const createUserSchema = z.object({
   name: z.string().trim().min(2).max(100),
   email: z.string().trim().email().transform((value) => value.toLowerCase()),
+  phone: z.string().trim().min(7).max(24).regex(/^[+()\-\s\d]+$/, "Telefon formatı geçersiz"),
   password: z.string().min(8).max(128),
   roleIds: z.array(z.string().cuid()).min(1, "En az bir rol seçmelisiniz"),
 });

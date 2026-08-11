@@ -1,0 +1,2 @@
+import Link from "next/link";
+export default function AboutPage() { return <main className="min-h-screen bg-slate-950 px-6 py-16 text-white"><div className="mx-auto max-w-3xl"><Link href="/" className="text-cyan-300">← Ana sayfa</Link><h1 className="mt-10 text-5xl font-black">Saha operasyonunu sadeleştiriyoruz.</h1><p className="mt-6 text-lg leading-8 text-slate-300">METLAS ERP, su dağıtım işletmelerinin günlük operasyonlarını daha görünür, ölçülebilir ve yönetilebilir hale getirmek için tasarlanmış bir SaaS platformudur.</p></div></main>; }

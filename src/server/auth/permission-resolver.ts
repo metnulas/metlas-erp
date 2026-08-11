@@ -30,15 +30,17 @@ export async function getPermissionSnapshot(userId: string, tenantId: string | n
 
   const user = await prisma.user.findUnique({
     where: { id: userId },
-    select: { tenantId: true, permissionVersion: true },
+    select: { tenantId: true, permissionVersion: true, isActive: true, deletedAt: true, tenant: { select: { isActive: true } } },
   });
-  if (!user || user.tenantId !== tenantId) return { permissions: [], version: user?.permissionVersion ?? 0, expiresAt: Date.now() + CACHE_TTL_MS };
+  const globalUser = user?.tenantId === null;
+  if (!user || !user.isActive || user.deletedAt || (!globalUser && user.tenantId !== tenantId) || (user.tenantId && !user.tenant?.isActive)) return { permissions: [], version: user?.permissionVersion ?? 0, expiresAt: Date.now() + CACHE_TTL_MS };
 
   const assignments = await prisma.userRole.findMany({
-    where: { userId, tenantId, deletedAt: null, role: { isActive: true, deletedAt: null } },
+    where: { userId, tenantId: globalUser ? null : tenantId, deletedAt: null, role: { isActive: true, deletedAt: null } },
     select: {
       role: {
         select: {
+          tenantId: true,
           isSuperAdmin: true,
           permissions: {
             where: { deletedAt: null, permission: { isActive: true, deletedAt: null } },
@@ -54,8 +56,9 @@ export async function getPermissionSnapshot(userId: string, tenantId: string | n
     : assignment.role.permissions.map(({ permission }) => permission.key));
 
   if (assignments.some((assignment) => assignment.role.isSuperAdmin)) {
-    const allPermissions = await prisma.permission.findMany({ where: { isActive: true, deletedAt: null }, select: { key: true } });
-    permissions.push(...allPermissions.map((permission) => permission.key));
+    const allPermissions = await prisma.permission.findMany({ where: { isActive: true, deletedAt: null, OR: [{ tenantId: null }, ...(tenantId ? [{ tenantId }] : [])] }, select: { key: true } });
+    const hasGlobalSuperAdmin = assignments.some((assignment) => assignment.role.isSuperAdmin && assignment.role.tenantId === null);
+    permissions.push(...allPermissions.filter((permission) => hasGlobalSuperAdmin || !permission.key.startsWith("platform.")).map((permission) => permission.key));
   }
 
   const snapshot = { permissions: [...new Set(permissions)], version: user.permissionVersion, expiresAt: Date.now() + CACHE_TTL_MS };

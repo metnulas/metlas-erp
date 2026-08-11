@@ -1,0 +1,12 @@
+ALTER TABLE "AuditLog" ADD COLUMN "actorRole" TEXT;
+ALTER TABLE "AuditLog" ADD COLUMN "ipAddress" TEXT;
+ALTER TABLE "AuditLog" ADD COLUMN "userAgent" TEXT;
+ALTER TABLE "AuditLog" ADD COLUMN "browser" TEXT;
+ALTER TABLE "AuditLog" ADD COLUMN "operatingSystem" TEXT;
+ALTER TABLE "AuditLog" ADD COLUMN "url" TEXT;
+ALTER TABLE "AuditLog" ADD COLUMN "httpMethod" TEXT;
+ALTER TABLE "AuditLog" ADD COLUMN "oldData" JSONB;
+ALTER TABLE "AuditLog" ADD COLUMN "newData" JSONB;
+ALTER TABLE "AuditLog" ADD CONSTRAINT "AuditLog_actorId_fkey" FOREIGN KEY ("actorId") REFERENCES "User"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+CREATE INDEX "AuditLog_actorId_createdAt_idx" ON "AuditLog"("actorId", "createdAt");
+CREATE INDEX "AuditLog_action_createdAt_idx" ON "AuditLog"("action", "createdAt");

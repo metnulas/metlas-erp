@@ -4,11 +4,33 @@ import { hashPassword } from "../src/lib/auth-password";
 const prisma = new PrismaClient();
 
 async function main() {
+  const seedAdminPassword = process.env.METLAS_SEED_ADMIN_PASSWORD;
+  if (!seedAdminPassword || seedAdminPassword.length < 8) throw new Error("METLAS_SEED_ADMIN_PASSWORD zorunlu ve en az 8 karakter olmalıdır");
+  const globalAdminEmail = process.env.METLAS_GLOBAL_ADMIN_EMAIL;
+  const globalAdminPassword = process.env.METLAS_GLOBAL_ADMIN_PASSWORD;
   const tenant = await prisma.tenant.upsert({
     where: { slug: "metlas-demo" },
-    update: {},
-    create: { id: "metlas-demo", name: "METLAS Demo", slug: "metlas-demo" },
+    update: { onboardingCompletedAt: new Date(), onboardingStep: 9 },
+    create: { id: "metlas-demo", name: "METLAS Demo", slug: "metlas-demo", onboardingCompletedAt: new Date(), onboardingStep: 9 },
   });
+
+  const packageDefinitions = [
+    { code: "STARTER", name: "Starter", monthlyPrice: 299, annualPrice: 2990, maxUsers: 3, maxOrders: 500, maxWarehouses: 1, maxVehicles: 2, storageGb: 5, apiLimit: 10000, aiUsage: 100, sortOrder: 1 },
+    { code: "STANDARD", name: "Standard", monthlyPrice: 599, annualPrice: 5990, maxUsers: 10, maxOrders: 2500, maxWarehouses: 2, maxVehicles: 5, storageGb: 25, apiLimit: 50000, aiUsage: 500, sortOrder: 2 },
+    { code: "PROFESSIONAL", name: "Professional", monthlyPrice: 999, annualPrice: 9990, maxUsers: 30, maxOrders: 10000, maxWarehouses: 5, maxVehicles: 15, storageGb: 100, apiLimit: 250000, aiUsage: 2500, sortOrder: 3 },
+    { code: "ENTERPRISE", name: "Enterprise", monthlyPrice: 2499, annualPrice: 24990, maxUsers: null, maxOrders: null, maxWarehouses: null, maxVehicles: null, storageGb: 500, apiLimit: 1000000, aiUsage: 10000, sortOrder: 4 },
+  ] as const;
+  for (const definition of packageDefinitions) {
+    await prisma.subscriptionPackage.upsert({ where: { code: definition.code }, update: definition, create: definition });
+  }
+  const starter = await prisma.subscriptionPackage.findUniqueOrThrow({ where: { code: "STARTER" }, select: { id: true, monthlyPrice: true, annualPrice: true } });
+  const existingSubscription = await prisma.tenantSubscription.findFirst({ where: { tenantId: tenant.id, status: "ACTIVE" } });
+  if (!existingSubscription) {
+    const startsAt = new Date();
+    const trialEndsAt = new Date(startsAt);
+    trialEndsAt.setDate(trialEndsAt.getDate() + 14);
+    await prisma.tenantSubscription.create({ data: { tenantId: tenant.id, packageId: starter.id, startsAt, status: "TRIAL", isTrial: true, trialEndsAt, monthlyPrice: starter.monthlyPrice, annualPrice: starter.annualPrice, totalAmount: starter.monthlyPrice } });
+  }
 
   const customer = await prisma.customer.upsert({
     where: { tenantId_customerCode: { tenantId: tenant.id, customerCode: "MUS-0001" } },
@@ -25,13 +47,13 @@ async function main() {
 
   const admin = await prisma.user.upsert({
     where: { email: "admin@metlas.local" },
-    update: { tenantId: tenant.id, name: "Metin Yılmaz", role: LegacyUserRole.ADMIN, isActive: true, passwordHash: await hashPassword(process.env.METLAS_SEED_ADMIN_PASSWORD ?? "Metlas123!") },
-    create: { tenantId: tenant.id, email: "admin@metlas.local", name: "Metin Yılmaz", role: LegacyUserRole.ADMIN, passwordHash: await hashPassword(process.env.METLAS_SEED_ADMIN_PASSWORD ?? "Metlas123!") },
+    update: { tenantId: tenant.id, name: "Metin Yılmaz", role: LegacyUserRole.ADMIN, isActive: true, emailVerifiedAt: new Date(), passwordHash: await hashPassword(seedAdminPassword) },
+    create: { tenantId: tenant.id, email: "admin@metlas.local", name: "Metin Yılmaz", role: LegacyUserRole.ADMIN, emailVerifiedAt: new Date(), passwordHash: await hashPassword(seedAdminPassword) },
   });
 
   const groupDefinitions = [
     ["platform", "Platform Yönetimi"], ["dashboard", "Dashboard"], ["orders", "Sipariş Yönetimi"], ["customers", "Müşteri Yönetimi"], ["products", "Ürün ve Stok"],
-    ["finance", "Muhasebe"], ["routes", "Kurye ve Harita"], ["reports", "Raporlar"], ["users", "Kullanıcı Yönetimi"], ["roles", "Rol Yönetimi"], ["audit", "Denetim"],
+    ["finance", "Muhasebe"], ["billing", "Faturalama ve Ödemeler"], ["routes", "Kurye ve Harita"], ["reports", "Raporlar"], ["users", "Kullanıcı Yönetimi"], ["roles", "Rol Yönetimi"], ["audit", "Denetim"], ["subscriptions", "Abonelik ve Paket Yönetimi"],
   ] as const;
   const groups = new Map<string, string>();
   for (const [key, name] of groupDefinitions) {
@@ -41,7 +63,7 @@ async function main() {
   }
 
   const permissionDefinitions = [
-    ["platform", "platform.view", "Platform görüntüle"], ["platform", "tenants.manage", "Tenant yönet"], ["platform", "billing.manage", "Lisans ve paket yönet"], ["platform", "settings.manage", "Sistem ayarlarını yönet"], ["dashboard", "dashboard.view", "Dashboard görüntüle"], ["orders", "orders.view", "Sipariş görüntüle"], ["orders", "orders.create", "Sipariş oluştur"], ["orders", "orders.edit", "Sipariş düzenle"], ["orders", "orders.delete", "Sipariş sil"],
+    ["platform", "platform.view", "Platform görüntüle"], ["platform", "platform.audit.view", "Platform audit görüntüle"], ["platform", "platform.support.manage", "Destek taleplerini yönet"], ["platform", "tenants.manage", "Tenant yönet"], ["platform", "billing.manage", "Lisans ve paket yönet"], ["platform", "settings.manage", "Sistem ayarlarını yönet"], ["subscriptions", "subscriptions.view", "Abonelik görüntüle"], ["subscriptions", "subscriptions.manage", "Abonelik yönet"], ["subscriptions", "packages.view", "Paket görüntüle"], ["subscriptions", "packages.manage", "Paket yönet"], ["billing", "invoices.view", "Fatura görüntüle"], ["billing", "invoices.manage", "Fatura yönet"], ["billing", "payments.view", "Ödeme görüntüle"], ["billing", "payments.manage", "Ödeme yönet"], ["dashboard", "dashboard.view", "Dashboard görüntüle"], ["orders", "orders.view", "Sipariş görüntüle"], ["orders", "orders.create", "Sipariş oluştur"], ["orders", "orders.edit", "Sipariş düzenle"], ["orders", "orders.delete", "Sipariş sil"],
     ["customers", "customers.view", "Müşteri görüntüle"], ["customers", "customers.create", "Müşteri oluştur"], ["customers", "customers.edit", "Müşteri düzenle"], ["customers", "customers.delete", "Müşteri sil"],
     ["products", "products.view", "Ürün görüntüle"], ["products", "products.create", "Ürün oluştur"], ["products", "products.edit", "Ürün düzenle"], ["products", "products.delete", "Ürün sil"], ["products", "products.stock.manage", "Stok yönet"],
     ["finance", "finance.view", "Finans görüntüle"], ["finance", "finance.manage", "Finans yönet"], ["routes", "routes.view", "Rota görüntüle"], ["routes", "routes.manage", "Rota yönet"], ["routes", "deliveries.view", "Dağıtım görüntüle"], ["routes", "deliveries.manage", "Dağıtım yönet"],
@@ -60,6 +82,8 @@ async function main() {
   }
   async function setRolePermissions(roleId: string, keys: string[]) {
     const role = await prisma.role.findUnique({ where: { id: roleId }, select: { tenantId: true } });
+    const desiredPermissionIds = keys.map((key) => permissions.get(key)).filter((id): id is string => Boolean(id));
+    await prisma.rolePermission.updateMany({ where: { roleId, tenantId: role?.tenantId ?? null, deletedAt: null, permissionId: { notIn: desiredPermissionIds } }, data: { deletedAt: new Date() } });
     for (const key of keys) {
       if (!permissions.has(key)) continue;
       const existing = await prisma.rolePermission.findFirst({ where: { roleId, permissionId: permissions.get(key), tenantId: role?.tenantId ?? null } });
@@ -67,10 +91,16 @@ async function main() {
     }
   }
   const allPermissionKeys = permissionDefinitions.map(([, key]) => key);
+  const tenantPermissionKeys = allPermissionKeys.filter((key) => !key.startsWith("platform.") && !key.startsWith("subscriptions.") && !key.startsWith("billing."));
   const superAdmin = await ensureRole("SUPER_ADMIN", "Super Admin", null, true);
   await setRolePermissions(superAdmin.id, allPermissionKeys);
+  if (globalAdminEmail && globalAdminPassword) {
+    const globalAdmin = await prisma.user.upsert({ where: { email: globalAdminEmail.toLowerCase() }, update: { tenantId: null, name: "Global Super Admin", role: LegacyUserRole.ADMIN, isActive: true, deletedAt: null, emailVerifiedAt: new Date(), mustChangePassword: true, passwordHash: await hashPassword(globalAdminPassword) }, create: { tenantId: null, email: globalAdminEmail.toLowerCase(), name: "Global Super Admin", role: LegacyUserRole.ADMIN, emailVerifiedAt: new Date(), mustChangePassword: true, passwordHash: await hashPassword(globalAdminPassword) } });
+    const assignment = await prisma.userRole.findFirst({ where: { userId: globalAdmin.id, tenantId: null, roleId: superAdmin.id, deletedAt: null } });
+    if (!assignment) await prisma.userRole.create({ data: { tenantId: null, userId: globalAdmin.id, roleId: superAdmin.id } });
+  }
   const adminRole = await ensureRole("ADMIN", "Yönetici", tenant.id);
-  await setRolePermissions(adminRole.id, allPermissionKeys);
+  await setRolePermissions(adminRole.id, tenantPermissionKeys);
   const operations = await ensureRole("OPERATIONS", "Operasyon", tenant.id);
   const courier = await ensureRole("COURIER", "Kurye", tenant.id);
   const accounting = await ensureRole("ACCOUNTING", "Muhasebe", tenant.id);

@@ -1,6 +1,6 @@
 # METLAS ERP Dinamik RBAC ve Permission Management Tasarımı
 
-Durum: **Onaylandı, uygulama geçişi başlatıldı**  
+Durum: **Onaylandı, tenant onboarding ve global platform yetkileri uygulandı**
 Sürüm: 1.0  
 Kapsam: Role Based Access Control, permission kataloğu, kullanıcı-rol ataması ve tenant izolasyonu
 
@@ -16,6 +16,7 @@ Temel kararlar:
 - Bir kullanıcıya birden fazla rol atanabilir.
 - Kullanıcının effective permission kümesi, aktif rollerinin birleşimidir.
 - Global Super Admin rolü seed edilir, pasifleştirilemez ve silinemez.
+- Tenant onboarding sırasında tenant'a bağlı ayrı bir `SUPER_ADMIN` rolü oluşturulur; bu rol global platform permission'larını alamaz.
 - UI kontrolü yalnızca kullanıcı deneyimidir; API, service ve repository kontrolleri yetkili güvenlik katmanlarıdır.
 - JWT içine tüm permission listesi yazılmaz. Permission değişiklikleri login beklemeden etkili olmalıdır.
 - İlk sürüm process memory cache kullanır; resolver arayüzü Redis gibi paylaşımlı cache'e geçişe hazır olur. Cache başarısızlığında güvenli varsayılan `deny` uygulanır.

@@ -9,11 +9,12 @@ import { Input } from "@/components/ui/input";
 
 export default function LoginForm() {
   const searchParams = useSearchParams();
-  const [email, setEmail] = useState("admin@metlas.local");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const callbackUrl = searchParams.get("callbackUrl") || "/";
+  const registered = searchParams.get("registered") === "1";
 
   async function submit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -54,8 +55,8 @@ export default function LoginForm() {
         </label>
       </div>
       {error && <p role="alert" className="mt-4 rounded-lg bg-red-400/10 px-3 py-2 text-sm text-red-300">{error}</p>}
+      {registered && !error && <p role="status" className="mt-4 rounded-lg bg-emerald-400/10 px-3 py-2 text-sm text-emerald-300">Hesabınız oluşturuldu. Giriş yapabilirsiniz.</p>}
       <Button className="mt-6 h-11 w-full" type="submit" disabled={loading}>{loading && <Loader2 className="size-4 animate-spin" />}Giriş Yap</Button>
-      <p className="mt-4 text-center text-xs text-slate-500">Demo hesabı: `admin@metlas.local`</p>
     </form>
   );
 }

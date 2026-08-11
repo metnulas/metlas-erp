@@ -1,0 +1,2 @@
+import Link from "next/link";
+export default function BlogPage() { return <main className="min-h-screen bg-slate-950 px-6 py-16 text-white"><div className="mx-auto max-w-3xl"><Link href="/" className="text-cyan-300">← Ana sayfa</Link><h1 className="mt-10 text-5xl font-black">METLAS Blog</h1><p className="mt-5 text-lg text-slate-300">Operasyon, dağıtım ve SaaS büyümesi üzerine yazılar yakında burada.</p></div></main>; }

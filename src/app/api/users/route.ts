@@ -9,7 +9,7 @@ export async function GET() {
   try {
     const session = await requirePermission("users.view");
     if (!session.user.tenantId) return NextResponse.json({ success: true, data: [] });
-    const users = await prisma.user.findMany({ where: { tenantId: session.user.tenantId }, orderBy: { name: "asc" }, select: { id: true, name: true, email: true, isActive: true, roleAssignments: { where: { tenantId: session.user.tenantId, deletedAt: null, role: { deletedAt: null } }, select: { role: { select: { id: true, key: true, name: true } } } } } });
+    const users = await prisma.user.findMany({ where: { tenantId: session.user.tenantId, deletedAt: null }, orderBy: { name: "asc" }, select: { id: true, name: true, email: true, phone: true, isActive: true, roleAssignments: { where: { tenantId: session.user.tenantId, deletedAt: null, role: { deletedAt: null } }, select: { role: { select: { id: true, key: true, name: true } } } } } });
     return NextResponse.json({ success: true, data: users });
   } catch (error) { return handleApiError(error); }
 }
