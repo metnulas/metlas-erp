@@ -28,7 +28,8 @@ export default function LoginForm() {
         setError("E-posta veya şifre hatalı.");
         return;
       }
-      window.location.assign(result.url || callbackUrl);
+       // Keep the current host so local HTTPS aliases do not redirect to NEXTAUTH_URL.
+       window.location.assign(callbackUrl);
     } catch {
       setError("Giriş servisine ulaşılamadı. İnternet bağlantınızı kontrol edip tekrar deneyin.");
     } finally {
