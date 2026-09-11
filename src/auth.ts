@@ -34,8 +34,16 @@ export const authOptions: NextAuthOptions = {
         const requestedTenantId = typeof session.impersonatingTenantId === "string" ? session.impersonatingTenantId : null;
         const previousTenantId = typeof token.impersonatingTenantId === "string" ? token.impersonatingTenantId : null;
         if (requestedTenantId) {
-          const tenant = await prisma.tenant.findFirst({ where: { id: requestedTenantId, isActive: true }, select: { id: true } });
+          const tenant = await prisma.tenant.findFirst({ where: { id: requestedTenantId, isActive: true }, select: { id: true, onboardingCompletedAt: true, subscriptionStatus: true, trialEndsAt: true } });
           if (!tenant) return token;
+          token.onboardingCompleted = Boolean(tenant.onboardingCompletedAt);
+          token.subscriptionStatus = tenant.subscriptionStatus;
+          token.trialEndsAt = tenant.trialEndsAt?.toISOString() ?? null;
+        }
+        if (!requestedTenantId) {
+          token.onboardingCompleted = true;
+          token.subscriptionStatus = null;
+          token.trialEndsAt = null;
         }
         token.tenantId = requestedTenantId;
         token.impersonatingTenantId = requestedTenantId;
@@ -56,9 +64,12 @@ export const authOptions: NextAuthOptions = {
         }
         token.mustChangePassword = currentUser.mustChangePassword;
         token.emailVerified = Boolean(currentUser.emailVerifiedAt);
-        token.onboardingCompleted = Boolean(currentUser.tenant?.onboardingCompletedAt);
-        token.subscriptionStatus = currentUser.tenant?.subscriptionStatus ?? null;
-        token.trialEndsAt = currentUser.tenant?.trialEndsAt?.toISOString() ?? null;
+        const sessionTenant = token.isGlobalAdmin && token.tenantId
+          ? await prisma.tenant.findUnique({ where: { id: token.tenantId }, select: { onboardingCompletedAt: true, subscriptionStatus: true, trialEndsAt: true } })
+          : currentUser.tenant;
+        token.onboardingCompleted = Boolean(sessionTenant?.onboardingCompletedAt);
+        token.subscriptionStatus = sessionTenant?.subscriptionStatus ?? null;
+        token.trialEndsAt = sessionTenant?.trialEndsAt?.toISOString() ?? null;
       }
       return token;
     },
