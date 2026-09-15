@@ -161,6 +161,7 @@ export function createOrderService(
 
       const orderCode = await repository.nextOrderCode(tenantId);
       const { totalAmount, grandTotal } = calculateTotals(input.items, input.discount ?? 0);
+      const costs = await repository.findProductCosts(input.items.flatMap((item) => item.productId ? [item.productId] : []), tenantId);
 
       const stockItems: StockItem[] = [];
 
@@ -185,9 +186,11 @@ export function createOrderService(
           ...(item.productId && { product: { connect: { id: item.productId } } }),
           productName: item.productName,
           quantity: item.quantity,
-          unitPrice: item.unitPrice,
-          total: item.quantity * item.unitPrice,
-          notes: item.notes || null,
+           unitPrice: item.unitPrice,
+           total: item.quantity * item.unitPrice,
+           unitCost: item.productId ? costs.get(item.productId) ?? 0 : 0,
+           costTotal: item.quantity * (item.productId ? costs.get(item.productId) ?? 0 : 0),
+           notes: item.notes || null,
         })),
         stockItems
         );
@@ -235,12 +238,15 @@ export function createOrderService(
       }
       updateData.updatedBy = userId ?? null;
 
+      const costs = await repository.findProductCosts((input.items ?? []).flatMap((item) => item.productId ? [item.productId] : []), tenantId);
       const items = input.items?.map((item) => ({
         ...(item.productId && { product: { connect: { id: item.productId } } }),
         productName: item.productName,
         quantity: item.quantity,
         unitPrice: item.unitPrice,
         total: item.quantity * item.unitPrice,
+        unitCost: item.productId ? costs.get(item.productId) ?? 0 : 0,
+        costTotal: item.quantity * (item.productId ? costs.get(item.productId) ?? 0 : 0),
         notes: item.notes || null,
       }));
 

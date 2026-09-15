@@ -8,47 +8,54 @@ datasource db {
 }
 
 model Tenant {
-  id        String     @id @default(cuid())
-  name      String
-  slug      String     @unique
-  isActive  Boolean    @default(true)
-  plan      String     @default("TRIAL")
-  subscriptionStatus String @default("TRIAL")
-  trialEndsAt DateTime?
-  billingStartsAt DateTime?
-  lastPaymentAt DateTime?
-  nextPaymentAt DateTime?
-  monthlyPrice Decimal @default(0) @db.Decimal(14, 2)
-  discountAmount Decimal @default(0) @db.Decimal(14, 2)
-  manualCharge Decimal @default(0) @db.Decimal(14, 2)
-  phone String?
-  address String? @db.Text
-  taxNumber String?
-  logoUrl String?
-  onboardingStep Int @default(1)
-  onboardingCompletedAt DateTime?
-  createdAt DateTime   @default(now())
-  updatedAt DateTime   @updatedAt
-  customers Customer[]
-  orders    Order[]
-  products  Product[]
-  stockMovements StockMovement[]
-  vehicles  Vehicle[]
-  personnel Personnel[]
-  users     User[]
-  roles     Role[]
-  permissionGroups PermissionGroup[]
-  permissions Permission[]
-  userRoles UserRole[]
-  rolePermissions RolePermission[]
-  orderSequence OrderSequence?
-  auditLogs AuditLog[]
-  subscriptions TenantSubscription[]
-  invoices Invoice[]
-  payments Payment[]
+  id                     String                 @id @default(cuid())
+  name                   String
+  slug                   String                 @unique
+  isActive               Boolean                @default(true)
+  plan                   String                 @default("TRIAL")
+  subscriptionStatus     String                 @default("TRIAL")
+  trialEndsAt            DateTime?
+  billingStartsAt        DateTime?
+  lastPaymentAt          DateTime?
+  nextPaymentAt          DateTime?
+  monthlyPrice           Decimal                @default(0) @db.Decimal(14, 2)
+  discountAmount         Decimal                @default(0) @db.Decimal(14, 2)
+  manualCharge           Decimal                @default(0) @db.Decimal(14, 2)
+  phone                  String?
+  address                String?                @db.Text
+  taxNumber              String?
+  logoUrl                String?
+  onboardingStep         Int                    @default(1)
+  onboardingCompletedAt  DateTime?
+  createdAt              DateTime               @default(now())
+  updatedAt              DateTime               @updatedAt
+  customers              Customer[]
+  orders                 Order[]
+  products               Product[]
+  stockMovements         StockMovement[]
+  vehicles               Vehicle[]
+  personnel              Personnel[]
+  users                  User[]
+  roles                  Role[]
+  permissionGroups       PermissionGroup[]
+  permissions            Permission[]
+  userRoles              UserRole[]
+  rolePermissions        RolePermission[]
+  orderSequence          OrderSequence?
+  auditLogs              AuditLog[]
+  subscriptions          TenantSubscription[]
+  invoices               Invoice[]
+  payments               Payment[]
   customerAccountEntries CustomerAccountEntry[]
-  routeHistories RouteHistory[]
-  supportTickets SupportTicket[]
+  routeHistories         RouteHistory[]
+  supportTickets         SupportTicket[]
+  partners               Partner[]
+  bankAccounts           BankAccount[]
+  salesPayments          SalesPayment[]
+  expenses               Expense[]
+  dailyClosings          DailyClosing[]
+  partnerLedgerEntries   PartnerLedgerEntry[]
+  partnerPurchases       PartnerPurchase[]
 }
 
 enum LegacyUserRole {
@@ -59,27 +66,27 @@ enum LegacyUserRole {
 }
 
 model User {
-  id           String   @id @default(cuid())
-  tenantId     String?
-  email        String   @unique
-  phone        String?
-  name         String
-  passwordHash String
-  mustChangePassword Boolean @default(false)
-  role         LegacyUserRole @default(OPERATIONS)
-  permissionVersion Int @default(1)
-  isActive     Boolean  @default(true)
-  deletedAt    DateTime?
-  emailVerifiedAt DateTime?
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-  tenant       Tenant?  @relation(fields: [tenantId], references: [id], onDelete: Restrict)
-  roleAssignments UserRole[]
-  auditLogs    AuditLog[]
+  id                      String                   @id @default(cuid())
+  tenantId                String?
+  email                   String                   @unique
+  phone                   String?
+  name                    String
+  passwordHash            String
+  mustChangePassword      Boolean                  @default(false)
+  role                    LegacyUserRole           @default(OPERATIONS)
+  permissionVersion       Int                      @default(1)
+  isActive                Boolean                  @default(true)
+  deletedAt               DateTime?
+  emailVerifiedAt         DateTime?
+  createdAt               DateTime                 @default(now())
+  updatedAt               DateTime                 @updatedAt
+  tenant                  Tenant?                  @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  roleAssignments         UserRole[]
+  auditLogs               AuditLog[]
   updatedPlatformSettings PlatformSetting[]
-  requestedSupportTickets SupportTicket[] @relation("SupportTicketRequester")
-  assignedSupportTickets SupportTicket[] @relation("SupportTicketAssignee")
-  supportMessages SupportMessage[]
+  requestedSupportTickets SupportTicket[]          @relation("SupportTicketRequester")
+  assignedSupportTickets  SupportTicket[]          @relation("SupportTicketAssignee")
+  supportMessages         SupportMessage[]
   emailVerificationTokens EmailVerificationToken[]
 
   @@index([tenantId, isActive])
@@ -87,63 +94,63 @@ model User {
 }
 
 model EmailVerificationToken {
-  id        String   @id @default(cuid())
+  id        String    @id @default(cuid())
   userId    String
-  tokenHash String   @unique
+  tokenHash String    @unique
   expiresAt DateTime
   usedAt    DateTime?
-  createdAt DateTime @default(now())
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime  @default(now())
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId, expiresAt])
 }
 
 model SubscriptionPackage {
-  id             String   @id @default(cuid())
-  code           String   @unique
-  name           String
-  description    String?
-  monthlyPrice   Decimal  @default(0) @db.Decimal(14, 2)
-  annualPrice    Decimal  @default(0) @db.Decimal(14, 2)
-  maxUsers       Int?
-  maxOrders      Int?
-  maxWarehouses  Int?
-  maxVehicles    Int?
-  storageGb      Int?
-  apiLimit       Int?
-  aiUsage        Int?
-  isActive       Boolean  @default(true)
-  sortOrder      Int      @default(0)
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
-  subscriptions  TenantSubscription[]
+  id            String               @id @default(cuid())
+  code          String               @unique
+  name          String
+  description   String?
+  monthlyPrice  Decimal              @default(0) @db.Decimal(14, 2)
+  annualPrice   Decimal              @default(0) @db.Decimal(14, 2)
+  maxUsers      Int?
+  maxOrders     Int?
+  maxWarehouses Int?
+  maxVehicles   Int?
+  storageGb     Int?
+  apiLimit      Int?
+  aiUsage       Int?
+  isActive      Boolean              @default(true)
+  sortOrder     Int                  @default(0)
+  createdAt     DateTime             @default(now())
+  updatedAt     DateTime             @updatedAt
+  subscriptions TenantSubscription[]
 
   @@index([isActive, sortOrder])
 }
 
 model TenantSubscription {
-  id              String   @id @default(cuid())
-  tenantId        String
-  packageId       String
-  startsAt        DateTime
-  endsAt          DateTime?
-  status          String   @default("ACTIVE")
-  isTrial         Boolean  @default(false)
-  trialEndsAt     DateTime?
-  lastPaymentAt   DateTime?
-  nextPaymentAt   DateTime?
-  monthlyPrice    Decimal  @db.Decimal(14, 2)
-  annualPrice     Decimal  @db.Decimal(14, 2)
-  discountAmount  Decimal  @default(0) @db.Decimal(14, 2)
-  manualPrice     Decimal? @db.Decimal(14, 2)
-  taxRate         Decimal  @default(0) @db.Decimal(5, 2)
-  totalAmount     Decimal  @default(0) @db.Decimal(14, 2)
-  notes           String?
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-  tenant          Tenant  @relation(fields: [tenantId], references: [id], onDelete: Restrict)
-  package         SubscriptionPackage @relation(fields: [packageId], references: [id], onDelete: Restrict)
-  invoices        Invoice[]
+  id             String              @id @default(cuid())
+  tenantId       String
+  packageId      String
+  startsAt       DateTime
+  endsAt         DateTime?
+  status         String              @default("ACTIVE")
+  isTrial        Boolean             @default(false)
+  trialEndsAt    DateTime?
+  lastPaymentAt  DateTime?
+  nextPaymentAt  DateTime?
+  monthlyPrice   Decimal             @db.Decimal(14, 2)
+  annualPrice    Decimal             @db.Decimal(14, 2)
+  discountAmount Decimal             @default(0) @db.Decimal(14, 2)
+  manualPrice    Decimal?            @db.Decimal(14, 2)
+  taxRate        Decimal             @default(0) @db.Decimal(5, 2)
+  totalAmount    Decimal             @default(0) @db.Decimal(14, 2)
+  notes          String?
+  createdAt      DateTime            @default(now())
+  updatedAt      DateTime            @updatedAt
+  tenant         Tenant              @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  package        SubscriptionPackage @relation(fields: [packageId], references: [id], onDelete: Restrict)
+  invoices       Invoice[]
 
   @@index([tenantId, status, startsAt])
   @@index([packageId, status])
@@ -167,23 +174,23 @@ model PlatformSetting {
 }
 
 model SupportTicket {
-  id           String   @id @default(cuid())
+  id           String           @id @default(cuid())
   tenantId     String
   requesterId  String?
   assigneeId   String?
-  ticketNumber String   @unique
+  ticketNumber String           @unique
   subject      String
-  description  String   @db.Text
-  category     String   @default("GENERAL")
-  priority     String   @default("NORMAL")
-  status       String   @default("OPEN")
+  description  String           @db.Text
+  category     String           @default("GENERAL")
+  priority     String           @default("NORMAL")
+  status       String           @default("OPEN")
   lastReplyAt  DateTime?
   closedAt     DateTime?
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-  tenant       Tenant   @relation(fields: [tenantId], references: [id], onDelete: Restrict)
-  requester    User?    @relation("SupportTicketRequester", fields: [requesterId], references: [id], onDelete: SetNull)
-  assignee     User?    @relation("SupportTicketAssignee", fields: [assigneeId], references: [id], onDelete: SetNull)
+  createdAt    DateTime         @default(now())
+  updatedAt    DateTime         @updatedAt
+  tenant       Tenant           @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  requester    User?            @relation("SupportTicketRequester", fields: [requesterId], references: [id], onDelete: SetNull)
+  assignee     User?            @relation("SupportTicketAssignee", fields: [assigneeId], references: [id], onDelete: SetNull)
   messages     SupportMessage[]
 
   @@index([tenantId, status, priority])
@@ -192,41 +199,41 @@ model SupportTicket {
 }
 
 model SupportMessage {
-  id         String   @id @default(cuid())
+  id         String        @id @default(cuid())
   ticketId   String
   authorId   String?
-  body       String   @db.Text
-  isInternal Boolean  @default(false)
-  createdAt  DateTime @default(now())
+  body       String        @db.Text
+  isInternal Boolean       @default(false)
+  createdAt  DateTime      @default(now())
   ticket     SupportTicket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
-  author     User?    @relation(fields: [authorId], references: [id], onDelete: SetNull)
+  author     User?         @relation(fields: [authorId], references: [id], onDelete: SetNull)
 
   @@index([ticketId, createdAt])
 }
 
 model Invoice {
-  id              String   @id @default(cuid())
-  tenantId        String
-  subscriptionId  String?
-  invoiceNumber   String   @unique
-  pdfNumber       String?
-  issueDate       DateTime
-  dueDate         DateTime
-  periodStart     DateTime
-  periodEnd       DateTime
-  status          String   @default("ISSUED")
-  currency        String   @default("TRY")
-  subtotal        Decimal  @db.Decimal(14, 2)
-  discountAmount  Decimal  @default(0) @db.Decimal(14, 2)
-  taxAmount       Decimal  @default(0) @db.Decimal(14, 2)
-  totalAmount     Decimal  @db.Decimal(14, 2)
-  notes           String?
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-  tenant          Tenant  @relation(fields: [tenantId], references: [id], onDelete: Restrict)
-  subscription    TenantSubscription? @relation(fields: [subscriptionId], references: [id], onDelete: SetNull)
-  lines           InvoiceLine[]
-  payments        Payment[]
+  id             String              @id @default(cuid())
+  tenantId       String
+  subscriptionId String?
+  invoiceNumber  String              @unique
+  pdfNumber      String?
+  issueDate      DateTime
+  dueDate        DateTime
+  periodStart    DateTime
+  periodEnd      DateTime
+  status         String              @default("ISSUED")
+  currency       String              @default("TRY")
+  subtotal       Decimal             @db.Decimal(14, 2)
+  discountAmount Decimal             @default(0) @db.Decimal(14, 2)
+  taxAmount      Decimal             @default(0) @db.Decimal(14, 2)
+  totalAmount    Decimal             @db.Decimal(14, 2)
+  notes          String?
+  createdAt      DateTime            @default(now())
+  updatedAt      DateTime            @updatedAt
+  tenant         Tenant              @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  subscription   TenantSubscription? @relation(fields: [subscriptionId], references: [id], onDelete: SetNull)
+  lines          InvoiceLine[]
+  payments       Payment[]
 
   @@unique([tenantId, periodStart, periodEnd])
   @@index([tenantId, status, issueDate])
@@ -234,34 +241,34 @@ model Invoice {
 }
 
 model InvoiceLine {
-  id          String   @id @default(cuid())
+  id          String  @id @default(cuid())
   invoiceId   String
   description String
-  quantity    Decimal  @default(1) @db.Decimal(12, 2)
-  unitPrice   Decimal  @db.Decimal(14, 2)
-  totalAmount Decimal  @db.Decimal(14, 2)
-  invoice     Invoice  @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  quantity    Decimal @default(1) @db.Decimal(12, 2)
+  unitPrice   Decimal @db.Decimal(14, 2)
+  totalAmount Decimal @db.Decimal(14, 2)
+  invoice     Invoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
 
   @@index([invoiceId])
 }
 
 model Payment {
-  id              String   @id @default(cuid())
+  id              String    @id @default(cuid())
   tenantId        String
   invoiceId       String?
-  amount          Decimal  @db.Decimal(14, 2)
+  amount          Decimal   @db.Decimal(14, 2)
   method          String
   referenceNumber String?
   description     String?
-  status          String   @default("PENDING")
+  status          String    @default("PENDING")
   paidAt          DateTime?
   failureReason   String?
-  refundAmount    Decimal  @default(0) @db.Decimal(14, 2)
+  refundAmount    Decimal   @default(0) @db.Decimal(14, 2)
   refundedAt      DateTime?
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-  tenant          Tenant  @relation(fields: [tenantId], references: [id], onDelete: Restrict)
-  invoice         Invoice? @relation(fields: [invoiceId], references: [id], onDelete: SetNull)
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  tenant          Tenant    @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  invoice         Invoice?  @relation(fields: [invoiceId], references: [id], onDelete: SetNull)
 
   @@index([tenantId, status, createdAt])
   @@index([invoiceId, createdAt])
@@ -269,38 +276,38 @@ model Payment {
 }
 
 model PermissionGroup {
-  id          String   @id @default(cuid())
+  id          String       @id @default(cuid())
   tenantId    String?
   key         String
   name        String
   description String?
-  sortOrder   Int      @default(0)
-  isSystem    Boolean  @default(false)
-  isActive    Boolean  @default(true)
+  sortOrder   Int          @default(0)
+  isSystem    Boolean      @default(false)
+  isActive    Boolean      @default(true)
   deletedAt   DateTime?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  tenant      Tenant?  @relation(fields: [tenantId], references: [id], onDelete: Restrict)
-  permissions  Permission[]
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  tenant      Tenant?      @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  permissions Permission[]
 
   @@unique([tenantId, key])
   @@index([tenantId, isActive, deletedAt])
 }
 
 model Permission {
-  id          String   @id @default(cuid())
-  tenantId    String?
-  groupId     String
-  key         String
-  name        String
-  description String?
-  isSystem    Boolean  @default(false)
-  isActive    Boolean  @default(true)
-  deletedAt   DateTime?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  tenant      Tenant?  @relation(fields: [tenantId], references: [id], onDelete: Restrict)
-  group       PermissionGroup @relation(fields: [groupId], references: [id], onDelete: Restrict)
+  id              String           @id @default(cuid())
+  tenantId        String?
+  groupId         String
+  key             String
+  name            String
+  description     String?
+  isSystem        Boolean          @default(false)
+  isActive        Boolean          @default(true)
+  deletedAt       DateTime?
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+  tenant          Tenant?          @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  group           PermissionGroup  @relation(fields: [groupId], references: [id], onDelete: Restrict)
   rolePermissions RolePermission[]
 
   @@unique([tenantId, key])
@@ -309,22 +316,22 @@ model Permission {
 }
 
 model Role {
-  id           String   @id @default(cuid())
+  id           String           @id @default(cuid())
   tenantId     String?
   key          String
   name         String
   description  String?
   color        String?
   icon         String?
-  isSystem     Boolean  @default(false)
-  isSuperAdmin Boolean  @default(false)
-  isActive     Boolean  @default(true)
+  isSystem     Boolean          @default(false)
+  isSuperAdmin Boolean          @default(false)
+  isActive     Boolean          @default(true)
   deletedAt    DateTime?
   createdBy    String?
   updatedBy    String?
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-  tenant       Tenant?  @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  createdAt    DateTime         @default(now())
+  updatedAt    DateTime         @updatedAt
+  tenant       Tenant?          @relation(fields: [tenantId], references: [id], onDelete: Restrict)
   userRoles    UserRole[]
   permissions  RolePermission[]
 
@@ -334,15 +341,15 @@ model Role {
 }
 
 model RolePermission {
-  id           String   @id @default(cuid())
+  id           String     @id @default(cuid())
   tenantId     String?
   roleId       String
   permissionId String
   deletedAt    DateTime?
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-  tenant       Tenant?  @relation(fields: [tenantId], references: [id], onDelete: Restrict)
-  role         Role     @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+  tenant       Tenant?    @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  role         Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
   permission   Permission @relation(fields: [permissionId], references: [id], onDelete: Restrict)
 
   @@unique([tenantId, roleId, permissionId])
@@ -351,17 +358,17 @@ model RolePermission {
 }
 
 model UserRole {
-  id         String   @id @default(cuid())
+  id         String    @id @default(cuid())
   tenantId   String?
   userId     String
   roleId     String
   deletedAt  DateTime?
   assignedBy String?
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
-  tenant     Tenant?  @relation(fields: [tenantId], references: [id], onDelete: Restrict)
-  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  role       Role     @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+  tenant     Tenant?   @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role       Role      @relation(fields: [roleId], references: [id], onDelete: Cascade)
 
   @@unique([tenantId, userId, roleId])
   @@index([userId, deletedAt])
@@ -377,25 +384,25 @@ model OrderSequence {
 }
 
 model AuditLog {
-  id         String   @id @default(cuid())
-  tenantId   String?
-  actorId    String?
-  action     String
-  entityType String
-  entityId   String
-  metadata   Json?
-  actorRole  String?
-  ipAddress  String?
-  userAgent  String?
-  browser    String?
+  id              String   @id @default(cuid())
+  tenantId        String?
+  actorId         String?
+  action          String
+  entityType      String
+  entityId        String
+  metadata        Json?
+  actorRole       String?
+  ipAddress       String?
+  userAgent       String?
+  browser         String?
   operatingSystem String?
-  url        String?
-  httpMethod String?
-  oldData    Json?
-  newData    Json?
-  createdAt  DateTime @default(now())
-  tenant     Tenant?  @relation(fields: [tenantId], references: [id], onDelete: Restrict)
-  actor      User?    @relation(fields: [actorId], references: [id], onDelete: SetNull)
+  url             String?
+  httpMethod      String?
+  oldData         Json?
+  newData         Json?
+  createdAt       DateTime @default(now())
+  tenant          Tenant?  @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  actor           User?    @relation(fields: [actorId], references: [id], onDelete: SetNull)
 
   @@index([tenantId, createdAt])
   @@index([tenantId, entityType, entityId])
@@ -403,32 +410,33 @@ model AuditLog {
 }
 
 model Customer {
-  id                 String    @id @default(cuid())
+  id                 String                 @id @default(cuid())
   tenantId           String
   customerCode       String
   fullName           String
   phone              String
   phone2             String?
   email              String?
-  address            String?   @db.Text
+  address            String?                @db.Text
   city               String?
   district           String?
   location           String?
   latitude           Float?
   longitude          Float?
-  balance            Decimal   @default(0) @db.Decimal(14, 2)
-  depositBottleCount Int       @default(0)
-  emptyBottleCount   Int       @default(0)
-  isActive           Boolean   @default(true)
-  notes              String?   @db.Text
+  balance            Decimal                @default(0) @db.Decimal(14, 2)
+  depositBottleCount Int                    @default(0)
+  emptyBottleCount   Int                    @default(0)
+  isActive           Boolean                @default(true)
+  notes              String?                @db.Text
   deletedAt          DateTime?
   createdBy          String?
   updatedBy          String?
-  createdAt          DateTime  @default(now())
-  updatedAt          DateTime  @updatedAt
-  tenant             Tenant    @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  createdAt          DateTime               @default(now())
+  updatedAt          DateTime               @updatedAt
+  tenant             Tenant                 @relation(fields: [tenantId], references: [id], onDelete: Restrict)
   orders             Order[]
   accountEntries     CustomerAccountEntry[]
+  salesPayments      SalesPayment[]
 
   @@unique([tenantId, customerCode])
   @@index([tenantId, fullName])
@@ -444,47 +452,265 @@ enum CustomerAccountEntryType {
 }
 
 model CustomerAccountEntry {
-  id                 String                    @id @default(cuid())
-  tenantId           String
-  customerId         String
-  type               CustomerAccountEntryType
-  amount             Decimal                   @default(0) @db.Decimal(14, 2)
-  balanceAfter       Decimal                   @default(0) @db.Decimal(14, 2)
-  depositChange      Int                       @default(0)
+  id                  String                   @id @default(cuid())
+  tenantId            String
+  customerId          String
+  type                CustomerAccountEntryType
+  amount              Decimal                  @default(0) @db.Decimal(14, 2)
+  balanceAfter        Decimal                  @default(0) @db.Decimal(14, 2)
+  depositChange       Int                      @default(0)
   depositBalanceAfter Int                      @default(0)
-  referenceType      String?
-  referenceId        String?
-  notes              String?                   @db.Text
-  createdBy          String?
-  createdAt          DateTime                  @default(now())
-  tenant             Tenant                    @relation(fields: [tenantId], references: [id], onDelete: Restrict)
-  customer           Customer                  @relation(fields: [customerId], references: [id], onDelete: Restrict)
+  referenceType       String?
+  referenceId         String?
+  notes               String?                  @db.Text
+  createdBy           String?
+  createdAt           DateTime                 @default(now())
+  tenant              Tenant                   @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  customer            Customer                 @relation(fields: [customerId], references: [id], onDelete: Restrict)
 
   @@index([tenantId, customerId, createdAt])
   @@index([tenantId, type, createdAt])
   @@index([referenceType, referenceId])
 }
 
+enum PartnerType {
+  SUPPLIER
+  DEALER
+  BOTH
+}
+
+model Partner {
+  id              String               @id @default(cuid())
+  tenantId        String
+  code            String
+  name            String
+  type            PartnerType          @default(BOTH)
+  phone           String?
+  email           String?
+  taxNumber       String?
+  iban            String?
+  paymentTermDays Int                  @default(0)
+  notes           String?              @db.Text
+  isActive        Boolean              @default(true)
+  deletedAt       DateTime?
+  createdAt       DateTime             @default(now())
+  updatedAt       DateTime             @updatedAt
+  tenant          Tenant               @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  ledgerEntries   PartnerLedgerEntry[]
+  salesPayments   SalesPayment[]
+  purchases       PartnerPurchase[]
+
+  @@unique([tenantId, code])
+  @@index([tenantId, name])
+  @@index([tenantId, type, isActive])
+}
+
+enum PartnerLedgerEntryType {
+  PURCHASE
+  SALE
+  PAYMENT_TO_PARTNER
+  COLLECTION_FROM_PARTNER
+  ADJUSTMENT
+}
+
+model PartnerLedgerEntry {
+  id            String                 @id @default(cuid())
+  tenantId      String
+  partnerId     String
+  type          PartnerLedgerEntryType
+  amount        Decimal                @db.Decimal(14, 2)
+  dueDate       DateTime?              @db.Date
+  referenceType String?
+  referenceId   String?
+  notes         String?                @db.Text
+  createdBy     String?
+  createdAt     DateTime               @default(now())
+  tenant        Tenant                 @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  partner       Partner                @relation(fields: [partnerId], references: [id], onDelete: Restrict)
+
+  @@index([tenantId, partnerId, createdAt])
+  @@index([tenantId, type, dueDate])
+  @@index([referenceType, referenceId])
+}
+
+model PartnerPurchase {
+  id            String                @id @default(cuid())
+  tenantId      String
+  partnerId     String
+  purchaseDate  DateTime              @default(now())
+  totalAmount   Decimal               @db.Decimal(14, 2)
+  depositAmount Decimal               @default(0) @db.Decimal(14, 2)
+  notes         String?               @db.Text
+  createdBy     String?
+  createdAt     DateTime              @default(now())
+  tenant        Tenant                @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  partner       Partner               @relation(fields: [partnerId], references: [id], onDelete: Restrict)
+  items         PartnerPurchaseItem[]
+
+  @@index([tenantId, purchaseDate])
+  @@index([tenantId, partnerId, purchaseDate])
+}
+
+model PartnerPurchaseItem {
+  id            String          @id @default(cuid())
+  purchaseId    String
+  productId     String?
+  productName   String
+  quantity      Int             @default(1)
+  unitCost      Decimal         @db.Decimal(14, 2)
+  depositAmount Decimal         @default(0) @db.Decimal(14, 2)
+  total         Decimal         @db.Decimal(14, 2)
+  purchase      PartnerPurchase @relation(fields: [purchaseId], references: [id], onDelete: Cascade)
+  product       Product?        @relation(fields: [productId], references: [id], onDelete: SetNull)
+
+  @@index([purchaseId])
+  @@index([productId])
+}
+
+enum BankAccountType {
+  BANK
+  CASH
+}
+
+model BankAccount {
+  id             String          @id @default(cuid())
+  tenantId       String
+  name           String
+  bankName       String?
+  iban           String?
+  type           BankAccountType @default(BANK)
+  openingBalance Decimal         @default(0) @db.Decimal(14, 2)
+  isActive       Boolean         @default(true)
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+  tenant         Tenant          @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  salesPayments  SalesPayment[]
+  expenses       Expense[]
+
+  @@unique([tenantId, name])
+  @@index([tenantId, isActive])
+}
+
+enum SalesPaymentMethod {
+  CASH
+  IBAN
+  CARD
+  CREDIT
+  OTHER
+}
+
+model SalesPayment {
+  id              String             @id @default(cuid())
+  tenantId        String
+  orderId         String
+  customerId      String
+  partnerId       String?
+  bankAccountId   String?
+  amount          Decimal            @db.Decimal(14, 2)
+  method          SalesPaymentMethod
+  referenceNumber String?
+  paidAt          DateTime           @default(now())
+  notes           String?            @db.Text
+  createdBy       String?
+  createdAt       DateTime           @default(now())
+  tenant          Tenant             @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  order           Order              @relation(fields: [orderId], references: [id], onDelete: Restrict)
+  customer        Customer           @relation(fields: [customerId], references: [id], onDelete: Restrict)
+  partner         Partner?           @relation(fields: [partnerId], references: [id], onDelete: SetNull)
+  bankAccount     BankAccount?       @relation(fields: [bankAccountId], references: [id], onDelete: SetNull)
+
+  @@index([tenantId, paidAt])
+  @@index([tenantId, method, paidAt])
+  @@index([tenantId, customerId])
+  @@index([tenantId, partnerId])
+}
+
+enum ExpenseType {
+  FUEL
+  OTHER
+}
+
+enum ExpensePaymentMethod {
+  CASH
+  BANK_TRANSFER
+  CARD
+  OTHER
+}
+
+model Expense {
+  id            String               @id @default(cuid())
+  tenantId      String
+  category      String
+  type          ExpenseType          @default(OTHER)
+  description   String
+  amount        Decimal              @db.Decimal(14, 2)
+  expenseDate   DateTime             @db.Date
+  paymentMethod ExpensePaymentMethod @default(CASH)
+  bankAccountId String?
+  vehicleId     String?
+  liters        Decimal?             @db.Decimal(10, 2)
+  odometer      Int?
+  receiptNumber String?
+  notes         String?              @db.Text
+  createdBy     String?
+  createdAt     DateTime             @default(now())
+  updatedAt     DateTime             @updatedAt
+  tenant        Tenant               @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  bankAccount   BankAccount?         @relation(fields: [bankAccountId], references: [id], onDelete: SetNull)
+  vehicle       Vehicle?             @relation(fields: [vehicleId], references: [id], onDelete: SetNull)
+
+  @@index([tenantId, expenseDate])
+  @@index([tenantId, type, expenseDate])
+  @@index([tenantId, bankAccountId])
+}
+
+enum DailyClosingStatus {
+  OPEN
+  CLOSED
+}
+
+model DailyClosing {
+  id           String             @id @default(cuid())
+  tenantId     String
+  closingDate  DateTime           @db.Date
+  openingCash  Decimal            @default(0) @db.Decimal(14, 2)
+  cashSales    Decimal            @default(0) @db.Decimal(14, 2)
+  cashExpenses Decimal            @default(0) @db.Decimal(14, 2)
+  expectedCash Decimal            @default(0) @db.Decimal(14, 2)
+  actualCash   Decimal?           @db.Decimal(14, 2)
+  difference   Decimal?           @db.Decimal(14, 2)
+  notes        String?            @db.Text
+  status       DailyClosingStatus @default(OPEN)
+  closedAt     DateTime?
+  closedBy     String?
+  createdAt    DateTime           @default(now())
+  updatedAt    DateTime           @updatedAt
+  tenant       Tenant             @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+
+  @@unique([tenantId, closingDate])
+  @@index([tenantId, status, closingDate])
+}
+
 model RouteHistory {
-  id                    String   @id @default(cuid())
-  tenantId              String
-  routeDate             DateTime @db.Date
-  distanceKm            Float    @default(0)
-  actualDistanceKm      Float?
-  actualStartLatitude   Float?
-  actualStartLongitude  Float?
-  lastLatitude          Float?
-  lastLongitude         Float?
-  distanceSource        String   @default("PLANNED")
-  estimatedFuelLiters   Float    @default(0)
-  fuelPricePerLiter     Decimal  @default(0) @db.Decimal(14, 2)
-  estimatedFuelCost     Decimal  @default(0) @db.Decimal(14, 2)
-  revenue               Decimal  @default(0) @db.Decimal(14, 2)
-  orderCount            Int      @default(0)
-  stops                 Json
-  createdAt             DateTime @default(now())
-  updatedAt             DateTime @updatedAt
-  tenant                Tenant   @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  id                   String   @id @default(cuid())
+  tenantId             String
+  routeDate            DateTime @db.Date
+  distanceKm           Float    @default(0)
+  actualDistanceKm     Float?
+  actualStartLatitude  Float?
+  actualStartLongitude Float?
+  lastLatitude         Float?
+  lastLongitude        Float?
+  distanceSource       String   @default("PLANNED")
+  estimatedFuelLiters  Float    @default(0)
+  fuelPricePerLiter    Decimal  @default(0) @db.Decimal(14, 2)
+  estimatedFuelCost    Decimal  @default(0) @db.Decimal(14, 2)
+  revenue              Decimal  @default(0) @db.Decimal(14, 2)
+  orderCount           Int      @default(0)
+  stops                Json
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+  tenant               Tenant   @relation(fields: [tenantId], references: [id], onDelete: Restrict)
 
   @@unique([tenantId, routeDate])
   @@index([tenantId, routeDate])
@@ -499,31 +725,32 @@ enum OrderStatus {
 }
 
 model Order {
-  id            String      @id @default(cuid())
+  id            String         @id @default(cuid())
   tenantId      String
   orderCode     String
   customerId    String
-  orderDate     DateTime    @default(now())
+  orderDate     DateTime       @default(now())
   deliveryDate  DateTime?
-  status        OrderStatus @default(PENDING)
-  totalAmount   Decimal     @default(0) @db.Decimal(14, 2)
-  discount      Decimal     @default(0) @db.Decimal(14, 2)
-  grandTotal    Decimal     @default(0) @db.Decimal(14, 2)
-  notes         String?     @db.Text
+  status        OrderStatus    @default(PENDING)
+  totalAmount   Decimal        @default(0) @db.Decimal(14, 2)
+  discount      Decimal        @default(0) @db.Decimal(14, 2)
+  grandTotal    Decimal        @default(0) @db.Decimal(14, 2)
+  notes         String?        @db.Text
   deletedAt     DateTime?
   createdBy     String?
   updatedBy     String?
-  createdAt     DateTime    @default(now())
-  updatedAt     DateTime    @updatedAt
-  tenant        Tenant      @relation(fields: [tenantId], references: [id], onDelete: Restrict)
-  customer      Customer    @relation(fields: [customerId], references: [id], onDelete: Restrict)
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  tenant        Tenant         @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  customer      Customer       @relation(fields: [customerId], references: [id], onDelete: Restrict)
   items         OrderItem[]
-  vehicle       Vehicle?    @relation("OrderVehicle", fields: [vehicleId], references: [id], onDelete: SetNull)
-  personnel     Personnel?  @relation("OrderPersonnel", fields: [personnelId], references: [id], onDelete: SetNull)
+  vehicle       Vehicle?       @relation("OrderVehicle", fields: [vehicleId], references: [id], onDelete: SetNull)
+  personnel     Personnel?     @relation("OrderPersonnel", fields: [personnelId], references: [id], onDelete: SetNull)
   vehicleId     String?
   personnelId   String?
-  deliveryNotes String?      @db.Text
+  deliveryNotes String?        @db.Text
   deliveredAt   DateTime?
+  payments      SalesPayment[]
 
   @@unique([tenantId, orderCode])
   @@index([tenantId, orderDate])
@@ -536,15 +763,17 @@ model Order {
 }
 
 model OrderItem {
-  id          String  @id @default(cuid())
+  id          String   @id @default(cuid())
   orderId     String
   productId   String?
   productName String
-  quantity    Int     @default(1)
-  unitPrice   Decimal @db.Decimal(14, 2)
-  total       Decimal @default(0) @db.Decimal(14, 2)
-  notes       String? @db.Text
-  order       Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  quantity    Int      @default(1)
+  unitPrice   Decimal  @db.Decimal(14, 2)
+  total       Decimal  @default(0) @db.Decimal(14, 2)
+  unitCost    Decimal  @default(0) @db.Decimal(14, 2)
+  costTotal   Decimal  @default(0) @db.Decimal(14, 2)
+  notes       String?  @db.Text
+  order       Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
   product     Product? @relation(fields: [productId], references: [id], onDelete: SetNull)
 
   @@index([orderId])
@@ -552,28 +781,29 @@ model OrderItem {
 }
 
 model Product {
-  id             String          @id @default(cuid())
+  id             String                @id @default(cuid())
   tenantId       String
   code           String
   name           String
   category       String?
-  unit           String          @default("ADET")
-  description    String?         @db.Text
-  salePrice      Decimal         @default(0) @db.Decimal(14, 2)
-  purchasePrice  Decimal         @default(0) @db.Decimal(14, 2)
-  stockQuantity  Int             @default(0)
-  minStockLevel  Int             @default(0)
-  hasDeposit     Boolean         @default(false)
-  depositAmount  Decimal         @default(0) @db.Decimal(14, 2)
-  isActive       Boolean         @default(true)
+  unit           String                @default("ADET")
+  description    String?               @db.Text
+  salePrice      Decimal               @default(0) @db.Decimal(14, 2)
+  purchasePrice  Decimal               @default(0) @db.Decimal(14, 2)
+  stockQuantity  Int                   @default(0)
+  minStockLevel  Int                   @default(0)
+  hasDeposit     Boolean               @default(false)
+  depositAmount  Decimal               @default(0) @db.Decimal(14, 2)
+  isActive       Boolean               @default(true)
   deletedAt      DateTime?
   createdBy      String?
   updatedBy      String?
-  createdAt      DateTime        @default(now())
-  updatedAt      DateTime        @updatedAt
-  tenant         Tenant          @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  createdAt      DateTime              @default(now())
+  updatedAt      DateTime              @updatedAt
+  tenant         Tenant                @relation(fields: [tenantId], references: [id], onDelete: Restrict)
   orderItems     OrderItem[]
   stockMovements StockMovement[]
+  purchaseItems  PartnerPurchaseItem[]
 
   @@unique([tenantId, code])
   @@index([tenantId, name])
@@ -641,6 +871,7 @@ model Vehicle {
   updatedAt      DateTime      @updatedAt
   tenant         Tenant        @relation(fields: [tenantId], references: [id], onDelete: Restrict)
   assignedOrders Order[]       @relation("OrderVehicle")
+  expenses       Expense[]
 
   @@unique([tenantId, code])
   @@unique([tenantId, plate])
@@ -657,27 +888,27 @@ enum PersonnelStatus {
 }
 
 model Personnel {
-  id                 String          @id @default(cuid())
-  tenantId           String
-  employeeCode       String
-  fullName           String
-  phone              String
-  email              String?
-  position           String
-  licenseNumber      String?
-  licenseClass       String?
-  licenseExpiryDate  DateTime?
-  hireDate           DateTime?
-  status             PersonnelStatus @default(ACTIVE)
-  notes              String?         @db.Text
-  isActive           Boolean         @default(true)
-  deletedAt          DateTime?
-  createdBy          String?
-  updatedBy          String?
-  createdAt          DateTime        @default(now())
-  updatedAt          DateTime        @updatedAt
-  tenant             Tenant          @relation(fields: [tenantId], references: [id], onDelete: Restrict)
-  assignedOrders     Order[]         @relation("OrderPersonnel")
+  id                String          @id @default(cuid())
+  tenantId          String
+  employeeCode      String
+  fullName          String
+  phone             String
+  email             String?
+  position          String
+  licenseNumber     String?
+  licenseClass      String?
+  licenseExpiryDate DateTime?
+  hireDate          DateTime?
+  status            PersonnelStatus @default(ACTIVE)
+  notes             String?         @db.Text
+  isActive          Boolean         @default(true)
+  deletedAt         DateTime?
+  createdBy         String?
+  updatedBy         String?
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
+  tenant            Tenant          @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  assignedOrders    Order[]         @relation("OrderPersonnel")
 
   @@unique([tenantId, employeeCode])
   @@index([tenantId, fullName])

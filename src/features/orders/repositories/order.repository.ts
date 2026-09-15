@@ -17,6 +17,7 @@ export interface OrderRepository {
   findByCode(orderCode: string, tenantId: string): Promise<Order | null>;
   findCustomer(id: string, tenantId: string): Promise<boolean>;
   findProducts(ids: string[], tenantId: string): Promise<string[]>;
+  findProductCosts(ids: string[], tenantId: string): Promise<Map<string, number>>;
   create(tenantId: string, data: Prisma.OrderCreateInput, items: Prisma.OrderItemCreateWithoutOrderInput[], stockItems?: StockItem[]): Promise<OrderWithItems>;
   update(id: string, tenantId: string, data: Prisma.OrderUpdateInput, items?: Prisma.OrderItemCreateWithoutOrderInput[], stockItems?: StockItem[]): Promise<OrderWithItems>;
   softDelete(id: string, tenantId: string): Promise<Order>;
@@ -89,6 +90,11 @@ export function createOrderRepository(): OrderRepository {
       if (ids.length === 0) return [];
       const products = await prisma.product.findMany({ where: { id: { in: ids }, tenantId, deletedAt: null, isActive: true }, select: { id: true } });
       return products.map((product) => product.id);
+    },
+
+    async findProductCosts(ids, tenantId) {
+      const products = await prisma.product.findMany({ where: { id: { in: ids }, tenantId, deletedAt: null, isActive: true }, select: { id: true, purchasePrice: true } });
+      return new Map(products.map((product) => [product.id, Number(product.purchasePrice)]));
     },
 
     async update(id, tenantId, data, items, stockItems = []) {
