@@ -122,6 +122,7 @@ export default function OrderDetail({ order }: OrderDetailProps) {
               initialDate={order.deliveryDate}
               initialNotes={order.deliveryNotes}
               initialStatus={order.status}
+              initialAmount={Number(order.grandTotal)}
             />
           </section>
           {order.status === "DELIVERED" && <OrderPaymentPanel orderId={order.id} amount={Number(order.grandTotal)} />}

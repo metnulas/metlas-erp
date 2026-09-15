@@ -8,11 +8,12 @@ import { Button } from "@/components/ui/button";
 import { Select } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { ORDER_STATUS_LABELS, ORDER_STATUS_TRANSITIONS } from "@/shared/constants/order-status";
+import OrderPaymentPanel from "@/features/orders/components/order-payment-panel";
 
 type Option = { id: string; label: string; detail: string };
-type Props = { orderId: string; initialVehicleId?: string | null; initialPersonnelId?: string | null; initialDate?: string | Date | null; initialNotes?: string | null; initialStatus: string; compact?: boolean; onSaved?: () => void };
+type Props = { orderId: string; initialVehicleId?: string | null; initialPersonnelId?: string | null; initialDate?: string | Date | null; initialNotes?: string | null; initialStatus: string; initialAmount?: number; compact?: boolean; onSaved?: () => void };
 
-export default function DeliveryAssignment({ orderId, initialVehicleId, initialPersonnelId, initialDate, initialNotes, initialStatus, compact = false, onSaved }: Props) {
+export default function DeliveryAssignment({ orderId, initialVehicleId, initialPersonnelId, initialDate, initialNotes, initialStatus, initialAmount = 0, compact = false, onSaved }: Props) {
   const router = useRouter();
   const [vehicles, setVehicles] = useState<Option[]>([]);
   const [personnel, setPersonnel] = useState<Option[]>([]);
@@ -79,5 +80,5 @@ export default function DeliveryAssignment({ orderId, initialVehicleId, initialP
       <label className="block space-y-1.5 text-sm font-medium">Dağıtım notu<Textarea value={notes} onChange={(event) => setNotes(event.target.value)} disabled={loading} rows={3} /></label>
       {status !== "DELIVERED" && status !== "CANCELLED" && <div className="rounded-xl border border-border/70 bg-muted/20 p-3"><p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Hızlı durum güncelleme</p><div className="grid gap-2 sm:flex sm:flex-wrap">{(status === "PENDING" || status === "CONFIRMED") && <Button type="button" size="sm" variant="outline" onClick={() => quickStatus("DELIVERING", "Sipariş dağıtıma çıkarıldı")} disabled={disabled}><Play className="size-4" /> Dağıtıma Çıkar</Button>}{status === "DELIVERING" && <Button type="button" size="sm" onClick={() => quickStatus("DELIVERED", "Sipariş teslim edildi")} disabled={disabled}><CircleCheck className="size-4" /> Teslim Edildi</Button>}{(status === "PENDING" || status === "CONFIRMED" || status === "DELIVERING") && <Button type="button" size="sm" variant="ghost" className="text-destructive hover:text-destructive" onClick={() => quickStatus("CANCELLED", "Sipariş iptal edildi")} disabled={disabled}><Ban className="size-4" /> İptal Et</Button>}</div></div>}
      <Button className="w-full sm:w-auto" onClick={save} disabled={disabled}>{loading ? <Loader2 className="size-4 animate-spin" /> : <Save className="size-4" />} Kaydet</Button>
-  </div>;
+   {status === "DELIVERED" && <OrderPaymentPanel orderId={orderId} amount={initialAmount} />} </div>;
 }
