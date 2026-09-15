@@ -14,6 +14,7 @@ const navigationItems = [
   { label: "Siparişler", icon: ReceiptText, href: "/orders", permission: "orders.view" },
   { label: "Ürünler", icon: Package, href: "/products", permission: "products.view" },
   { label: "Finans", icon: WalletCards, href: "/finance", permission: "finance.view" },
+  { label: "Finans Raporları", icon: BarChart3, href: "/finance/reports", permission: "finance.view" },
   { label: "Araçlar", icon: Truck, href: "/vehicles", permission: "vehicles.view" },
   { label: "Personeller", icon: BriefcaseBusiness, href: "/personnel", permission: "personnel.view" },
   { label: "Dağıtım", icon: ClipboardList, href: "/deliveries", permission: "routes.view" },
