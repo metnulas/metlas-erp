@@ -10,13 +10,22 @@ const schema = z.object({ amount: z.coerce.number().positive(), method: z.enum([
 export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const session = await requirePermission("finance.manage"); const tenantId = await getCurrentTenantId(); const { id: orderId } = await params; const input = schema.parse(await request.json());
-    const order = await prisma.order.findFirst({ where: { id: orderId, tenantId, deletedAt: null }, select: { id: true, customerId: true } });
+    const order = await prisma.order.findFirst({ where: { id: orderId, tenantId, deletedAt: null }, select: { id: true, customerId: true, grandTotal: true, customer: { select: { partnerId: true } } } });
     if (!order) return NextResponse.json({ success: false, error: { code: "ORDER_NOT_FOUND", message: "Sipariş bulunamadı" } }, { status: 404 });
     const payment = await prisma.$transaction(async (tx) => {
-      const saved = await tx.salesPayment.create({ data: { tenantId, orderId, customerId: order.customerId, amount: input.amount, method: input.method, bankAccountId: input.bankAccountId || null, partnerId: input.partnerId || null, referenceNumber: input.referenceNumber || null, paidAt: input.paidAt ? new Date(input.paidAt) : new Date(), notes: input.notes || null, createdBy: session.user.id } });
-      if (input.partnerId) await tx.partnerLedgerEntry.create({ data: { tenantId, partnerId: input.partnerId, type: "SALE", amount: input.amount, referenceType: "SALES_PAYMENT", referenceId: saved.id, notes: "Sipariş tahsilatı" } });
+      const partnerId = input.partnerId || order.customer.partnerId;
+      const saved = await tx.salesPayment.create({ data: { tenantId, orderId, customerId: order.customerId, amount: input.amount, method: input.method, bankAccountId: input.bankAccountId || null, partnerId: partnerId || null, referenceNumber: input.referenceNumber || null, paidAt: input.paidAt ? new Date(input.paidAt) : new Date(), notes: input.notes || null, createdBy: session.user.id } });
+      if (partnerId) await tx.partnerLedgerEntry.create({ data: { tenantId, partnerId, type: "SALE", amount: input.amount, referenceType: "SALES_PAYMENT", referenceId: saved.id, notes: "Sipariş tahsilatı" } });
       return saved;
     });
     return NextResponse.json({ success: true, data: payment }, { status: 201 });
+  } catch (error) { return handleApiError(error); }
+}
+
+export async function GET(_: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  try {
+    await requirePermission("finance.view"); const tenantId = await getCurrentTenantId(); const { id: orderId } = await params;
+    const payments = await prisma.salesPayment.findMany({ where: { tenantId, orderId }, orderBy: { paidAt: "desc" } });
+    return NextResponse.json({ success: true, data: payments });
   } catch (error) { return handleApiError(error); }
 }

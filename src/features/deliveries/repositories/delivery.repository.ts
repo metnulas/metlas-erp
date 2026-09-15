@@ -15,7 +15,7 @@ export interface DeliveryRepository {
   findLeastBusyVehicle(tenantId: string, deliveryDate: Date, excludeOrderId: string): Promise<{ id: string; code: string; plate: string; type: string } | null>;
   findLeastBusyPersonnel(tenantId: string, deliveryDate: Date, excludeOrderId: string): Promise<{ id: string; employeeCode: string; fullName: string; phone: string } | null>;
   update(id: string, tenantId: string, data: Prisma.OrderUpdateInput): Promise<DeliveryOrder>;
-  deliver(id: string, tenantId: string, data: Prisma.OrderUpdateInput, paymentMethod: "CASH" | "IBAN" | "CARD", paymentReference?: string): Promise<DeliveryOrder>;
+  deliver(id: string, tenantId: string, data: Prisma.OrderUpdateInput, paymentMethod?: "CASH" | "IBAN" | "CARD", paymentReference?: string): Promise<DeliveryOrder>;
 }
 
 const includeRelations = {
@@ -66,8 +66,10 @@ export function createDeliveryRepository(): DeliveryRepository {
           await tx.stockMovement.create({ data: { tenantId, productId: product.id, type: "ORDER", quantity: -item.quantity, balanceAfter, referenceType: "ORDER", referenceId: order.id, notes: "Sipariş teslimi" } });
         }
          const updated = await tx.order.update({ where: { id, tenantId }, data, include: includeRelations });
-         await tx.salesPayment.create({ data: { tenantId, orderId: order.id, customerId: order.customerId, partnerId: order.customer?.partnerId ?? null, amount: order.grandTotal, method: paymentMethod, referenceNumber: paymentReference || null, createdBy: data.updatedBy?.toString() ?? null } });
-         if (order.customer?.partnerId) await tx.partnerLedgerEntry.create({ data: { tenantId, partnerId: order.customer.partnerId, type: "SALE", amount: order.grandTotal, referenceType: "ORDER_DELIVERY", referenceId: order.id, notes: `Teslimat tahsilatı · ${paymentMethod}` } });
+          if (paymentMethod) {
+            await tx.salesPayment.create({ data: { tenantId, orderId: order.id, customerId: order.customerId, partnerId: order.customer?.partnerId ?? null, amount: order.grandTotal, method: paymentMethod, referenceNumber: paymentReference || null, createdBy: data.updatedBy?.toString() ?? null } });
+            if (order.customer?.partnerId) await tx.partnerLedgerEntry.create({ data: { tenantId, partnerId: order.customer.partnerId, type: "SALE", amount: order.grandTotal, referenceType: "ORDER_DELIVERY", referenceId: order.id, notes: `Teslimat tahsilatı · ${paymentMethod}` } });
+          }
          return updated;
       });
     },

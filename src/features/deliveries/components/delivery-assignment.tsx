@@ -21,8 +21,6 @@ export default function DeliveryAssignment({ orderId, initialVehicleId, initialP
   const [date, setDate] = useState(initialDate ? new Date(initialDate).toISOString().slice(0, 10) : "");
   const [notes, setNotes] = useState(initialNotes ?? "");
   const [status, setStatus] = useState(initialStatus);
-  const [paymentMethod, setPaymentMethod] = useState<"CASH" | "IBAN" | "CARD">("CASH");
-  const [paymentReference, setPaymentReference] = useState("");
   const [loading, setLoading] = useState(false);
   const [loadingOptions, setLoadingOptions] = useState(true);
 
@@ -40,7 +38,7 @@ export default function DeliveryAssignment({ orderId, initialVehicleId, initialP
   async function persist(nextStatus: string, successMessage: string) {
     setLoading(true);
     try {
-      const response = await fetch(`/api/orders/${orderId}/delivery`, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ vehicleId: vehicleId || null, personnelId: personnelId || null, deliveryDate: date, deliveryNotes: notes, status: nextStatus, ...(nextStatus === "DELIVERED" && { paymentMethod, paymentReference }) }) });
+      const response = await fetch(`/api/orders/${orderId}/delivery`, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ vehicleId: vehicleId || null, personnelId: personnelId || null, deliveryDate: date, deliveryNotes: notes, status: nextStatus }) });
       const result = await response.json();
       if (!response.ok) throw new Error(result.error?.message ?? "Dağıtım kaydedilemedi");
       setStatus(nextStatus);
@@ -79,7 +77,6 @@ export default function DeliveryAssignment({ orderId, initialVehicleId, initialP
        <label className="space-y-1.5 text-sm font-medium">Durum<Select value={status} onChange={(event) => setStatus(event.target.value)} disabled={loading}>{availableStatuses.map((value) => <option key={value} value={value}>{ORDER_STATUS_LABELS[value] ?? value}</option>)}</Select><span className="text-xs font-normal text-muted-foreground">Geçerli sonraki durumlar gösteriliyor.</span></label>
     </div>
       <label className="block space-y-1.5 text-sm font-medium">Dağıtım notu<Textarea value={notes} onChange={(event) => setNotes(event.target.value)} disabled={loading} rows={3} /></label>
-      {(status === "DELIVERING" || status === "DELIVERED") && <div className="rounded-xl border border-primary/30 bg-primary/5 p-3"><p className="mb-2 text-sm font-semibold">Teslimat tahsilatı</p><div className="grid gap-3 sm:grid-cols-2"><label className="space-y-1.5 text-sm font-medium">Ödeme yöntemi<Select value={paymentMethod} onChange={(event) => setPaymentMethod(event.target.value as "CASH" | "IBAN" | "CARD")} disabled={loading}><option value="CASH">Nakit</option><option value="IBAN">IBAN / Havale</option><option value="CARD">POS</option></Select></label><label className="space-y-1.5 text-sm font-medium">Dekont / POS referansı<input className="flex h-9 w-full rounded-lg border border-input bg-background px-3 py-1 text-base md:text-sm" value={paymentReference} onChange={(event) => setPaymentReference(event.target.value)} disabled={loading} placeholder="Opsiyonel" /></label></div></div>}
       {status !== "DELIVERED" && status !== "CANCELLED" && <div className="rounded-xl border border-border/70 bg-muted/20 p-3"><p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Hızlı durum güncelleme</p><div className="grid gap-2 sm:flex sm:flex-wrap">{(status === "PENDING" || status === "CONFIRMED") && <Button type="button" size="sm" variant="outline" onClick={() => quickStatus("DELIVERING", "Sipariş dağıtıma çıkarıldı")} disabled={disabled}><Play className="size-4" /> Dağıtıma Çıkar</Button>}{status === "DELIVERING" && <Button type="button" size="sm" onClick={() => quickStatus("DELIVERED", "Sipariş teslim edildi")} disabled={disabled}><CircleCheck className="size-4" /> Teslim Edildi</Button>}{(status === "PENDING" || status === "CONFIRMED" || status === "DELIVERING") && <Button type="button" size="sm" variant="ghost" className="text-destructive hover:text-destructive" onClick={() => quickStatus("CANCELLED", "Sipariş iptal edildi")} disabled={disabled}><Ban className="size-4" /> İptal Et</Button>}</div></div>}
      <Button className="w-full sm:w-auto" onClick={save} disabled={disabled}>{loading ? <Loader2 className="size-4 animate-spin" /> : <Save className="size-4" />} Kaydet</Button>
   </div>;

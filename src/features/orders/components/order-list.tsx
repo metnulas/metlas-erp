@@ -132,12 +132,10 @@ export default function OrderList() {
 
   const handleStatusUpdate = useCallback(async (order: OrderRow, nextStatus: string) => {
     if (nextStatus === "DELIVERED" && !confirm("Siparişi teslim edildi olarak işaretlemek ve stok düşümü yapmak istiyor musunuz?")) return;
-    const paymentMethod = nextStatus === "DELIVERED" ? window.prompt("Ödeme yöntemi: CASH (Nakit), IBAN veya CARD (POS)", "CASH")?.trim().toUpperCase() : undefined;
-    if (nextStatus === "DELIVERED" && (!paymentMethod || !["CASH", "IBAN", "CARD"].includes(paymentMethod))) { toast.error("Teslimat için CASH, IBAN veya CARD seçmelisiniz"); return; }
     if (nextStatus === "CANCELLED" && !confirm("Siparişi iptal etmek istediğinizden emin misiniz?")) return;
     try {
       const deliveryDate = order.deliveryDate ? new Date(order.deliveryDate).toISOString().slice(0, 10) : "";
-      const response = await fetch(`/api/orders/${order.id}/delivery`, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ vehicleId: order.vehicle?.id, personnelId: order.personnel?.id, deliveryDate, status: nextStatus, paymentMethod }) });
+      const response = await fetch(`/api/orders/${order.id}/delivery`, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ vehicleId: order.vehicle?.id, personnelId: order.personnel?.id, deliveryDate, status: nextStatus }) });
       const result = await response.json();
       if (!response.ok) throw new Error(result.error?.message ?? "Sipariş durumu güncellenemedi");
       toast.success(nextStatus === "DELIVERING" && (!order.vehicle || !order.personnel) ? "Durum güncellendi, uygun araç/personel otomatik atandı" : `Sipariş ${ORDER_STATUS_LABELS[nextStatus]?.toLowerCase() ?? "güncellendi"}`);

@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Pencil, ArrowLeft, Package, Calendar, FileText } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import DeliveryAssignment from "@/features/deliveries/components/delivery-assignment";
+import OrderPaymentPanel from "@/features/orders/components/order-payment-panel";
 import { ORDER_STATUS_LABELS, ORDER_STATUS_STYLES } from "@/shared/constants/order-status";
 
 interface OrderDetailProps {
@@ -123,6 +124,7 @@ export default function OrderDetail({ order }: OrderDetailProps) {
               initialStatus={order.status}
             />
           </section>
+          {order.status === "DELIVERED" && <OrderPaymentPanel orderId={order.id} amount={Number(order.grandTotal)} />}
 
           <section className="rounded-xl border border-border/70 bg-card p-6">
             <h2 className="mb-4 text-lg font-semibold">Finansal Özet</h2>
