@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
-type Role = { id: string; name: string; key: string };
+type Role = { id: string; name: string; key: string; permissions: Array<{ permission: { name: string } }> };
 
 export default function UserCreateForm({ roles }: { roles: Role[] }) {
   const router = useRouter();
@@ -29,7 +29,7 @@ export default function UserCreateForm({ roles }: { roles: Role[] }) {
       <label className="space-y-2 text-sm font-medium">Telefon<Input type="tel" value={form.phone} onChange={(event) => setForm({ ...form, phone: event.target.value })} autoComplete="tel" required /></label>
       <label className="space-y-2 text-sm font-medium sm:col-span-2">Geçici şifre<Input type="password" value={form.password} onChange={(event) => setForm({ ...form, password: event.target.value })} minLength={8} autoComplete="new-password" required /><span className="text-xs font-normal text-muted-foreground">En az 8 karakter olmalıdır.</span></label>
     </div>
-    <section className="rounded-2xl border border-border/70 bg-card p-5 shadow-sm"><h2 className="font-semibold">Roller</h2><p className="mt-1 text-sm text-muted-foreground">Kullanıcıya bir veya birden fazla rol atayın.</p><div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">{roles.map((role) => <label key={role.id} className="flex items-center gap-2 rounded-xl border border-border/70 p-3 text-sm hover:bg-muted"><input type="checkbox" checked={form.roleIds.includes(role.id)} onChange={() => toggleRole(role.id)} />{role.name}<span className="ml-auto text-xs text-muted-foreground">{role.key}</span></label>)}</div></section>
+     <section className="rounded-2xl border border-border/70 bg-card p-5 shadow-sm"><h2 className="font-semibold">Roller ve erişim kapsamı</h2><p className="mt-1 text-sm text-muted-foreground">Kullanıcıya rol atadığınızda, rolün seçili ekran ve işlem izinleri uygulanır.</p><div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">{roles.map((role) => <div key={role.id} className={`rounded-xl border p-3 transition-colors ${form.roleIds.includes(role.id) ? "border-primary/50 bg-primary/5" : "border-border/70"}`}><label className="flex items-center gap-2 text-sm font-medium"><input type="checkbox" checked={form.roleIds.includes(role.id)} onChange={() => toggleRole(role.id)} />{role.name}<span className="ml-auto text-xs text-muted-foreground">{role.key}</span></label><details className="mt-2"><summary className="cursor-pointer text-xs font-medium text-primary">{role.permissions.length} izin: görüntüle</summary><p className="mt-2 text-xs leading-5 text-muted-foreground">{role.permissions.map(({ permission }) => permission.name).join(" · ") || "İzin tanımlı değil"}</p></details></div>)}</div></section>
     {error && <p role="alert" className="rounded-lg bg-destructive/10 p-3 text-sm text-destructive">{error}</p>}
     <div className="flex justify-end gap-2"><Button type="button" variant="outline" onClick={() => router.push("/users")}>İptal</Button><Button type="submit" disabled={saving || form.roleIds.length === 0}>{saving ? "Oluşturuluyor..." : "Kullanıcı oluştur"}</Button></div>
   </form>;

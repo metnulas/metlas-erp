@@ -1,0 +1,318 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import DashboardLayout from "@/components/layout/DashboardLayout";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+
+type Partner = { id: string; code: string; name: string; balance: number; purchases: number; paidToPartner: number; ibanSales: number; ibanCovered: number; remainingDebtAfterIban: number };
+type Entry = {
+  id: string;
+  type: string;
+  amount: string;
+  dueDate: string | null;
+  notes: string | null;
+  createdAt: string;
+};
+const money = (value: number | string) =>
+  Number(value).toLocaleString("tr-TR", { style: "currency", currency: "TRY" });
+const entryLabels: Record<string, string> = {
+  PURCHASE: "Bayiden alış / borç",
+  SALE: "Bayiye satış / alacak",
+  PAYMENT_TO_PARTNER: "Bayie ödeme",
+  COLLECTION_FROM_PARTNER: "Bayiden tahsilat",
+  ADJUSTMENT: "Düzeltme",
+};
+
+export default function FinancePage() {
+  const [partners, setPartners] = useState<Partner[]>([]);
+  const [selectedId, setSelectedId] = useState("");
+  const [entries, setEntries] = useState<Entry[]>([]);
+  const [partner, setPartner] = useState({
+    code: "",
+    name: "",
+    paymentTermDays: "0",
+  });
+  const [entry, setEntry] = useState({
+    type: "PURCHASE",
+    amount: "",
+    dueDate: "",
+    notes: "",
+  });
+  const [message, setMessage] = useState("");
+  const [loading, setLoading] = useState(false);
+  async function loadPartners() {
+    const response = await fetch("/api/finance/partners");
+    const result = await response.json();
+    if (result.success) setPartners(result.data);
+    else setMessage(result.error?.message ?? "Bayi listesi yüklenemedi");
+  }
+  async function loadEntries(id: string) {
+    setSelectedId(id);
+    const response = await fetch(`/api/finance/partners/${id}/ledger`);
+    const result = await response.json();
+    if (result.success) setEntries(result.data);
+    else setMessage(result.error?.message ?? "Cari hareketler yüklenemedi");
+  }
+  // Load the tenant-scoped partner list when the finance screen opens.
+  /* eslint-disable react-hooks/set-state-in-effect */
+  useEffect(() => {
+    void loadPartners();
+  }, []);
+  /* eslint-enable react-hooks/set-state-in-effect */
+  async function createPartner(event: React.FormEvent) {
+    event.preventDefault();
+    setLoading(true);
+    setMessage("");
+    try {
+      const response = await fetch("/api/finance/partners", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          ...partner,
+          type: "BOTH",
+          paymentTermDays: Number(partner.paymentTermDays),
+        }),
+      });
+      const result = await response.json();
+      if (!response.ok || !result.success)
+        throw new Error(result.error?.message ?? "Bayi eklenemedi");
+      setMessage("Bayi başarıyla eklendi.");
+      setPartner({ code: "", name: "", paymentTermDays: "0" });
+      await loadPartners();
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "Bayi eklenemedi");
+    } finally {
+      setLoading(false);
+    }
+  }
+  async function createEntry(event: React.FormEvent) {
+    event.preventDefault();
+    if (!selectedId) return setMessage("Önce bir bayi seçin.");
+    setLoading(true);
+    try {
+      const response = await fetch(
+        `/api/finance/partners/${selectedId}/ledger`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(entry),
+        },
+      );
+      const result = await response.json();
+      if (!response.ok || !result.success)
+        throw new Error(result.error?.message ?? "Cari hareket kaydedilemedi");
+      setMessage("Cari hareket kaydedildi.");
+      setEntry({ ...entry, amount: "", notes: "" });
+      await Promise.all([loadPartners(), loadEntries(selectedId)]);
+    } catch (error) {
+      setMessage(
+        error instanceof Error ? error.message : "Cari hareket kaydedilemedi",
+      );
+    } finally {
+      setLoading(false);
+    }
+  }
+  const selected = partners.find((item) => item.id === selectedId);
+  return (
+    <DashboardLayout>
+      <div className="space-y-6">
+        <header>
+          <p className="text-sm font-semibold uppercase tracking-[0.18em] text-primary">
+            Finans merkezi
+          </p>
+          <h1 className="mt-2 text-3xl font-bold">Bayi cari hesapları</h1>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Bayi borcunu, bayiye yaptığınız ödemeyi ve IBAN üzerinden tahsil edilen satışları ayrı ayrı takip edin.
+          </p>
+        </header>
+        {message && (
+          <p className="rounded-lg bg-muted px-4 py-3 text-sm">{message}</p>
+        )}
+        <section className="rounded-2xl border bg-card p-6">
+          <h2 className="text-lg font-semibold">Yeni bayi ekle</h2>
+          <form
+            className="mt-5 grid gap-4 sm:grid-cols-3"
+            onSubmit={createPartner}
+          >
+            <label className="space-y-1 text-sm font-medium">
+              Bayi kodu
+              <Input
+                value={partner.code}
+                onChange={(event) =>
+                  setPartner({ ...partner, code: event.target.value })
+                }
+                placeholder="BAYI-001"
+                required
+              />
+            </label>
+            <label className="space-y-1 text-sm font-medium">
+              Bayi adı
+              <Input
+                value={partner.name}
+                onChange={(event) =>
+                  setPartner({ ...partner, name: event.target.value })
+                }
+                placeholder="A Ana Bayi"
+                required
+              />
+            </label>
+            <label className="space-y-1 text-sm font-medium">
+              Vade günü
+              <Input
+                type="number"
+                min="0"
+                value={partner.paymentTermDays}
+                onChange={(event) =>
+                  setPartner({
+                    ...partner,
+                    paymentTermDays: event.target.value,
+                  })
+                }
+              />
+            </label>
+            <Button type="submit" disabled={loading} className="sm:col-span-3">
+              {loading ? "Kaydediliyor..." : "Bayi ekle"}
+            </Button>
+          </form>
+        </section>
+        <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          {partners.map((item) => (
+            <button type="button" key={item.id} onClick={() => void loadEntries(item.id)} className={`rounded-2xl border bg-card p-4 text-left shadow-sm transition hover:border-primary/50 ${selectedId === item.id ? "border-primary ring-2 ring-primary/15" : ""}`}>
+              <div className="flex items-start justify-between gap-3"><span><b>{item.name}</b><small className="ml-2 text-muted-foreground">{item.code}</small></span><span className={`text-sm font-bold ${item.balance > 0 ? "text-amber-600" : "text-emerald-600"}`}>{money(item.balance)}</span></div>
+              <div className="mt-4 grid grid-cols-3 gap-2 text-xs"><span className="rounded-lg bg-amber-50 p-2 text-amber-800">Bayiye borç<br /><b>{money(Math.max(0, item.balance))}</b></span><span className="rounded-lg bg-blue-50 p-2 text-blue-800">IBAN karşılığı<br /><b>{money(item.ibanCovered)}</b></span><span className="rounded-lg bg-slate-100 p-2 text-slate-700">Kalan<br /><b>{money(item.remainingDebtAfterIban)}</b></span></div>
+              <p className="mt-3 text-xs text-muted-foreground">Alış {money(item.purchases)} · Bayiye ödeme {money(item.paidToPartner)}</p>
+            </button>
+          ))}
+        </section>
+        <div className="grid gap-6 xl:grid-cols-[0.9fr_1.1fr]">
+          <section className="rounded-2xl border bg-card p-6">
+            <h2 className="text-lg font-semibold">Bayiler</h2>
+            <div className="mt-4 divide-y">
+              {partners.map((item) => (
+                <button
+                  type="button"
+                  key={item.id}
+                  onClick={() => void loadEntries(item.id)}
+                  className={`flex w-full items-center justify-between py-4 text-left ${selectedId === item.id ? "text-primary" : ""}`}
+                >
+                  <span>
+                    <b>{item.name}</b>
+                    <small className="ml-2 text-muted-foreground">
+                      {item.code}
+                    </small>
+                  </span>
+                  <b
+                    className={
+                      item.balance > 0 ? "text-amber-600" : "text-emerald-600"
+                    }
+                  >
+                    {money(item.balance)}
+                  </b>
+                </button>
+              ))}
+              {!partners.length && (
+                <p className="py-4 text-sm text-muted-foreground">
+                  Henüz bayi eklenmedi.
+                </p>
+              )}
+            </div>
+          </section>
+          <section className="rounded-2xl border bg-card p-6">
+            <h2 className="text-lg font-semibold">
+              {selected
+                ? `${selected.name} cari hesabı`
+                : "Bayi cari hareketleri"}
+            </h2>
+            {selected && (
+              <>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  Pozitif bakiye bayiye borcunuzu, negatif bakiye bayinin size
+                  borcunu gösterir.
+                </p>
+                <form
+                  className="mt-4 grid gap-3 sm:grid-cols-2"
+                  onSubmit={createEntry}
+                >
+                  <select
+                    className="rounded-lg border bg-background px-3 py-2"
+                    value={entry.type}
+                    onChange={(event) =>
+                      setEntry({ ...entry, type: event.target.value })
+                    }
+                  >
+                    <option value="PURCHASE">Bayiden alış / borç</option>
+                    <option value="SALE">Bayiye satış / alacak</option>
+                    <option value="PAYMENT_TO_PARTNER">Bayie ödeme</option>
+                    <option value="COLLECTION_FROM_PARTNER">
+                      Bayiden tahsilat
+                    </option>
+                    <option value="ADJUSTMENT">Düzeltme</option>
+                  </select>
+                  <Input
+                    type="number"
+                    min="0.01"
+                    step="0.01"
+                    placeholder="Tutar (TL)"
+                    value={entry.amount}
+                    onChange={(event) =>
+                      setEntry({ ...entry, amount: event.target.value })
+                    }
+                    required
+                  />
+                  <Input
+                    type="date"
+                    value={entry.dueDate}
+                    onChange={(event) =>
+                      setEntry({ ...entry, dueDate: event.target.value })
+                    }
+                  />
+                  <Input
+                    placeholder="Açıklama"
+                    value={entry.notes}
+                    onChange={(event) =>
+                      setEntry({ ...entry, notes: event.target.value })
+                    }
+                  />
+                  <Button
+                    type="submit"
+                    disabled={loading}
+                    className="sm:col-span-2"
+                  >
+                    Cari hareketi kaydet
+                  </Button>
+                </form>
+                <div className="mt-6 divide-y">
+                  {entries.map((item) => (
+                    <div
+                      key={item.id}
+                      className="flex items-center justify-between gap-3 py-3 text-sm"
+                    >
+                      <span>
+                        <b>{entryLabels[item.type] ?? item.type}</b>
+                        <small className="ml-2 text-muted-foreground">
+                          {new Date(item.createdAt).toLocaleDateString("tr-TR")}
+                        </small>
+                      </span>
+                      <b>{money(item.amount)}</b>
+                    </div>
+                  ))}
+                  {!entries.length && (
+                    <p className="py-4 text-sm text-muted-foreground">
+                      Bu bayiye ait cari hareket yok.
+                    </p>
+                  )}
+                </div>
+              </>
+            )}
+            {!selected && (
+              <p className="mt-3 text-sm text-muted-foreground">
+                Cari hareketleri görmek için bir bayi seçin.
+              </p>
+            )}
+          </section>
+        </div>
+      </div>
+    </DashboardLayout>
+  );
+}

@@ -6,12 +6,10 @@ import Image from "next/image";
 import { useEffect, useRef } from "react";
 import { useSession } from "next-auth/react";
 import {
-  BarChart3,
   BriefcaseBusiness,
   ClipboardCheck,
   CreditCard,
   FileText,
-  History,
   LayoutDashboard,
   LifeBuoy,
   Package,
@@ -29,7 +27,7 @@ import { Button } from "@/components/ui/button";
 
 const navigationItems = [
   {
-    label: "Dashboard",
+    label: "Giriş",
     icon: LayoutDashboard,
     href: "/",
     permission: "dashboard.view",
@@ -59,18 +57,6 @@ const navigationItems = [
     permission: "finance.view",
   },
   {
-    label: "Finans Raporları",
-    icon: BarChart3,
-    href: "/finance/reports",
-    permission: "finance.view",
-  },
-  {
-    label: "Günlük Bayi Özeti",
-    icon: BarChart3,
-    href: "/finance/daily",
-    permission: "finance.view",
-  },
-  {
     label: "Araçlar",
     icon: Truck,
     href: "/vehicles",
@@ -83,19 +69,6 @@ const navigationItems = [
     permission: "personnel.view",
   },
   {
-    label: "Geçmiş Rotalar",
-    icon: History,
-    href: "/route-histories",
-    permission: "routes.view",
-  },
-  { label: "Roller", icon: Users, href: "/roles", permission: "roles.view" },
-  {
-    label: "Kullanıcılar",
-    icon: Users,
-    href: "/users",
-    permission: "users.view",
-  },
-  {
     label: "Denetim",
     icon: ClipboardCheck,
     href: "/audit-logs",
@@ -103,18 +76,17 @@ const navigationItems = [
   },
 ];
 
+const authorizationNavigationItems = [
+  { label: "Roller", icon: Settings2, href: "/roles", permission: "roles.view" },
+  { label: "Kullanıcılar", icon: Users, href: "/users", permission: "users.view" },
+];
+
 const platformNavigationItems = [
   {
-    label: "Platform Dashboard",
+    label: "Genel Bakış",
     icon: LayoutDashboard,
     href: "/platform",
     permission: "platform.view",
-  },
-  {
-    label: "Tenantlar",
-    icon: Users,
-    href: "/platform",
-    permission: "tenants.manage",
   },
   {
     label: "Abonelikler",
@@ -179,6 +151,10 @@ export default function Sidebar({
   const isGlobalPlatform = Boolean(
     session?.user.isGlobalAdmin && !session?.user.tenantId,
   );
+  const canManageAuthorization =
+    !isGlobalPlatform &&
+    permissions.includes("roles.view") &&
+    permissions.includes("users.view");
   const isCompact = isCollapsed && !isMobileMenuOpen;
   const closeButtonRef = useRef<HTMLButtonElement>(null);
   const sidebarRef = useRef<HTMLElement>(null);
@@ -237,7 +213,7 @@ export default function Sidebar({
       )}
       <aside
         ref={sidebarRef}
-        className={`fixed inset-y-0 left-0 z-[1200] flex flex-col overflow-y-auto border-r border-blue-300/25 bg-[#0f172a] px-4 py-6 text-sky-50 shadow-[12px_0_35px_-18px_rgba(4,25,48,0.72)] transition-[width,transform] duration-300 ease-in-out lg:translate-x-0 ${isCompact ? "w-24" : "w-80"} ${isMobileMenuOpen ? "translate-x-0" : "-translate-x-full"}`}
+        className={`fixed inset-y-0 left-0 z-[1200] flex flex-col overflow-hidden border-r border-blue-300/25 bg-[#0f172a] px-4 py-3 text-sky-50 shadow-[12px_0_35px_-18px_rgba(4,25,48,0.72)] transition-[width,transform] duration-300 ease-in-out lg:translate-x-0 ${isCompact ? "w-24" : "w-80"} ${isMobileMenuOpen ? "translate-x-0" : "-translate-x-full"}`}
         role="dialog"
         aria-modal={isMobileMenuOpen}
         aria-label="Ana navigasyon"
@@ -265,7 +241,7 @@ export default function Sidebar({
         </Button>
         <div className="relative z-10 flex min-h-full flex-col">
           <div
-            className={`relative mb-8 flex items-start gap-2 ${isCompact ? "justify-center" : "justify-between"}`}
+            className={`relative mb-2 flex items-start gap-2 ${isCompact ? "justify-center" : "justify-between"}`}
           >
             <div
               className={
@@ -290,7 +266,7 @@ export default function Sidebar({
                   alt="METLAS ERP"
                   width={600}
                   height={300}
-                  className="h-44 w-full object-contain object-center drop-shadow-[0_14px_18px_rgba(0,0,0,0.55)]"
+                  className="-mt-2 h-32 w-full scale-[1.1] object-contain object-center drop-shadow-[0_14px_18px_rgba(0,0,0,0.55)]"
                   priority
                   unoptimized
                 />
@@ -309,7 +285,7 @@ export default function Sidebar({
           </div>
           <nav
             aria-label="Ana menü"
-            className={isCompact ? "space-y-2" : "space-y-1"}
+            className={isCompact ? "space-y-1" : "space-y-0.5"}
           >
             {(isGlobalPlatform ? platformNavigationItems : navigationItems)
               .filter(({ permission }) => permissions.includes(permission))
@@ -320,7 +296,7 @@ export default function Sidebar({
                   <Link
                     href={href}
                     key={label}
-                    className={`relative flex h-12 items-center rounded-2xl border text-sm font-medium transition-all ${isCompact ? "justify-center px-2.5" : "gap-3 px-3"} ${isActive ? "border-blue-300/45 bg-blue-600/70 text-white shadow-[0_8px_22px_-14px_rgba(96,165,250,0.9)] backdrop-blur-xl before:absolute before:left-0 before:top-1/2 before:h-6 before:w-1 before:-translate-y-1/2 before:rounded-r-full before:bg-blue-200" : "border-transparent text-sky-100/80 hover:translate-x-[3px] hover:border-white/15 hover:bg-white/12 hover:text-white hover:backdrop-blur-xl"}`}
+                    className={`relative flex h-10 items-center rounded-2xl border text-sm font-medium transition-all ${isCompact ? "justify-center px-2.5" : "gap-3 px-3"} ${isActive ? "border-blue-300/45 bg-blue-600/70 text-white shadow-[0_8px_22px_-14px_rgba(96,165,250,0.9)] backdrop-blur-xl before:absolute before:left-0 before:top-1/2 before:h-6 before:w-1 before:-translate-y-1/2 before:rounded-r-full before:bg-blue-200" : "border-transparent text-sky-100/80 hover:translate-x-[3px] hover:border-white/15 hover:bg-white/12 hover:text-white hover:backdrop-blur-xl"}`}
                     onClick={onClose}
                     title={isCompact ? label : undefined}
                   >
@@ -332,8 +308,39 @@ export default function Sidebar({
                 );
               })}
           </nav>
+          {canManageAuthorization && (
+            <div className="mt-3 border-t border-white/15 pt-2">
+              {!isCompact && (
+                <p className="mb-2 px-3 text-[10px] font-bold uppercase tracking-[0.18em] text-cyan-200/70">
+                  Yetkilendirme
+                </p>
+              )}
+              <nav
+                aria-label="Yetkilendirme menüsü"
+                className={isCompact ? "space-y-1" : "space-y-0.5"}
+              >
+                {authorizationNavigationItems
+                  .filter(({ permission }) => permissions.includes(permission))
+                  .map(({ label, icon: Icon, href }) => {
+                    const isActive = pathname.startsWith(href);
+                    return (
+                      <Link
+                        href={href}
+                        key={label}
+                        className={`relative flex h-10 items-center rounded-2xl border text-sm font-medium transition-all ${isCompact ? "justify-center px-2.5" : "gap-3 px-3"} ${isActive ? "border-blue-300/45 bg-blue-600/70 text-white shadow-[0_8px_22px_-14px_rgba(96,165,250,0.9)] backdrop-blur-xl before:absolute before:left-0 before:top-1/2 before:h-6 before:w-1 before:-translate-y-1/2 before:rounded-r-full before:bg-blue-200" : "border-transparent text-sky-100/80 hover:translate-x-[3px] hover:border-white/15 hover:bg-white/12 hover:text-white hover:backdrop-blur-xl"}`}
+                        onClick={onClose}
+                        title={isCompact ? label : undefined}
+                      >
+                        <Icon className={isCompact ? "size-5 stroke-[2.2]" : "size-4"} />
+                        {!isCompact && label}
+                      </Link>
+                    );
+                  })}
+              </nav>
+            </div>
+          )}
           <div
-            className={`mt-auto rounded-2xl border border-white/20 bg-white/10 p-4 shadow-[0_12px_30px_-18px_rgba(0,0,0,0.65)] backdrop-blur-xl ${isCompact ? "flex justify-center" : ""}`}
+            className={`mt-auto rounded-2xl border border-white/20 bg-white/10 p-3 shadow-[0_12px_30px_-18px_rgba(0,0,0,0.65)] backdrop-blur-xl ${isCompact ? "flex justify-center" : ""}`}
           >
             {isCompact ? (
               <span className="text-xs font-bold text-cyan-100">M</span>

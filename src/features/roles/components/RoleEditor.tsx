@@ -8,6 +8,16 @@ import { Input } from "@/components/ui/input";
 type Permission = { id: string; key: string; name: string; group: { key: string; name: string } };
 type Role = { id?: string; key: string; name: string; description: string | null; color: string | null; icon: string | null; isSuperAdmin?: boolean; permissions: Array<{ permission: Permission }> };
 
+function normalizeRoleKey(value: string) {
+  return value
+    .toLocaleLowerCase("tr-TR")
+    .replace(/[ıİ]/g, "i")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/\s+/g, "-")
+    .replace(/[^a-z0-9_.-]/g, "");
+}
+
 export default function RoleEditor({ role, permissions }: { role?: Role; permissions: Permission[] }) {
   const router = useRouter();
   const [form, setForm] = useState({ key: role?.key ?? "", name: role?.name ?? "", description: role?.description ?? "", color: role?.color ?? "#2563eb", icon: role?.icon ?? "Shield" });
@@ -30,13 +40,14 @@ export default function RoleEditor({ role, permissions }: { role?: Role; permiss
 
   return <form onSubmit={submit} className="space-y-6">
     <div className="grid gap-4 rounded-2xl border border-border/70 bg-card p-5 shadow-sm sm:grid-cols-2">
-      <label className="space-y-2 text-sm font-medium">Rol anahtarı<Input value={form.key} disabled={role?.isSuperAdmin} onChange={(event) => setForm({ ...form, key: event.target.value })} placeholder="operations_night" required /></label>
+       <label className="space-y-2 text-sm font-medium">Rol anahtarı<Input value={form.key} disabled={role?.isSuperAdmin} onChange={(event) => setForm({ ...form, key: normalizeRoleKey(event.target.value) })} placeholder="depo-muduru" required /><span className="block text-xs font-normal text-muted-foreground">Küçük harf ve `-`, `_`, `.`, sayı kullanılabilir. Türkçe karakterler otomatik dönüştürülür.</span></label>
       <label className="space-y-2 text-sm font-medium">Rol adı<Input value={form.name} disabled={role?.isSuperAdmin} onChange={(event) => setForm({ ...form, name: event.target.value })} placeholder="Operasyon Gece" required /></label>
       <label className="space-y-2 text-sm font-medium sm:col-span-2">Açıklama<textarea className="min-h-24 w-full rounded-lg border border-input bg-transparent px-3 py-2 text-sm outline-none focus-visible:ring-3 focus-visible:ring-ring/50" value={form.description} onChange={(event) => setForm({ ...form, description: event.target.value })} /></label>
       <label className="space-y-2 text-sm font-medium">Renk<Input type="color" value={form.color} onChange={(event) => setForm({ ...form, color: event.target.value })} /></label>
       <label className="space-y-2 text-sm font-medium">İkon<Input value={form.icon} onChange={(event) => setForm({ ...form, icon: event.target.value })} placeholder="Shield" /></label>
     </div>
-    <div className="space-y-3">
+     <div className="rounded-2xl border border-primary/20 bg-primary/5 p-5"><div className="flex flex-wrap items-center justify-between gap-2"><div><h2 className="font-semibold">Erişim izinleri</h2><p className="mt-1 text-sm text-muted-foreground">Bu role sahip kullanıcıların görebileceği ekranları ve yapabileceği işlemleri seçin.</p></div><span className="rounded-full bg-primary/10 px-3 py-1 text-sm font-semibold text-primary">{selected.size} izin seçili</span></div></div>
+     <div className="space-y-3">
       {Object.entries(groups).map(([key, group]) => { const allSelected = group.items.every((item) => selected.has(item.id)); return <section key={key} className="rounded-2xl border border-border/70 bg-card p-5 shadow-sm"><div className="flex flex-wrap items-center justify-between gap-2"><h2 className="font-semibold">{group.name}</h2><div className="flex gap-2"><Button type="button" size="xs" variant="outline" onClick={() => toggleGroup(group.items, true)}>Hepsini seç</Button><Button type="button" size="xs" variant="ghost" onClick={() => toggleGroup(group.items, false)}>Hepsini kaldır</Button></div></div><div className="mt-4 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">{group.items.map((permission) => <label key={permission.id} className="flex items-center gap-2 rounded-lg border border-border/60 p-3 text-sm hover:bg-muted"><input type="checkbox" checked={selected.has(permission.id)} onChange={() => toggle(permission.id)} />{permission.name}<span className="ml-auto text-[10px] text-muted-foreground">{permission.key}</span></label>)}</div>{allSelected && <p className="mt-3 text-xs text-emerald-600">Kategori tamamen seçili</p>}</section>; })}
     </div>
     {error && <p role="alert" className="rounded-lg bg-destructive/10 p-3 text-sm text-destructive">{error}</p>}

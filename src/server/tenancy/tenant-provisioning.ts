@@ -22,7 +22,7 @@ const roleDefinitions: Record<string, { name: string; permissions: string[] }> =
   COURIER: { name: "Kurye", permissions: ["dashboard.view", "orders.view", "customers.view", "products.view", "vehicles.view", "routes.view", "routes.manage", "deliveries.view", "deliveries.manage"] },
   ACCOUNTING: { name: "Muhasebe", permissions: ["dashboard.view", "customers.view", "orders.view", "finance.view", "finance.manage", "reports.view", "reports.export"] },
   CALL_CENTER: { name: "Çağrı Merkezi", permissions: ["dashboard.view", "customers.view", "customers.create", "customers.edit", "orders.view", "orders.create", "orders.edit"] },
-  MANAGER: { name: "Müdür", permissions: ["dashboard.view", "orders.view", "orders.create", "orders.edit", "customers.view", "customers.create", "customers.edit", "products.view", "vehicles.view", "personnel.view", "routes.view", "routes.manage", "deliveries.view", "deliveries.manage", "reports.view", "reports.export", "audit.view"] },
+  MANAGER: { name: "Müdür", permissions: ["dashboard.view", "orders.view", "orders.create", "orders.edit", "customers.view", "customers.create", "customers.edit", "products.view", "vehicles.view", "personnel.view", "routes.view", "routes.manage", "deliveries.view", "deliveries.manage", "reports.view", "reports.export", "audit.view", "roles.view", "users.view"] },
   WAREHOUSE: { name: "Depo", permissions: ["dashboard.view", "orders.view", "products.view", "products.create", "products.edit", "products.stock.manage", "routes.view"] },
 };
 

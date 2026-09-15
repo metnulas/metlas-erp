@@ -41,6 +41,7 @@ export async function getPermissionSnapshot(userId: string, tenantId: string | n
       role: {
         select: {
           tenantId: true,
+          key: true,
           isSuperAdmin: true,
           permissions: {
             where: { deletedAt: null, permission: { isActive: true, deletedAt: null } },
@@ -51,9 +52,13 @@ export async function getPermissionSnapshot(userId: string, tenantId: string | n
     },
   });
 
-  const permissions = assignments.flatMap((assignment) => assignment.role.isSuperAdmin
-    ? []
-    : assignment.role.permissions.map(({ permission }) => permission.key));
+  const permissions = assignments.flatMap((assignment) => {
+    if (assignment.role.isSuperAdmin) return [];
+    const rolePermissions = assignment.role.permissions.map(({ permission }) => permission.key);
+    return assignment.role.key === "MANAGER"
+      ? [...rolePermissions, "roles.view", "users.view"]
+      : rolePermissions;
+  });
 
   if (assignments.some((assignment) => assignment.role.isSuperAdmin)) {
     const allPermissions = await prisma.permission.findMany({ where: { isActive: true, deletedAt: null, OR: [{ tenantId: null }, ...(tenantId ? [{ tenantId }] : [])] }, select: { key: true } });
