@@ -11,6 +11,7 @@ import {
   Wind,
 } from "lucide-react";
 import RouteCenter from "@/components/dashboard/RouteCenterClient";
+import DashboardExpenseForm from "@/components/dashboard/DashboardExpenseForm";
 import DashboardLayout from "@/components/layout/DashboardLayout";
 import { Button } from "@/components/ui/button";
 import {
@@ -124,12 +125,12 @@ export default async function Home() {
           <MetricCard
             icon={<Wallet />}
             tone="orange"
-            label="Bugünkü ciro"
-            value={summary.todayRevenue.toLocaleString("tr-TR", {
+            label="Bugünkü net ciro"
+            value={summary.todayNetRevenue.toLocaleString("tr-TR", {
               style: "currency",
               currency: "TRY",
             })}
-            detail="Teslim edilen siparişler"
+            detail={`Brüt ${summary.todayRevenue.toLocaleString("tr-TR", { style: "currency", currency: "TRY" })} · Gider ${summary.todayExpenses.toLocaleString("tr-TR", { style: "currency", currency: "TRY" })}`}
           />
           <MetricCard
             icon={<Truck />}
@@ -139,6 +140,8 @@ export default async function Home() {
             detail={`${summary.activePersonnel} aktif personel`}
           />
         </section>
+
+        <DashboardExpenseForm />
 
         <section className="grid gap-4 lg:grid-cols-[minmax(0,1.35fr)_minmax(18rem,0.65fr)]">
           <div className="rounded-2xl border border-border/70 bg-card p-5 shadow-sm sm:p-6">
