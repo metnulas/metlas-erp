@@ -8,6 +8,7 @@ const optionalLatitude = z.preprocess((value) => value === "" || value === null 
 const optionalLongitude = z.preprocess((value) => value === "" || value === null || value === undefined ? undefined : value, z.coerce.number().min(-180).max(180).optional());
 
 export const createCustomerSchema = z.object({
+  partnerId: z.string().min(1, "Bayi seçimi zorunludur"),
   customerCode: z.string().max(50, "Müşteri kodu en fazla 50 karakter olabilir").optional().or(z.literal("")),
   fullName: z
     .string()

@@ -13,6 +13,7 @@ export interface CustomerRepository {
   count(where: Prisma.CustomerWhereInput): Promise<number>;
   findById(id: string, tenantId: string): Promise<Customer | null>;
   findByCode(customerCode: string, tenantId: string): Promise<Customer | null>;
+  findPartner(id: string, tenantId: string): Promise<boolean>;
   create(data: Prisma.CustomerCreateInput): Promise<Customer>;
   update(id: string, tenantId: string, data: Prisma.CustomerUpdateInput): Promise<Customer>;
   softDelete(id: string, tenantId: string): Promise<Customer>;
@@ -56,6 +57,11 @@ export function createCustomerRepository(): CustomerRepository {
       return prisma.customer.findFirst({
         where: { customerCode, tenantId, deletedAt: null },
       });
+    },
+
+    async findPartner(id, tenantId) {
+      const partner = await prisma.partner.findFirst({ where: { id, tenantId, deletedAt: null, isActive: true }, select: { id: true } });
+      return Boolean(partner);
     },
 
     async create(data) {

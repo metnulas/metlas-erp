@@ -19,7 +19,7 @@ const partnerSchema = z.object({
 
 export async function GET() {
   try {
-    await requirePermission("finance.view");
+    await requirePermission("customers.view");
     const tenantId = await getCurrentTenantId();
     const partners = await prisma.partner.findMany({ where: { tenantId, deletedAt: null }, orderBy: { name: "asc" }, include: { ledgerEntries: { select: { type: true, amount: true } } } });
     const data = partners.map(({ ledgerEntries, ...partner }) => {

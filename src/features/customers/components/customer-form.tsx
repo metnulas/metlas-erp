@@ -3,7 +3,7 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -20,6 +20,11 @@ interface CustomerFormProps {
 export default function CustomerForm({ initialData, mode }: CustomerFormProps) {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [partners, setPartners] = useState<Array<{ id: string; name: string; code: string }>>([]);
+
+  useEffect(() => {
+    fetch("/api/finance/partners").then((response) => response.json()).then((result) => { if (result.success) setPartners(result.data); });
+  }, []);
 
   const {
     register,
@@ -28,7 +33,8 @@ export default function CustomerForm({ initialData, mode }: CustomerFormProps) {
   } = useForm<CreateCustomerInput>({
     resolver: zodResolver(createCustomerSchema),
     defaultValues: initialData
-      ? {
+        ? {
+           partnerId: initialData.partnerId ?? "",
           customerCode: initialData.customerCode,
           fullName: initialData.fullName,
           phone: initialData.phone,
@@ -44,6 +50,7 @@ export default function CustomerForm({ initialData, mode }: CustomerFormProps) {
           notes: initialData.notes ?? "",
         }
       : {
+           partnerId: "",
           customerCode: "",
           fullName: "",
           phone: "",
@@ -168,6 +175,14 @@ export default function CustomerForm({ initialData, mode }: CustomerFormProps) {
             {errors.location && (
               <p className="text-xs text-destructive">{errors.location.message}</p>
             )}
+          </div>
+          <div className="space-y-1.5 sm:col-span-2 lg:col-span-3">
+            <label htmlFor="partnerId" className="text-sm font-medium">Bağlı Bayi <span className="text-destructive">*</span></label>
+            <select id="partnerId" className="flex h-9 w-full rounded-lg border border-input bg-background px-3 text-sm" {...register("partnerId")}>
+              <option value="">Bayi seçin</option>
+              {partners.map((partner) => <option key={partner.id} value={partner.id}>{partner.name} ({partner.code})</option>)}
+            </select>
+            {errors.partnerId && <p className="text-xs text-destructive">{errors.partnerId.message}</p>}
           </div>
           <p className="text-xs text-muted-foreground sm:col-span-2 lg:col-span-3">Adres kaydedildiğinde konum OpenStreetMap üzerinden otomatik bulunur. Daha doğru rota için mahalle, sokak ve bina numarasını eksiksiz girin.</p>
         </div>

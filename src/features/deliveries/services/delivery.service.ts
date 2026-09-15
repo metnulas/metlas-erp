@@ -70,7 +70,7 @@ export function createDeliveryService(repository: DeliveryRepository = createDel
         updatedBy: userId ?? null,
       };
       try {
-         const updated = input.status === "DELIVERED" ? await repository.deliver(id, tenantId, data) : await repository.update(id, tenantId, data);
+          const updated = input.status === "DELIVERED" ? await repository.deliver(id, tenantId, data, input.paymentMethod as "CASH" | "IBAN" | "CARD", input.paymentReference) : await repository.update(id, tenantId, data);
          if (input.status === "DELIVERED") {
            try {
              await recordActualDeliveryDistance(tenantId, { orderId: order.id, orderCode: order.orderCode, customerName: order.customer.fullName, customerLatitude: order.customer.latitude, customerLongitude: order.customer.longitude, deliveryLocation: input.deliveryLocation, routeStartLocation: input.routeStartLocation, routeDate: targetDate });

@@ -437,6 +437,8 @@ model Customer {
   orders             Order[]
   accountEntries     CustomerAccountEntry[]
   salesPayments      SalesPayment[]
+  partnerId          String?
+  partner            Partner?               @relation(fields: [partnerId], references: [id], onDelete: SetNull)
 
   @@unique([tenantId, customerCode])
   @@index([tenantId, fullName])
@@ -499,6 +501,7 @@ model Partner {
   ledgerEntries   PartnerLedgerEntry[]
   salesPayments   SalesPayment[]
   purchases       PartnerPurchase[]
+  customers       Customer[]
 
   @@unique([tenantId, code])
   @@index([tenantId, name])

@@ -18,6 +18,10 @@ export const assignDeliverySchema = z.object({
   status: deliveryStatusEnum.optional(),
   deliveryLocation: locationSchema.optional(),
   routeStartLocation: locationSchema.optional(),
+  paymentMethod: z.enum(["CASH", "IBAN", "CARD"]).optional(),
+  paymentReference: z.string().trim().max(100).optional().or(z.literal("")),
+}).superRefine((value, context) => {
+  if (value.status === "DELIVERED" && !value.paymentMethod) context.addIssue({ code: "custom", path: ["paymentMethod"], message: "Teslimat için ödeme yöntemi seçmelisiniz" });
 });
 
 export type DeliveryQueryInput = z.output<typeof deliveryQuerySchema>;

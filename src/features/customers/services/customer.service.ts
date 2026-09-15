@@ -21,6 +21,7 @@ export interface PaginatedCustomers {
 }
 
 export interface CreateCustomerData {
+  partnerId: string;
   customerCode?: string;
   fullName: string;
   phone: string;
@@ -39,6 +40,7 @@ export interface CreateCustomerData {
 }
 
 export interface UpdateCustomerData {
+  partnerId?: string;
   customerCode?: string;
   fullName?: string;
   phone?: string;
@@ -137,6 +139,7 @@ export function createCustomerService(
     },
 
     async create(tenantId, input, userId) {
+      if (!(await repository.findPartner(input.partnerId, tenantId))) throw new AppError("Seçilen bayi bulunamadı veya aktif değil", 400, "PARTNER_NOT_AVAILABLE");
       const customerCode = input.customerCode || await nextTenantCode("MUS", await repository.count({ tenantId }), (code) => repository.findByCode(code, tenantId).then(Boolean));
       const existing = await repository.findByCode(customerCode, tenantId);
       if (existing) {
@@ -145,6 +148,7 @@ export function createCustomerService(
 
       const coordinates = input.latitude === undefined || input.longitude === undefined ? await geocodeAddress(input.address, input.district, input.city, input.location) : null;
       const customer = await repository.create({
+         partner: { connect: { id: input.partnerId } },
          customerCode,
         fullName: input.fullName,
         phone: input.phone,
@@ -173,6 +177,7 @@ export function createCustomerService(
       if (!existingCustomer) {
         throw new AppError("Müşteri bulunamadı", 404, "CUSTOMER_NOT_FOUND");
       }
+      if (input.partnerId !== undefined && !(await repository.findPartner(input.partnerId, tenantId))) throw new AppError("Seçilen bayi bulunamadı veya aktif değil", 400, "PARTNER_NOT_AVAILABLE");
 
       if (input.customerCode && input.customerCode !== existingCustomer.customerCode) {
         const existing = await repository.findByCode(input.customerCode, tenantId);
@@ -184,6 +189,7 @@ export function createCustomerService(
       const addressChanged = input.address !== undefined || input.district !== undefined || input.city !== undefined || input.location !== undefined;
       const coordinates = addressChanged || existingCustomer.latitude === null || existingCustomer.longitude === null ? await geocodeAddress(input.address ?? existingCustomer.address, input.district ?? existingCustomer.district, input.city ?? existingCustomer.city, input.location ?? existingCustomer.location) : null;
       const updateData: Prisma.CustomerUpdateInput = {
+         ...(input.partnerId !== undefined && { partner: { connect: { id: input.partnerId } } }),
         ...(input.customerCode !== undefined && { customerCode: input.customerCode }),
         ...(input.fullName !== undefined && { fullName: input.fullName }),
         ...(input.phone !== undefined && { phone: input.phone }),

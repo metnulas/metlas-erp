@@ -2,7 +2,7 @@ import { Prisma, type Order } from "@prisma/client";
 import { prisma } from "@/lib/db/prisma";
 
 export type DeliveryOrder = Order & {
-  customer: { id: string; fullName: string; phone: string; address: string | null; district: string | null; latitude: number | null; longitude: number | null };
+  customer: { id: string; fullName: string; phone: string; address: string | null; district: string | null; latitude: number | null; longitude: number | null; partnerId: string | null };
   vehicle: { id: string; code: string; plate: string; type: string } | null;
   personnel: { id: string; employeeCode: string; fullName: string; phone: string } | null;
 };
@@ -15,11 +15,11 @@ export interface DeliveryRepository {
   findLeastBusyVehicle(tenantId: string, deliveryDate: Date, excludeOrderId: string): Promise<{ id: string; code: string; plate: string; type: string } | null>;
   findLeastBusyPersonnel(tenantId: string, deliveryDate: Date, excludeOrderId: string): Promise<{ id: string; employeeCode: string; fullName: string; phone: string } | null>;
   update(id: string, tenantId: string, data: Prisma.OrderUpdateInput): Promise<DeliveryOrder>;
-  deliver(id: string, tenantId: string, data: Prisma.OrderUpdateInput): Promise<DeliveryOrder>;
+  deliver(id: string, tenantId: string, data: Prisma.OrderUpdateInput, paymentMethod: "CASH" | "IBAN" | "CARD", paymentReference?: string): Promise<DeliveryOrder>;
 }
 
 const includeRelations = {
-  customer: { select: { id: true, fullName: true, phone: true, address: true, district: true, latitude: true, longitude: true } },
+  customer: { select: { id: true, fullName: true, phone: true, address: true, district: true, latitude: true, longitude: true, partnerId: true } },
   vehicle: { select: { id: true, code: true, plate: true, type: true } },
   personnel: { select: { id: true, employeeCode: true, fullName: true, phone: true } },
 };
@@ -49,9 +49,9 @@ export function createDeliveryRepository(): DeliveryRepository {
       return candidates.sort((a, b) => (countById.get(a.id) ?? 0) - (countById.get(b.id) ?? 0))[0] ?? null;
     },
     update(id, tenantId, data) { return prisma.order.update({ where: { id, tenantId }, data, include: includeRelations }); },
-    async deliver(id, tenantId, data) {
+    async deliver(id, tenantId, data, paymentMethod, paymentReference) {
       return prisma.$transaction(async (tx) => {
-        const order = await tx.order.findFirst({ where: { id, tenantId, deletedAt: null }, include: { items: true } });
+         const order = await tx.order.findFirst({ where: { id, tenantId, deletedAt: null }, include: { items: true, customer: { select: { partnerId: true } } } });
         if (!order) throw new Error("ORDER_NOT_FOUND");
         for (const item of order.items) {
           if (!item.productId || item.quantity <= 0) continue;
@@ -65,7 +65,10 @@ export function createDeliveryRepository(): DeliveryRepository {
           const balanceAfter = product.stockQuantity;
           await tx.stockMovement.create({ data: { tenantId, productId: product.id, type: "ORDER", quantity: -item.quantity, balanceAfter, referenceType: "ORDER", referenceId: order.id, notes: "Sipariş teslimi" } });
         }
-        return tx.order.update({ where: { id, tenantId }, data, include: includeRelations });
+         const updated = await tx.order.update({ where: { id, tenantId }, data, include: includeRelations });
+         await tx.salesPayment.create({ data: { tenantId, orderId: order.id, customerId: order.customerId, partnerId: order.customer?.partnerId ?? null, amount: order.grandTotal, method: paymentMethod, referenceNumber: paymentReference || null, createdBy: data.updatedBy?.toString() ?? null } });
+         if (order.customer?.partnerId) await tx.partnerLedgerEntry.create({ data: { tenantId, partnerId: order.customer.partnerId, type: "SALE", amount: order.grandTotal, referenceType: "ORDER_DELIVERY", referenceId: order.id, notes: `Teslimat tahsilatı · ${paymentMethod}` } });
+         return updated;
       });
     },
   };
