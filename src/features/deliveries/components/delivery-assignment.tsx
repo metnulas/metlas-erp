@@ -22,6 +22,7 @@ export default function DeliveryAssignment({ orderId, initialVehicleId, initialP
   const [date, setDate] = useState(initialDate ? new Date(initialDate).toISOString().slice(0, 10) : "");
   const [notes, setNotes] = useState(initialNotes ?? "");
   const [status, setStatus] = useState(initialStatus);
+  const [paymentChoiceOpen, setPaymentChoiceOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [loadingOptions, setLoadingOptions] = useState(true);
 
@@ -36,15 +37,14 @@ export default function DeliveryAssignment({ orderId, initialVehicleId, initialP
     }).catch((error) => toast.error(error instanceof Error ? error.message : "Seçenekler yüklenemedi")).finally(() => setLoadingOptions(false));
   }, []);
 
-  async function persist(nextStatus: string, successMessage: string) {
+  async function persist(nextStatus: string, successMessage: string, paymentMethod?: "CASH" | "IBAN" | "CARD") {
     setLoading(true);
     try {
-      const paymentMethod = nextStatus === "DELIVERED" ? window.prompt("Ödeme yöntemi: CASH (Nakit), IBAN veya CARD (POS)", "CASH")?.trim().toUpperCase() : undefined;
-      if (nextStatus === "DELIVERED" && (!paymentMethod || !["CASH", "IBAN", "CARD"].includes(paymentMethod))) { toast.error("Teslimat için CASH, IBAN veya CARD seçmelisiniz"); return; }
       const response = await fetch(`/api/orders/${orderId}/delivery`, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ vehicleId: vehicleId || null, personnelId: personnelId || null, deliveryDate: date, deliveryNotes: notes, status: nextStatus, paymentMethod }) });
       const result = await response.json();
       if (!response.ok) throw new Error(result.error?.message ?? "Dağıtım kaydedilemedi");
       setStatus(nextStatus);
+      setPaymentChoiceOpen(false);
       if ((nextStatus === "CONFIRMED" || nextStatus === "DELIVERING") && (!vehicleId || !personnelId)) {
         setVehicleId(result.data.vehicle?.id ?? vehicleId);
         setPersonnelId(result.data.personnel?.id ?? personnelId);
@@ -60,12 +60,14 @@ export default function DeliveryAssignment({ orderId, initialVehicleId, initialP
   }
 
   async function save() {
+    if (status === "DELIVERED") { setPaymentChoiceOpen(true); return; }
     await persist(status, "Dağıtım bilgileri kaydedildi");
   }
 
   async function quickStatus(nextStatus: string, message: string) {
     if (nextStatus === "DELIVERED" && !window.confirm("Siparişi teslim edildi olarak işaretlemek ve stok düşümü yapmak istiyor musunuz?")) return;
     if (nextStatus === "CANCELLED" && !window.confirm("Siparişi iptal etmek istediğinizden emin misiniz?")) return;
+    if (nextStatus === "DELIVERED") { setPaymentChoiceOpen(true); return; }
     await persist(nextStatus, message);
   }
 
@@ -81,6 +83,7 @@ export default function DeliveryAssignment({ orderId, initialVehicleId, initialP
     </div>
       <label className="block space-y-1.5 text-sm font-medium">Dağıtım notu<Textarea value={notes} onChange={(event) => setNotes(event.target.value)} disabled={loading} rows={3} /></label>
       {status !== "DELIVERED" && status !== "CANCELLED" && <div className="rounded-xl border border-border/70 bg-muted/20 p-3"><p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Hızlı durum güncelleme</p><div className="grid gap-2 sm:flex sm:flex-wrap">{(status === "PENDING" || status === "CONFIRMED") && <Button type="button" size="sm" variant="outline" onClick={() => quickStatus("DELIVERING", "Sipariş dağıtıma çıkarıldı")} disabled={disabled}><Play className="size-4" /> Dağıtıma Çıkar</Button>}{status === "DELIVERING" && <Button type="button" size="sm" onClick={() => quickStatus("DELIVERED", "Sipariş teslim edildi")} disabled={disabled}><CircleCheck className="size-4" /> Teslim Edildi</Button>}{(status === "PENDING" || status === "CONFIRMED" || status === "DELIVERING") && <Button type="button" size="sm" variant="ghost" className="text-destructive hover:text-destructive" onClick={() => quickStatus("CANCELLED", "Sipariş iptal edildi")} disabled={disabled}><Ban className="size-4" /> İptal Et</Button>}</div></div>}
+      {paymentChoiceOpen && <div className="rounded-xl border-2 border-primary/40 bg-primary/5 p-4"><p className="text-sm font-semibold">Ödeme yöntemini seçin</p><p className="mt-1 text-xs text-muted-foreground">Seçiminiz teslimat ve finans kaydına işlenecek.</p><div className="mt-3 grid grid-cols-3 gap-2"><Button type="button" disabled={disabled} onClick={() => persist("DELIVERED", "Sipariş teslim edildi", "CASH")}>Nakit</Button><Button type="button" disabled={disabled} onClick={() => persist("DELIVERED", "Sipariş teslim edildi", "IBAN")}>IBAN</Button><Button type="button" disabled={disabled} onClick={() => persist("DELIVERED", "Sipariş teslim edildi", "CARD")}>POS</Button></div><Button type="button" variant="ghost" size="sm" className="mt-2" onClick={() => setPaymentChoiceOpen(false)} disabled={loading}>Vazgeç</Button></div>}
      <Button className="w-full sm:w-auto" onClick={save} disabled={disabled}>{loading ? <Loader2 className="size-4 animate-spin" /> : <Save className="size-4" />} Kaydet</Button>
    {status === "DELIVERED" && <OrderPaymentPanel orderId={orderId} amount={initialAmount} />} </div>;
 }
