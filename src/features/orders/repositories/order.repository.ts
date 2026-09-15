@@ -1,7 +1,7 @@
 import { prisma } from "@/lib/db/prisma";
 import { Prisma, type Order, type OrderItem } from "@prisma/client";
 
-export type OrderWithItems = Order & { items: (OrderItem & { product: { id: string; code: string; name: string } | null })[]; customer: { id: string; fullName: string; phone: string }; vehicle: { id: string; code: string; plate: string; type: string } | null; personnel: { id: string; employeeCode: string; fullName: string; phone: string } | null };
+export type OrderWithItems = Order & { items: (OrderItem & { product: { id: string; code: string; name: string } | null })[]; customer: { id: string; fullName: string; phone: string; partner: { id: string; name: string; code: string } | null }; vehicle: { id: string; code: string; plate: string; type: string } | null; personnel: { id: string; employeeCode: string; fullName: string; phone: string } | null };
 
 export interface FindManyParams {
   where: Prisma.OrderWhereInput;
@@ -32,7 +32,7 @@ export interface StockItem {
 export function createOrderRepository(): OrderRepository {
   const includeRelations = {
     items: { include: { product: { select: { id: true, code: true, name: true } } } },
-    customer: { select: { id: true, fullName: true, phone: true } },
+    customer: { select: { id: true, fullName: true, phone: true, partner: { select: { id: true, name: true, code: true } } } },
     vehicle: { select: { id: true, code: true, plate: true, type: true } },
     personnel: { select: { id: true, employeeCode: true, fullName: true, phone: true } },
   };

@@ -16,7 +16,7 @@ import { ORDER_STATUS_LABELS, ORDER_STATUS_STYLES, ORDER_STATUS_TRANSITIONS } fr
 export interface OrderRow {
   id: string;
   orderCode: string;
-  customer: { id: string; fullName: string; phone: string };
+  customer: { id: string; fullName: string; phone: string; partner: { id: string; name: string; code: string } | null };
   orderDate: string;
   deliveryDate: string | null;
   status: string;
@@ -63,6 +63,7 @@ export function getOrderColumns({ onDelete, onStatusUpdate }: OrderTableColumnsP
           <div>
             <p className="font-medium">{customer.fullName}</p>
             <p className="text-xs text-muted-foreground">{customer.phone}</p>
+            {customer.partner && <span className="mt-1 inline-flex rounded-full px-2 py-0.5 text-[11px] font-semibold" style={{ backgroundColor: `hsl(${[...customer.partner.id].reduce((sum, character) => sum + character.charCodeAt(0), 0) % 360} 85% 92%)`, color: `hsl(${[...customer.partner.id].reduce((sum, character) => sum + character.charCodeAt(0), 0) % 360} 55% 30%)` }}>{customer.partner.name}</span>}
           </div>
         );
       },

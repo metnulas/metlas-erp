@@ -70,6 +70,7 @@ export default function RouteCenter({ orders }: { orders: RouteOrder[] }) {
   const [routeError, setRouteError] = useState("");
   const [geocodingId, setGeocodingId] = useState<string | null>(null);
   const [updatingStatus, setUpdatingStatus] = useState<string | null>(null);
+  const [pendingPaymentOrder, setPendingPaymentOrder] = useState<RouteOrder | null>(null);
   const [courierPosition, setCourierPosition] = useState<[number, number] | null>(null);
   const [routeStartPosition, setRouteStartPosition] = useState<[number, number] | null>(null);
   const [isLocating, setIsLocating] = useState(false);
@@ -127,10 +128,9 @@ export default function RouteCenter({ orders }: { orders: RouteOrder[] }) {
     }
   }, []);
 
-  const updateStatus = useCallback(async (order: RouteOrder, nextStatus: string, skipConfirmation = false) => {
+  const updateStatus = useCallback(async (order: RouteOrder, nextStatus: string, skipConfirmation = false, paymentMethod?: "CASH" | "IBAN" | "CARD") => {
     if (!skipConfirmation && nextStatus === "DELIVERED" && !window.confirm("Siparişi teslim edildi olarak işaretlemek ve stok düşümü yapmak istiyor musunuz?")) return;
-    const paymentMethod = nextStatus === "DELIVERED" ? window.prompt("Ödeme yöntemi: CASH (Nakit), IBAN veya CARD (POS)", "CASH")?.trim().toUpperCase() : undefined;
-    if (nextStatus === "DELIVERED" && (!paymentMethod || !["CASH", "IBAN", "CARD"].includes(paymentMethod))) { toast.error("Teslimat için CASH, IBAN veya CARD seçmelisiniz"); return; }
+    if (nextStatus === "DELIVERED" && !paymentMethod) { setPendingPaymentOrder(order); return; }
     if (!skipConfirmation && nextStatus === "CANCELLED" && !window.confirm("Siparişi iptal etmek istediğinizden emin misiniz?")) return;
     setUpdatingStatus(`${order.id}:${nextStatus}`);
     try {
@@ -147,6 +147,7 @@ export default function RouteCenter({ orders }: { orders: RouteOrder[] }) {
       const result = await response.json();
       if (!response.ok) throw new Error(result.error?.message ?? "Sipariş durumu güncellenemedi");
       toast.success(`Sipariş ${ORDER_STATUS_LABELS[nextStatus]?.toLowerCase() ?? "güncellendi"}`);
+      setPendingPaymentOrder(null);
       router.refresh();
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Sipariş durumu güncellenemedi");
@@ -251,7 +252,8 @@ export default function RouteCenter({ orders }: { orders: RouteOrder[] }) {
 
   return (
     <section className="rounded-[20px] border border-slate-200 bg-white p-6 shadow-[0_18px_45px_-30px_rgba(15,23,42,0.55)] sm:p-6 lg:p-6">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+       {pendingPaymentOrder && <div className="mb-5 rounded-xl border-2 border-primary/40 bg-primary/5 p-4"><p className="font-semibold">{pendingPaymentOrder.orderCode} için ödeme yöntemi seçin</p><p className="mt-1 text-sm text-muted-foreground">Teslimatı tamamlamak için bir ödeme yöntemi seçmelisiniz.</p><div className="mt-3 flex flex-wrap gap-2"><Button type="button" onClick={() => void updateStatus(pendingPaymentOrder, "DELIVERED", true, "CASH")}>Nakit</Button><Button type="button" onClick={() => void updateStatus(pendingPaymentOrder, "DELIVERED", true, "IBAN")}>IBAN</Button><Button type="button" onClick={() => void updateStatus(pendingPaymentOrder, "DELIVERED", true, "CARD")}>POS</Button><Button type="button" variant="ghost" onClick={() => setPendingPaymentOrder(null)}>Vazgeç</Button></div></div>}
+       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <p className="flex items-center gap-2 text-sm font-medium text-primary"><Route className="size-4" /> Bugünün rotası</p>
           <h2 className="mt-1 text-xl font-bold tracking-tight sm:text-2xl">Dağıtım rota merkezi</h2>
