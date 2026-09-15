@@ -265,7 +265,7 @@ export default function Sidebar({
         </Button>
         <div className="relative z-10 flex min-h-full flex-col">
           <div
-            className={`mb-8 flex items-start gap-2 rounded-2xl border border-white/20 bg-white/10 p-3 shadow-[0_12px_30px_-18px_rgba(0,0,0,0.75)] backdrop-blur-xl ${isCompact ? "justify-center" : "justify-between"}`}
+            className={`relative mb-8 flex items-start gap-2 ${isCompact ? "justify-center" : "justify-between"}`}
           >
             <div
               className={
@@ -290,15 +290,10 @@ export default function Sidebar({
                   alt="METLAS ERP"
                   width={600}
                   height={300}
-                  className="h-40 w-full rounded-2xl bg-white/15 p-2 object-contain object-center shadow-[0_10px_24px_-15px_rgba(0,0,0,0.85)]"
+                  className="h-44 w-full object-contain object-center drop-shadow-[0_14px_18px_rgba(0,0,0,0.55)]"
                   priority
                   unoptimized
                 />
-              )}
-              {!isCompact && (
-                <p className="mt-3 px-1 text-xs font-semibold uppercase tracking-[0.16em] text-cyan-100/75">
-                  İş Yönetim Platformu
-                </p>
               )}
             </div>
             <Button
