@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/db/prisma";
 import { Prisma, type Customer } from "@prisma/client";
+export type CustomerListItem = Customer & { partner: { id: string; name: string; code: string } | null };
 
 export interface FindManyParams {
   where: Prisma.CustomerWhereInput;
@@ -9,7 +10,7 @@ export interface FindManyParams {
 }
 
 export interface CustomerRepository {
-  findMany(params: FindManyParams): Promise<Customer[]>;
+  findMany(params: FindManyParams): Promise<CustomerListItem[]>;
   count(where: Prisma.CustomerWhereInput): Promise<number>;
   findById(id: string, tenantId: string): Promise<Customer | null>;
   findByCode(customerCode: string, tenantId: string): Promise<Customer | null>;
@@ -40,6 +41,7 @@ export function createCustomerRepository(): CustomerRepository {
         orderBy: orderBy ?? { createdAt: "desc" },
         skip,
         take,
+        include: { partner: { select: { id: true, name: true, code: true } } },
       });
     },
 

@@ -25,6 +25,7 @@ interface CustomerListData {
     emptyBottleCount: number;
     isActive: boolean;
     createdAt: string;
+    partner: { id: string; name: string; code: string } | null;
   }>;
   total: number;
   page: number;
@@ -154,6 +155,7 @@ export default function CustomerList() {
               {customer.fullName}
             </Link>
             <p className="mt-1 truncate text-sm text-muted-foreground">{customer.phone}</p>
+            {customer.partner && <span className="mt-2 inline-flex rounded-full bg-primary/10 px-2 py-1 text-[11px] font-semibold text-primary">{customer.partner.name}</span>}
           </div>
           <span className={`shrink-0 rounded-full px-2 py-1 text-[11px] font-medium ${customer.isActive ? "bg-emerald-50 text-emerald-700" : "bg-muted text-muted-foreground"}`}>
             {customer.isActive ? "Aktif" : "Pasif"}

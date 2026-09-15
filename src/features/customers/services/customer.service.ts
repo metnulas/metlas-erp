@@ -5,6 +5,7 @@ import {
   createCustomerRepository,
   type CustomerRepository,
   type CustomerOrderHistoryItem,
+  type CustomerListItem,
 } from "../repositories/customer.repository";
 import type {
   CustomerQueryInput,
@@ -13,7 +14,7 @@ import { Prisma, type Customer } from "@prisma/client";
 import { nextTenantCode } from "@/server/codes/auto-code";
 
 export interface PaginatedCustomers {
-  data: Customer[];
+  data: CustomerListItem[];
   total: number;
   page: number;
   pageSize: number;

@@ -39,7 +39,9 @@ export default function DeliveryAssignment({ orderId, initialVehicleId, initialP
   async function persist(nextStatus: string, successMessage: string) {
     setLoading(true);
     try {
-      const response = await fetch(`/api/orders/${orderId}/delivery`, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ vehicleId: vehicleId || null, personnelId: personnelId || null, deliveryDate: date, deliveryNotes: notes, status: nextStatus }) });
+      const paymentMethod = nextStatus === "DELIVERED" ? window.prompt("Ödeme yöntemi: CASH (Nakit), IBAN veya CARD (POS)", "CASH")?.trim().toUpperCase() : undefined;
+      if (nextStatus === "DELIVERED" && (!paymentMethod || !["CASH", "IBAN", "CARD"].includes(paymentMethod))) { toast.error("Teslimat için CASH, IBAN veya CARD seçmelisiniz"); return; }
+      const response = await fetch(`/api/orders/${orderId}/delivery`, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ vehicleId: vehicleId || null, personnelId: personnelId || null, deliveryDate: date, deliveryNotes: notes, status: nextStatus, paymentMethod }) });
       const result = await response.json();
       if (!response.ok) throw new Error(result.error?.message ?? "Dağıtım kaydedilemedi");
       setStatus(nextStatus);

@@ -129,6 +129,8 @@ export default function RouteCenter({ orders }: { orders: RouteOrder[] }) {
 
   const updateStatus = useCallback(async (order: RouteOrder, nextStatus: string, skipConfirmation = false) => {
     if (!skipConfirmation && nextStatus === "DELIVERED" && !window.confirm("Siparişi teslim edildi olarak işaretlemek ve stok düşümü yapmak istiyor musunuz?")) return;
+    const paymentMethod = nextStatus === "DELIVERED" ? window.prompt("Ödeme yöntemi: CASH (Nakit), IBAN veya CARD (POS)", "CASH")?.trim().toUpperCase() : undefined;
+    if (nextStatus === "DELIVERED" && (!paymentMethod || !["CASH", "IBAN", "CARD"].includes(paymentMethod))) { toast.error("Teslimat için CASH, IBAN veya CARD seçmelisiniz"); return; }
     if (!skipConfirmation && nextStatus === "CANCELLED" && !window.confirm("Siparişi iptal etmek istediğinizden emin misiniz?")) return;
     setUpdatingStatus(`${order.id}:${nextStatus}`);
     try {
@@ -140,7 +142,7 @@ export default function RouteCenter({ orders }: { orders: RouteOrder[] }) {
       const response = await fetch(`/api/orders/${order.id}/delivery`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ vehicleId: order.vehicle?.id, personnelId: order.personnel?.id, deliveryDate, status: nextStatus, ...(deliveryLocation && nextStatus === "DELIVERED" && { deliveryLocation: { latitude: deliveryLocation[0], longitude: deliveryLocation[1] } }), ...(startLocation && nextStatus === "DELIVERED" && { routeStartLocation: { latitude: startLocation[0], longitude: startLocation[1] } }) }),
+        body: JSON.stringify({ vehicleId: order.vehicle?.id, personnelId: order.personnel?.id, deliveryDate, status: nextStatus, paymentMethod, ...(deliveryLocation && nextStatus === "DELIVERED" && { deliveryLocation: { latitude: deliveryLocation[0], longitude: deliveryLocation[1] } }), ...(startLocation && nextStatus === "DELIVERED" && { routeStartLocation: { latitude: startLocation[0], longitude: startLocation[1] } }) }),
       });
       const result = await response.json();
       if (!response.ok) throw new Error(result.error?.message ?? "Sipariş durumu güncellenemedi");

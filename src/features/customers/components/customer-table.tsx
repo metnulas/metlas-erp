@@ -25,6 +25,7 @@ export interface CustomerRow {
   emptyBottleCount: number;
   isActive: boolean;
   createdAt: string;
+  partner: { id: string; name: string; code: string } | null;
 }
 
 interface CustomerTableColumnsProps {
@@ -71,6 +72,16 @@ export function getCustomerColumns({ onDelete }: CustomerTableColumnsProps): Col
           )}
         </div>
       ),
+    },
+    {
+      id: "partner",
+      header: "Bayilik",
+      cell: ({ row }) => {
+        const partner = row.original.partner;
+        if (!partner) return <span className="text-muted-foreground">Bayi seçilmemiş</span>;
+        const hue = [...partner.id].reduce((sum, character) => sum + character.charCodeAt(0), 0) % 360;
+        return <span className="inline-flex rounded-full px-2.5 py-1 text-xs font-semibold" style={{ backgroundColor: `hsl(${hue} 85% 92%)`, color: `hsl(${hue} 55% 30%)` }}>{partner.name}</span>;
+      },
     },
     {
       accessorKey: "phone",
