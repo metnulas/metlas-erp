@@ -15,6 +15,7 @@ type Delivery = {
   orderCode: string;
   deliveryDate: string | null;
   status: string;
+  grandTotal: number;
   customer: { id: string; fullName: string; phone: string; address: string | null; district: string | null };
   vehicle: { id: string; plate: string } | null;
   personnel: { id: string; fullName: string } | null;
@@ -70,7 +71,7 @@ export default function DeliveryList() {
                   <p className="mt-1 flex items-center gap-1 text-sm text-muted-foreground"><MapPin className="size-3.5" />{item.customer.district || item.customer.address || "Adres girilmemiş"}</p>
                   <div className="mt-3 flex flex-wrap gap-3 text-xs text-muted-foreground"><span className="flex items-center gap-1"><Truck className="size-3.5" />{item.vehicle?.plate || "Araç atanmamış"}</span><span className="flex items-center gap-1"><UserRound className="size-3.5" />{item.personnel?.fullName || "Personel atanmamış"}</span></div>
                 </div>
-                <div className="w-full lg:max-w-2xl"><DeliveryAssignment orderId={item.id} initialVehicleId={item.vehicle?.id} initialPersonnelId={item.personnel?.id} initialDate={item.deliveryDate} initialStatus={item.status} compact onSaved={load} /></div>
+                 <div className="w-full lg:max-w-2xl"><DeliveryAssignment orderId={item.id} initialVehicleId={item.vehicle?.id} initialPersonnelId={item.personnel?.id} initialDate={item.deliveryDate} initialStatus={item.status} initialAmount={Number(item.grandTotal)} compact onSaved={load} /></div>
               </div>
             </article>
           ))}
