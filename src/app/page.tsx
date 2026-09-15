@@ -1,9 +1,22 @@
 import Link from "next/link";
-import { Activity, CalendarDays, CloudSun, Package, Plus, ShoppingCart, Truck, Users, Wallet, Wind } from "lucide-react";
+import {
+  Activity,
+  CloudSun,
+  Package,
+  Plus,
+  ShoppingCart,
+  Truck,
+  Users,
+  Wallet,
+  Wind,
+} from "lucide-react";
 import RouteCenter from "@/components/dashboard/RouteCenterClient";
 import DashboardLayout from "@/components/layout/DashboardLayout";
 import { Button } from "@/components/ui/button";
-import { ORDER_STATUS_LABELS, ORDER_STATUS_STYLES } from "@/shared/constants/order-status";
+import {
+  ORDER_STATUS_LABELS,
+  ORDER_STATUS_STYLES,
+} from "@/shared/constants/order-status";
 import { getCurrentTenantId } from "@/server/tenancy/tenant-context";
 import { createDashboardService } from "@/features/dashboard/services/dashboard.service";
 import { getServerSession } from "next-auth";
@@ -13,58 +26,533 @@ import { getTenantSubscription } from "@/features/platform/services/subscription
 export default async function Home() {
   if (!(await getServerSession(authOptions))?.user) return <LandingPage />;
   const tenantId = await getCurrentTenantId();
-  const [summary, subscription] = await Promise.all([createDashboardService().getSummary(tenantId), getTenantSubscription(tenantId)]);
-  return <DashboardLayout>
-    <div className="space-y-6 sm:space-y-8">
-      <header className="flex flex-col justify-between gap-4 rounded-2xl border border-border/70 bg-card/80 px-5 py-5 shadow-sm backdrop-blur-xl sm:flex-row sm:items-center sm:px-7">
-        <div><p className="flex items-center gap-2 text-xs font-bold uppercase tracking-[0.2em] text-primary"><span className="size-2 rounded-full bg-primary shadow-[0_0_12px_var(--primary)]" /> Operasyon merkezi</p><h1 className="mt-1 text-3xl font-bold tracking-[-0.045em] text-foreground sm:text-4xl">Genel Bakış</h1><p className="mt-1 text-sm text-muted-foreground">Bugünün operasyonunu tek ekrandan yönetin.</p></div>
-        <div className="flex flex-wrap gap-2"><Button variant="outline" render={<Link href="/reports" />}><CalendarDays className="size-4" /> Raporlar</Button><Button render={<Link href="/orders/new" />}><Plus className="size-4" /> Yeni sipariş</Button></div>
-      </header>
+  const [summary, subscription] = await Promise.all([
+    createDashboardService().getSummary(tenantId),
+    getTenantSubscription(tenantId),
+  ]);
+  return (
+    <DashboardLayout>
+      <div className="space-y-6 sm:space-y-8">
+        {subscription?.isTrial && subscription.trialEndsAt && (
+          <TrialBanner trialEndsAt={subscription.trialEndsAt} />
+        )}
+        <section className="rounded-2xl border border-border/70 bg-card p-5 shadow-sm sm:p-6">
+          <div className="flex items-center justify-between gap-4">
+            <div>
+              <p className="flex items-center gap-2 text-xs font-bold uppercase tracking-[0.2em] text-primary">
+                <span className="size-2 rounded-full bg-primary shadow-[0_0_12px_var(--primary)]" />{" "}
+                Operasyon merkezi
+              </p>
+              <h1 className="mt-1 text-2xl font-bold tracking-tight sm:text-3xl">
+                Bugünün bayi özeti
+              </h1>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Bayilerin bugün gönderdiği siparişleri tek bakışta görün.
+              </p>
+            </div>
+            <Button render={<Link href="/orders/new" />}>
+              <Plus className="size-4" /> Yeni sipariş
+            </Button>
+          </div>
+          <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            {summary.partnerOrders
+              .filter((partner) => partner.orderCount > 0)
+              .map((partner) => {
+                const hue =
+                  [...partner.id].reduce(
+                    (sum, character) => sum + character.charCodeAt(0),
+                    0,
+                  ) % 360;
+                return (
+                  <div
+                    key={partner.id}
+                    className="rounded-xl border p-4"
+                    style={{
+                      borderColor: `hsl(${hue} 65% 78%)`,
+                      backgroundColor: `hsl(${hue} 85% 96%)`,
+                    }}
+                  >
+                    <div className="flex items-center justify-between gap-3">
+                      <span
+                        className="rounded-full px-2 py-1 text-xs font-semibold"
+                        style={{
+                          backgroundColor: `hsl(${hue} 85% 90%)`,
+                          color: `hsl(${hue} 55% 30%)`,
+                        }}
+                      >
+                        {partner.name}
+                      </span>
+                      <span
+                        className="text-2xl font-bold"
+                        style={{ color: `hsl(${hue} 55% 30%)` }}
+                      >
+                        {partner.orderCount}
+                      </span>
+                    </div>
+                    <p className="mt-2 text-xs text-muted-foreground">
+                      Bugünkü sipariş
+                    </p>
+                  </div>
+                );
+              })}
+            {summary.partnerOrders.every(
+              (partner) => partner.orderCount === 0,
+            ) && (
+              <p className="text-sm text-muted-foreground">
+                Bugün bayi bazında kayıtlı sipariş bulunmuyor.
+              </p>
+            )}
+          </div>
+        </section>
+        <RouteCenter orders={summary.routeOrders} />
 
-       {subscription?.isTrial && subscription.trialEndsAt && <TrialBanner trialEndsAt={subscription.trialEndsAt} />}
-       <RouteCenter orders={summary.routeOrders} />
+        <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+          <MetricCard
+            icon={<Users />}
+            tone="blue"
+            label="Toplam müşteri"
+            value={summary.activeCustomers.toLocaleString("tr-TR")}
+            detail="Aktif müşteri"
+          />
+          <MetricCard
+            icon={<ShoppingCart />}
+            tone="violet"
+            label="Bugünkü sipariş"
+            value={summary.todayOrders.toLocaleString("tr-TR")}
+            detail={`${summary.pendingDeliveries} bekleyen dağıtım`}
+          />
+          <MetricCard
+            icon={<Wallet />}
+            tone="orange"
+            label="Bugünkü ciro"
+            value={summary.todayRevenue.toLocaleString("tr-TR", {
+              style: "currency",
+              currency: "TRY",
+            })}
+            detail="Teslim edilen siparişler"
+          />
+          <MetricCard
+            icon={<Truck />}
+            tone="green"
+            label="Aktif araç"
+            value={summary.activeVehicles.toLocaleString("tr-TR")}
+            detail={`${summary.activePersonnel} aktif personel`}
+          />
+        </section>
 
-      <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <MetricCard icon={<Users />} tone="blue" label="Toplam müşteri" value={summary.activeCustomers.toLocaleString("tr-TR")} detail="Aktif müşteri" />
-        <MetricCard icon={<ShoppingCart />} tone="violet" label="Bugünkü sipariş" value={summary.todayOrders.toLocaleString("tr-TR")} detail={`${summary.pendingDeliveries} bekleyen dağıtım`} />
-        <MetricCard icon={<Wallet />} tone="orange" label="Bugünkü ciro" value={summary.todayRevenue.toLocaleString("tr-TR", { style: "currency", currency: "TRY" })} detail="Teslim edilen siparişler" />
-        <MetricCard icon={<Truck />} tone="green" label="Aktif araç" value={summary.activeVehicles.toLocaleString("tr-TR")} detail={`${summary.activePersonnel} aktif personel`} />
-       </section>
-
-       <section className="rounded-2xl border border-border/70 bg-card p-5 shadow-sm sm:p-6"><div className="flex items-center justify-between"><div><p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">Bugünün bayi özeti</p><h2 className="mt-1 text-xl font-bold tracking-tight">Bayiliklere göre siparişler</h2></div><Button size="sm" variant="outline" render={<Link href="/finance/daily" />}>Detay</Button></div><div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">{summary.partnerOrders.filter((partner) => partner.orderCount > 0).map((partner) => { const hue = [...partner.id].reduce((sum, character) => sum + character.charCodeAt(0), 0) % 360; return <div key={partner.id} className="rounded-xl border p-4" style={{ borderColor: `hsl(${hue} 65% 78%)`, backgroundColor: `hsl(${hue} 85% 96%)` }}><div className="flex items-center justify-between gap-3"><span className="rounded-full px-2 py-1 text-xs font-semibold" style={{ backgroundColor: `hsl(${hue} 85% 90%)`, color: `hsl(${hue} 55% 30%)` }}>{partner.name}</span><span className="text-2xl font-bold" style={{ color: `hsl(${hue} 55% 30%)` }}>{partner.orderCount}</span></div><p className="mt-2 text-xs text-muted-foreground">Bugünkü sipariş</p></div>; })}{summary.partnerOrders.every((partner) => partner.orderCount === 0) && <p className="text-sm text-muted-foreground">Bugün bayi bazında kayıtlı sipariş bulunmuyor.</p>}</div></section>
-
-       <section className="grid gap-4 lg:grid-cols-[minmax(0,1.35fr)_minmax(18rem,0.65fr)]">
-        <div className="rounded-2xl border border-border/70 bg-card p-5 shadow-sm sm:p-6"><div className="flex items-center justify-between gap-3"><div><p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">Son hareketler</p><h2 className="mt-1 text-xl font-bold tracking-tight">Son siparişler</h2></div><Button size="sm" variant="outline" render={<Link href="/orders" />}>Tümünü gör</Button></div><div className="mt-4 divide-y divide-border/70">{summary.recentOrders.length === 0 ? <p className="py-6 text-sm text-muted-foreground">Henüz sipariş bulunmuyor.</p> : summary.recentOrders.map((order) => <Link key={order.id} href={`/orders/${order.id}`} className="flex items-center justify-between gap-3 py-3 transition-colors hover:text-primary"><div className="min-w-0"><p className="truncate font-mono text-sm font-semibold">{order.orderCode}</p><p className="truncate text-xs text-muted-foreground">{order.customerName} · {new Date(order.orderDate).toLocaleDateString("tr-TR")}</p></div><div className="shrink-0 text-right"><span className={`rounded-full px-2 py-1 text-[11px] font-medium ${ORDER_STATUS_STYLES[order.status] ?? "bg-muted text-muted-foreground"}`}>{ORDER_STATUS_LABELS[order.status] ?? order.status}</span><p className="mt-1 text-xs font-semibold">{order.grandTotal.toLocaleString("tr-TR", { style: "currency", currency: "TRY" })}</p></div></Link>)}</div></div>
-        <div className="space-y-4"><div className="rounded-2xl border border-border/70 bg-card p-5 shadow-sm sm:p-6"><p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">Günün koşulları</p><h2 className="mt-1 text-xl font-bold tracking-tight">Saha durumu</h2><div className="mt-5 grid grid-cols-3 gap-2 text-center"><WeatherItem icon={<CloudSun />} label="Hava" value="Açık" /><WeatherItem icon={<Activity />} label="Sıcaklık" value="28°C" /><WeatherItem icon={<Wind />} label="Rüzgar" value="12 km/s" /></div></div><div className="rounded-2xl border border-border/70 bg-card p-5 shadow-sm sm:p-6"><p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">Hızlı kısayollar</p><div className="mt-4 grid grid-cols-2 gap-2"><QuickAction href="/orders/new" label="Yeni sipariş" icon={<Plus />} /><QuickAction href="/customers/new" label="Müşteri ekle" icon={<Users />} /><QuickAction href="/deliveries" label="Dağıtım planla" icon={<Truck />} /><QuickAction href="/products" label="Stok kontrol" icon={<Package />} /></div></div></div>
-      </section>
-    </div>
-  </DashboardLayout>;
+        <section className="grid gap-4 lg:grid-cols-[minmax(0,1.35fr)_minmax(18rem,0.65fr)]">
+          <div className="rounded-2xl border border-border/70 bg-card p-5 shadow-sm sm:p-6">
+            <div className="flex items-center justify-between gap-3">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+                  Son hareketler
+                </p>
+                <h2 className="mt-1 text-xl font-bold tracking-tight">
+                  Son siparişler
+                </h2>
+              </div>
+              <Button
+                size="sm"
+                variant="outline"
+                render={<Link href="/orders" />}
+              >
+                Tümünü gör
+              </Button>
+            </div>
+            <div className="mt-4 divide-y divide-border/70">
+              {summary.recentOrders.length === 0 ? (
+                <p className="py-6 text-sm text-muted-foreground">
+                  Henüz sipariş bulunmuyor.
+                </p>
+              ) : (
+                summary.recentOrders.map((order) => (
+                  <Link
+                    key={order.id}
+                    href={`/orders/${order.id}`}
+                    className="flex items-center justify-between gap-3 py-3 transition-colors hover:text-primary"
+                  >
+                    <div className="min-w-0">
+                      <p className="truncate font-mono text-sm font-semibold">
+                        {order.orderCode}
+                      </p>
+                      <p className="truncate text-xs text-muted-foreground">
+                        {order.customerName} ·{" "}
+                        {new Date(order.orderDate).toLocaleDateString("tr-TR")}
+                      </p>
+                    </div>
+                    <div className="shrink-0 text-right">
+                      <span
+                        className={`rounded-full px-2 py-1 text-[11px] font-medium ${ORDER_STATUS_STYLES[order.status] ?? "bg-muted text-muted-foreground"}`}
+                      >
+                        {ORDER_STATUS_LABELS[order.status] ?? order.status}
+                      </span>
+                      <p className="mt-1 text-xs font-semibold">
+                        {order.grandTotal.toLocaleString("tr-TR", {
+                          style: "currency",
+                          currency: "TRY",
+                        })}
+                      </p>
+                    </div>
+                  </Link>
+                ))
+              )}
+            </div>
+          </div>
+          <div className="space-y-4">
+            <div className="rounded-2xl border border-border/70 bg-card p-5 shadow-sm sm:p-6">
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+                Günün koşulları
+              </p>
+              <h2 className="mt-1 text-xl font-bold tracking-tight">
+                Saha durumu
+              </h2>
+              <div className="mt-5 grid grid-cols-3 gap-2 text-center">
+                <WeatherItem icon={<CloudSun />} label="Hava" value="Açık" />
+                <WeatherItem
+                  icon={<Activity />}
+                  label="Sıcaklık"
+                  value="28°C"
+                />
+                <WeatherItem icon={<Wind />} label="Rüzgar" value="12 km/s" />
+              </div>
+            </div>
+            <div className="rounded-2xl border border-border/70 bg-card p-5 shadow-sm sm:p-6">
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+                Hızlı kısayollar
+              </p>
+              <div className="mt-4 grid grid-cols-2 gap-2">
+                <QuickAction
+                  href="/orders/new"
+                  label="Yeni sipariş"
+                  icon={<Plus />}
+                />
+                <QuickAction
+                  href="/customers/new"
+                  label="Müşteri ekle"
+                  icon={<Users />}
+                />
+                <QuickAction
+                  href="/deliveries"
+                  label="Dağıtım planla"
+                  icon={<Truck />}
+                />
+                <QuickAction
+                  href="/products"
+                  label="Stok kontrol"
+                  icon={<Package />}
+                />
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+    </DashboardLayout>
+  );
 }
 
 function TrialBanner({ trialEndsAt }: { trialEndsAt: Date }) {
   // Trial countdown is intentionally evaluated on the server for each request.
-  // eslint-disable-next-line react-hooks/purity
-  const remainingDays = Math.max(0, Math.ceil((trialEndsAt.getTime() - Date.now()) / 86400000));
+  /* eslint-disable react-hooks/purity */
+  const remainingDays = Math.max(
+    0,
+    Math.ceil((trialEndsAt.getTime() - Date.now()) / 86400000),
+  );
+  /* eslint-enable react-hooks/purity */
   const urgent = remainingDays <= 1;
-  return <div className={`flex flex-wrap items-center justify-between gap-3 rounded-2xl border px-5 py-4 ${urgent ? "border-red-200 bg-red-50 text-red-800" : remainingDays <= 3 ? "border-amber-200 bg-amber-50 text-amber-800" : "border-cyan-200 bg-cyan-50 text-cyan-900"}`}><div><p className="font-semibold">Professional trial</p><p className="mt-1 text-sm">{remainingDays === 0 ? "Trial süreniz bugün sona eriyor." : `Trial sürenizin bitmesine ${remainingDays} gün kaldı.`}</p></div><Button variant="outline" render={<Link href="/subscription" />}>Paketi yönet</Button></div>;
+  return (
+    <div
+      className={`flex flex-wrap items-center justify-between gap-3 rounded-2xl border px-5 py-4 ${urgent ? "border-red-200 bg-red-50 text-red-800" : remainingDays <= 3 ? "border-amber-200 bg-amber-50 text-amber-800" : "border-cyan-200 bg-cyan-50 text-cyan-900"}`}
+    >
+      <div>
+        <p className="font-semibold">Professional trial</p>
+        <p className="mt-1 text-sm">
+          {remainingDays === 0
+            ? "Trial süreniz bugün sona eriyor."
+            : `Trial sürenizin bitmesine ${remainingDays} gün kaldı.`}
+        </p>
+      </div>
+      <Button variant="outline" render={<Link href="/subscription" />}>
+        Paketi yönet
+      </Button>
+    </div>
+  );
 }
 
 function LandingPage() {
-  return <main className="min-h-screen bg-slate-950 text-white"><header className="mx-auto flex max-w-7xl items-center justify-between px-6 py-6"><span className="text-xl font-black tracking-tight">METLAS<span className="text-cyan-400">ERP</span></span><nav className="hidden gap-6 text-sm text-slate-300 md:flex"><a href="#features">Özellikler</a><a href="#pricing">Fiyatlandırma</a><a href="#faq">SSS</a><a href="/about">Hakkımızda</a></nav><div className="flex gap-2"><Button variant="ghost" render={<Link href="/login" />}>Giriş yap</Button><Button render={<Link href="/register" />}>Ücretsiz başla</Button></div></header><section className="mx-auto grid max-w-7xl gap-12 px-6 pb-24 pt-20 lg:grid-cols-[1.1fr_0.9fr] lg:items-center"><div><p className="text-sm font-bold uppercase tracking-[0.2em] text-cyan-300">Su dağıtım operasyonları için SaaS</p><h1 className="mt-5 max-w-3xl text-5xl font-black tracking-[-0.05em] sm:text-7xl">Firmanızın tüm operasyonu tek merkezde.</h1><p className="mt-6 max-w-2xl text-lg leading-8 text-slate-300">Siparişten teslimata, müşteriden stok ve rotaya kadar METLAS ERP ile daha hızlı, ölçülebilir ve kârlı çalışın.</p><div className="mt-8 flex flex-wrap gap-3"><Button size="lg" render={<Link href="/register" />}>14 gün ücretsiz dene</Button><Button size="lg" variant="outline" render={<Link href="/contact" />}>Demo talep et</Button></div><p className="mt-4 text-xs text-slate-500">Kredi kartı gerekmez · 14 gün Professional trial</p></div><div className="rounded-[2rem] border border-cyan-300/20 bg-gradient-to-br from-cyan-400/20 via-blue-500/10 to-transparent p-5 shadow-2xl shadow-cyan-950/40"><div className="rounded-3xl border border-white/10 bg-slate-900/80 p-6"><p className="text-xs uppercase tracking-[0.18em] text-slate-400">Operasyon görünümü</p><div className="mt-8 grid grid-cols-2 gap-3"><div className="rounded-2xl bg-white/5 p-4"><p className="text-xs text-slate-400">Bugünkü sipariş</p><p className="mt-2 text-3xl font-bold">248</p></div><div className="rounded-2xl bg-cyan-400/10 p-4"><p className="text-xs text-cyan-200">Teslimat oranı</p><p className="mt-2 text-3xl font-bold text-cyan-200">96%</p></div><div className="col-span-2 rounded-2xl bg-white/5 p-4"><div className="flex items-end gap-2">{[35, 55, 42, 72, 61, 88, 78].map((height, index) => <span key={index} className="flex-1 rounded-t bg-cyan-400/70" style={{ height: `${height}px` }} />)}</div></div></div></div></div></section><section id="features" className="border-y border-white/10 bg-white/[0.03] px-6 py-20"><div className="mx-auto max-w-7xl"><p className="text-sm font-semibold text-cyan-300">Daha az dağınıklık, daha çok kontrol</p><h2 className="mt-3 text-3xl font-bold sm:text-4xl">Operasyonun kritik noktaları tek akışta.</h2><div className="mt-10 grid gap-4 md:grid-cols-3"><Feature title="Sipariş ve müşteri" text="Müşteri geçmişi, sipariş, bakiye ve damacana hareketleri tek profilde." /><Feature title="Rota ve teslimat" text="Sahadaki araç, personel ve teslimat durumunu gerçek zamanlı yönetin." /><Feature title="Stok ve raporlama" text="Damacana stoğunu, geliri ve operasyon performansını ölçülebilir hale getirin." /></div></div></section><section id="pricing" className="mx-auto max-w-7xl px-6 py-20"><p className="text-sm font-semibold text-cyan-300">Basit ve şeffaf</p><h2 className="mt-3 text-3xl font-bold">14 gün Professional ücretsiz.</h2><div className="mt-8 grid gap-4 md:grid-cols-3"><Price name="Starter" value="299 TL" /><Price name="Standard" value="599 TL" /><Price name="Professional" value="999 TL" highlighted /></div></section><section id="faq" className="border-t border-white/10 px-6 py-20"><div className="mx-auto max-w-3xl"><h2 className="text-3xl font-bold">Sık sorulanlar</h2><div className="mt-8 space-y-4"><details className="rounded-2xl border border-white/10 p-5"><summary className="cursor-pointer font-semibold">Kurulum ne kadar sürer?</summary><p className="mt-3 text-sm text-slate-400">Kayıt sonrası tenantınız ve Professional trial hesabınız otomatik oluşur.</p></details><details className="rounded-2xl border border-white/10 p-5"><summary className="cursor-pointer font-semibold">Kredi kartı gerekli mi?</summary><p className="mt-3 text-sm text-slate-400">Hayır. Trial başlatmak için ödeme bilgisi gerekmez.</p></details></div></div></section><footer className="border-t border-white/10 px-6 py-8 text-center text-sm text-slate-500">© 2026 METLAS ERP · <a href="/contact" className="text-cyan-300">İletişim</a></footer></main>;
+  return (
+    <main className="min-h-screen bg-slate-950 text-white">
+      <header className="mx-auto flex max-w-7xl items-center justify-between px-6 py-6">
+        <span className="text-xl font-black tracking-tight">
+          METLAS<span className="text-cyan-400">ERP</span>
+        </span>
+        <nav className="hidden gap-6 text-sm text-slate-300 md:flex">
+          <a href="#features">Özellikler</a>
+          <a href="#pricing">Fiyatlandırma</a>
+          <a href="#faq">SSS</a>
+          <a href="/about">Hakkımızda</a>
+        </nav>
+        <div className="flex gap-2">
+          <Button variant="ghost" render={<Link href="/login" />}>
+            Giriş yap
+          </Button>
+          <Button render={<Link href="/register" />}>Ücretsiz başla</Button>
+        </div>
+      </header>
+      <section className="mx-auto grid max-w-7xl gap-12 px-6 pb-24 pt-20 lg:grid-cols-[1.1fr_0.9fr] lg:items-center">
+        <div>
+          <p className="text-sm font-bold uppercase tracking-[0.2em] text-cyan-300">
+            Su dağıtım operasyonları için SaaS
+          </p>
+          <h1 className="mt-5 max-w-3xl text-5xl font-black tracking-[-0.05em] sm:text-7xl">
+            Firmanızın tüm operasyonu tek merkezde.
+          </h1>
+          <p className="mt-6 max-w-2xl text-lg leading-8 text-slate-300">
+            Siparişten teslimata, müşteriden stok ve rotaya kadar METLAS ERP ile
+            daha hızlı, ölçülebilir ve kârlı çalışın.
+          </p>
+          <div className="mt-8 flex flex-wrap gap-3">
+            <Button size="lg" render={<Link href="/register" />}>
+              14 gün ücretsiz dene
+            </Button>
+            <Button
+              size="lg"
+              variant="outline"
+              render={<Link href="/contact" />}
+            >
+              Demo talep et
+            </Button>
+          </div>
+          <p className="mt-4 text-xs text-slate-500">
+            Kredi kartı gerekmez · 14 gün Professional trial
+          </p>
+        </div>
+        <div className="rounded-[2rem] border border-cyan-300/20 bg-gradient-to-br from-cyan-400/20 via-blue-500/10 to-transparent p-5 shadow-2xl shadow-cyan-950/40">
+          <div className="rounded-3xl border border-white/10 bg-slate-900/80 p-6">
+            <p className="text-xs uppercase tracking-[0.18em] text-slate-400">
+              Operasyon görünümü
+            </p>
+            <div className="mt-8 grid grid-cols-2 gap-3">
+              <div className="rounded-2xl bg-white/5 p-4">
+                <p className="text-xs text-slate-400">Bugünkü sipariş</p>
+                <p className="mt-2 text-3xl font-bold">248</p>
+              </div>
+              <div className="rounded-2xl bg-cyan-400/10 p-4">
+                <p className="text-xs text-cyan-200">Teslimat oranı</p>
+                <p className="mt-2 text-3xl font-bold text-cyan-200">96%</p>
+              </div>
+              <div className="col-span-2 rounded-2xl bg-white/5 p-4">
+                <div className="flex items-end gap-2">
+                  {[35, 55, 42, 72, 61, 88, 78].map((height, index) => (
+                    <span
+                      key={index}
+                      className="flex-1 rounded-t bg-cyan-400/70"
+                      style={{ height: `${height}px` }}
+                    />
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+      <section
+        id="features"
+        className="border-y border-white/10 bg-white/[0.03] px-6 py-20"
+      >
+        <div className="mx-auto max-w-7xl">
+          <p className="text-sm font-semibold text-cyan-300">
+            Daha az dağınıklık, daha çok kontrol
+          </p>
+          <h2 className="mt-3 text-3xl font-bold sm:text-4xl">
+            Operasyonun kritik noktaları tek akışta.
+          </h2>
+          <div className="mt-10 grid gap-4 md:grid-cols-3">
+            <Feature
+              title="Sipariş ve müşteri"
+              text="Müşteri geçmişi, sipariş, bakiye ve damacana hareketleri tek profilde."
+            />
+            <Feature
+              title="Rota ve teslimat"
+              text="Sahadaki araç, personel ve teslimat durumunu gerçek zamanlı yönetin."
+            />
+            <Feature
+              title="Stok ve raporlama"
+              text="Damacana stoğunu, geliri ve operasyon performansını ölçülebilir hale getirin."
+            />
+          </div>
+        </div>
+      </section>
+      <section id="pricing" className="mx-auto max-w-7xl px-6 py-20">
+        <p className="text-sm font-semibold text-cyan-300">Basit ve şeffaf</p>
+        <h2 className="mt-3 text-3xl font-bold">
+          14 gün Professional ücretsiz.
+        </h2>
+        <div className="mt-8 grid gap-4 md:grid-cols-3">
+          <Price name="Starter" value="299 TL" />
+          <Price name="Standard" value="599 TL" />
+          <Price name="Professional" value="999 TL" highlighted />
+        </div>
+      </section>
+      <section id="faq" className="border-t border-white/10 px-6 py-20">
+        <div className="mx-auto max-w-3xl">
+          <h2 className="text-3xl font-bold">Sık sorulanlar</h2>
+          <div className="mt-8 space-y-4">
+            <details className="rounded-2xl border border-white/10 p-5">
+              <summary className="cursor-pointer font-semibold">
+                Kurulum ne kadar sürer?
+              </summary>
+              <p className="mt-3 text-sm text-slate-400">
+                Kayıt sonrası tenantınız ve Professional trial hesabınız
+                otomatik oluşur.
+              </p>
+            </details>
+            <details className="rounded-2xl border border-white/10 p-5">
+              <summary className="cursor-pointer font-semibold">
+                Kredi kartı gerekli mi?
+              </summary>
+              <p className="mt-3 text-sm text-slate-400">
+                Hayır. Trial başlatmak için ödeme bilgisi gerekmez.
+              </p>
+            </details>
+          </div>
+        </div>
+      </section>
+      <footer className="border-t border-white/10 px-6 py-8 text-center text-sm text-slate-500">
+        © 2026 METLAS ERP ·{" "}
+        <a href="/contact" className="text-cyan-300">
+          İletişim
+        </a>
+      </footer>
+    </main>
+  );
 }
 
-function Feature({ title, text }: { title: string; text: string }) { return <article className="rounded-3xl border border-white/10 bg-white/[0.04] p-6"><h3 className="text-lg font-bold">{title}</h3><p className="mt-3 text-sm leading-6 text-slate-400">{text}</p></article>; }
-function Price({ name, value, highlighted = false }: { name: string; value: string; highlighted?: boolean }) { return <article className={`rounded-3xl border p-6 ${highlighted ? "border-cyan-300 bg-cyan-400/10" : "border-white/10 bg-white/[0.04]"}`}><p className="text-sm text-slate-400">{name}</p><p className="mt-3 text-3xl font-black">{value}<span className="text-sm font-normal text-slate-400"> / ay</span></p><Button className="mt-6 w-full" variant={highlighted ? "default" : "outline"} render={<Link href="/register" />}>Başla</Button></article>; }
-
-function MetricCard({ icon, tone, label, value, detail }: { icon: React.ReactNode; tone: "blue" | "violet" | "orange" | "green"; label: string; value: string; detail: string }) {
-  const tones = { blue: "bg-blue-100 text-blue-700", violet: "bg-violet-100 text-violet-700", orange: "bg-orange-100 text-orange-700", green: "bg-emerald-100 text-emerald-700" };
-  return <div className="group rounded-[20px] border border-slate-200 bg-white p-6 shadow-[0_14px_35px_-26px_rgba(15,23,42,0.5)] transition-all duration-200 hover:-translate-y-0.5 hover:border-blue-200 hover:shadow-[0_20px_42px_-25px_rgba(37,99,235,0.28)]"><div className="flex items-center justify-between"><span className={`grid size-11 place-items-center rounded-xl ${tones[tone]}`}>{icon}</span><span className="rounded-full bg-emerald-50 px-2 py-1 text-[11px] font-semibold tabular-nums text-emerald-600">+ bugün</span></div><p className="mt-5 text-xs font-semibold uppercase tracking-[0.15em] text-slate-500">{label}</p><p className="mt-1 text-[38px] font-bold leading-none tracking-[-0.045em] tabular-nums text-slate-950">{value}</p><div className="mt-4 flex items-end justify-between gap-4"><p className="text-xs font-medium text-slate-500">{detail}</p><div className="flex h-6 items-end gap-1" aria-hidden="true">{[35, 52, 42, 68, 56, 78, 64].map((height, index) => <span key={index} className="w-1 rounded-full bg-blue-500/60 transition-all duration-200 group-hover:bg-blue-600" style={{ height: `${height}%` }} />)}</div></div></div>;
+function Feature({ title, text }: { title: string; text: string }) {
+  return (
+    <article className="rounded-3xl border border-white/10 bg-white/[0.04] p-6">
+      <h3 className="text-lg font-bold">{title}</h3>
+      <p className="mt-3 text-sm leading-6 text-slate-400">{text}</p>
+    </article>
+  );
+}
+function Price({
+  name,
+  value,
+  highlighted = false,
+}: {
+  name: string;
+  value: string;
+  highlighted?: boolean;
+}) {
+  return (
+    <article
+      className={`rounded-3xl border p-6 ${highlighted ? "border-cyan-300 bg-cyan-400/10" : "border-white/10 bg-white/[0.04]"}`}
+    >
+      <p className="text-sm text-slate-400">{name}</p>
+      <p className="mt-3 text-3xl font-black">
+        {value}
+        <span className="text-sm font-normal text-slate-400"> / ay</span>
+      </p>
+      <Button
+        className="mt-6 w-full"
+        variant={highlighted ? "default" : "outline"}
+        render={<Link href="/register" />}
+      >
+        Başla
+      </Button>
+    </article>
+  );
 }
 
-function WeatherItem({ icon, label, value }: { icon: React.ReactNode; label: string; value: string }) {
-  return <div className="rounded-xl bg-muted/55 p-3"><span className="text-primary">{icon}</span><p className="mt-2 text-[11px] text-muted-foreground">{label}</p><p className="mt-0.5 text-sm font-semibold">{value}</p></div>;
+function MetricCard({
+  icon,
+  tone,
+  label,
+  value,
+  detail,
+}: {
+  icon: React.ReactNode;
+  tone: "blue" | "violet" | "orange" | "green";
+  label: string;
+  value: string;
+  detail: string;
+}) {
+  const tones = {
+    blue: "bg-blue-100 text-blue-700",
+    violet: "bg-violet-100 text-violet-700",
+    orange: "bg-orange-100 text-orange-700",
+    green: "bg-emerald-100 text-emerald-700",
+  };
+  return (
+    <div className="group rounded-[20px] border border-slate-200 bg-white p-6 shadow-[0_14px_35px_-26px_rgba(15,23,42,0.5)] transition-all duration-200 hover:-translate-y-0.5 hover:border-blue-200 hover:shadow-[0_20px_42px_-25px_rgba(37,99,235,0.28)]">
+      <div className="flex items-center justify-between">
+        <span
+          className={`grid size-11 place-items-center rounded-xl ${tones[tone]}`}
+        >
+          {icon}
+        </span>
+        <span className="rounded-full bg-emerald-50 px-2 py-1 text-[11px] font-semibold tabular-nums text-emerald-600">
+          + bugün
+        </span>
+      </div>
+      <p className="mt-5 text-xs font-semibold uppercase tracking-[0.15em] text-slate-500">
+        {label}
+      </p>
+      <p className="mt-1 text-[38px] font-bold leading-none tracking-[-0.045em] tabular-nums text-slate-950">
+        {value}
+      </p>
+      <div className="mt-4 flex items-end justify-between gap-4">
+        <p className="text-xs font-medium text-slate-500">{detail}</p>
+        <div className="flex h-6 items-end gap-1" aria-hidden="true">
+          {[35, 52, 42, 68, 56, 78, 64].map((height, index) => (
+            <span
+              key={index}
+              className="w-1 rounded-full bg-blue-500/60 transition-all duration-200 group-hover:bg-blue-600"
+              style={{ height: `${height}%` }}
+            />
+          ))}
+        </div>
+      </div>
+    </div>
+  );
 }
 
-function QuickAction({ href, label, icon }: { href: string; label: string; icon: React.ReactNode }) {
-  return <Button className="justify-start bg-muted/50 text-xs hover:bg-muted" size="sm" variant="ghost" render={<Link href={href} />}><span className="text-primary">{icon}</span>{label}</Button>;
+function WeatherItem({
+  icon,
+  label,
+  value,
+}: {
+  icon: React.ReactNode;
+  label: string;
+  value: string;
+}) {
+  return (
+    <div className="rounded-xl bg-muted/55 p-3">
+      <span className="text-primary">{icon}</span>
+      <p className="mt-2 text-[11px] text-muted-foreground">{label}</p>
+      <p className="mt-0.5 text-sm font-semibold">{value}</p>
+    </div>
+  );
+}
+
+function QuickAction({
+  href,
+  label,
+  icon,
+}: {
+  href: string;
+  label: string;
+  icon: React.ReactNode;
+}) {
+  return (
+    <Button
+      className="justify-start bg-muted/50 text-xs hover:bg-muted"
+      size="sm"
+      variant="ghost"
+      render={<Link href={href} />}
+    >
+      <span className="text-primary">{icon}</span>
+      {label}
+    </Button>
+  );
 }
