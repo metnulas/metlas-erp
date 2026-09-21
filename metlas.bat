@@ -237,7 +237,7 @@ echo %C_CYAN%+==================================================================
 echo.
 call :STATUS_REFRESH
 echo %C_GREEN%Erisim Adresleri:%C_RESET%
-powershell -NoProfile -Command "$esc=[char]27; $scriptDir='C:\metlas-erp'; $ip=(& \"$scriptDir\metlas.ps1\" Get-LocalIP); if([string]::IsNullOrWhiteSpace($ip)){$ip='127.0.0.1'}; Write-Host '  Local :' -NoNewline; Write-Host \"$esc]8;;http://localhost:3000$([char]7)http://localhost:3000$esc]8;;$([char]7)\"; Write-Host '  LAN   :' -NoNewline; Write-Host \"$esc]8;;http://$ip:3000$([char]7)http://$ip:3000$esc]8;;$([char]7)\""
+powershell -ExecutionPolicy Bypass -NoProfile -Command "$esc=[char]27; $ip='!SRV_IP!'; if([string]::IsNullOrWhiteSpace($ip)){$n=Get-NetIPAddress -AddressFamily IPv4 -ErrorAction SilentlyContinue | Where-Object { $_.IPAddress -notmatch '^(127\.|169\.)' -and $_.AddressState -eq 'Preferred'} | Select-Object -First 1 -ExpandProperty IPAddress; if(-not [string]::IsNullOrWhiteSpace($n)){$ip=$n}}; if([string]::IsNullOrWhiteSpace($ip)){$ip='127.0.0.1'}; Write-Host '  Local :' -NoNewline; Write-Host \"$esc]8;;http://localhost:3000$([char]7)http://localhost:3000$esc]8;;$([char]7)\"; Write-Host '  LAN   :' -NoNewline; Write-Host \"$esc]8;;http://$($ip):3000$([char]7)http://$($ip):3000$esc]8;;$([char]7)\""
 echo.
 echo %C_YELLOW%npm run dev:https baslatiliyor...%C_RESET%
 echo %C_GRAY%Durdurmak icin Ctrl+C kullanin.%C_RESET%
