@@ -237,8 +237,8 @@ echo %C_CYAN%+==================================================================
 echo.
 call :STATUS_REFRESH
 echo %C_GREEN%Erisim Adresleri:%C_RESET%
-echo   %C_CYAN%Local :%C_RESET% https://localhost:3000
-echo   %C_CYAN%LAN   :%C_RESET% https://!SRV_IP!:3000
+echo   %C_CYAN%Local :%C_RESET% %ESC[8;;https://localhost:3000\`https://localhost:3000%ESC[8;;\]
+echo   %C_CYAN%LAN   :%C_RESET% %ESC[8;;https://!SRV_IP!:3000\`https://!SRV_IP!:3000%ESC[8;;\]
 echo.
 echo %C_YELLOW%npm run dev:https baslatiliyor...%C_RESET%
 echo %C_GRAY%Durdurmak icin Ctrl+C kullanin.%C_RESET%
