@@ -74,15 +74,19 @@ set "SRV_PORT_MSG="
 if exist "%STATUS_CACHE_FILE%" del /q "%STATUS_CACHE_FILE%" >nul 2>&1
 %PS_CMD% status-line >"%STATUS_CACHE_FILE%" 2>nul
 
-for /f "usebackq tokens=1-5 delims=|" %%a in ("%STATUS_CACHE_FILE%") do (
-    set "SRV_STATUS=%%a"
-    set "SRV_PID=%%b"
-    set "SRV_UPTIME=%%c"
-    set "SRV_IP=%%d"
-    set "SRV_PORT_MSG=%%e"
+if exist "%STATUS_CACHE_FILE%" (
+    for /f "usebackq tokens=1-5 delims=|" %%a in ("%STATUS_CACHE_FILE%") do (
+        set "SRV_STATUS=%%a"
+        set "SRV_PID=%%b"
+        set "SRV_UPTIME=%%c"
+        set "SRV_IP=%%d"
+        set "SRV_PORT_MSG=%%e"
+    )
 )
 if exist "%STATUS_CACHE_FILE%" del /q "%STATUS_CACHE_FILE%" >nul 2>&1
 if "!SRV_STATUS!"=="" set "SRV_STATUS=STOPPED"
+if "!SRV_IP!"=="" set "SRV_IP=127.0.0.1"
+if "!SRV_UPTIME!"=="" set "SRV_UPTIME=00:00:00"
 goto :EOF
 
 :: =============================================
