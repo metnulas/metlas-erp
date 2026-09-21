@@ -1,5 +1,6 @@
 @echo off
-cd /d "C:\Users\metin\Desktop\METLAS"
+setlocal
+cd /d "%~dp0.."
 
 :restart
 call npm.cmd run dev

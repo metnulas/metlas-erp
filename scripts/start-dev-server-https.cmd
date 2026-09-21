@@ -1,5 +1,6 @@
 @echo off
-cd /d "C:\Users\metin\metlas-erp"
+setlocal
+cd /d "%~dp0.."
 
 call npm.cmd run dev:https
 pause
