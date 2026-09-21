@@ -237,8 +237,7 @@ echo %C_CYAN%+==================================================================
 echo.
 call :STATUS_REFRESH
 echo %C_GREEN%Erisim Adresleri:%C_RESET%
-echo   %C_CYAN%Local :%C_RESET% %ESC[8;;https://localhost:3000\`https://localhost:3000%ESC[8;;\]
-echo   %C_CYAN%LAN   :%C_RESET% %ESC[8;;https://!SRV_IP!:3000\`https://!SRV_IP!:3000%ESC[8;;\]
+powershell -NoProfile -Command "$esc=[char]27; $ip='!SRV_IP!'; if([string]::IsNullOrWhiteSpace($ip)){$ip='127.0.0.1'}; Write-Host '  Local :' -NoNewline; Write-Host \"$esc]8;;https://localhost:3000$([char]7)https://localhost:3000$esc]8;;$([char]7)\"; Write-Host '  LAN   :' -NoNewline; Write-Host \"$esc]8;;https://$ip:3000$([char]7)https://$ip:3000$esc]8;;$([char]7)\""
 echo.
 echo %C_YELLOW%npm run dev:https baslatiliyor...%C_RESET%
 echo %C_GRAY%Durdurmak icin Ctrl+C kullanin.%C_RESET%
