@@ -39,7 +39,7 @@ if not exist "%SCRIPT_DIR%package.json" (
     echo.
     echo Devam etmekte sorun yasayabilirsiniz.
     echo.
-    choice /c DE /n /t 5 /d E /m "%C_YELLOW%Devam etmek icin D, cikmak icin E [D/E] (5sn): %C_RESET%"
+    choice /c DE /n /t 5 /d E /m "Devam etmek icin D, cikmak icin E [D/E] (5sn):"
     if errorlevel 2 exit /b 1
 )
 
@@ -248,7 +248,7 @@ echo  %C_BOLD%Q%C_RESET% = Ana Menu
 echo  %C_BOLD%X%C_RESET% = Programdan Cik
 echo.
 :DEV_LOOP
-choice /c QX /n /m "%C_CYAN%Secenek [Q/X]: %C_RESET%"
+choice /c QX /n /m "Secenek [Q/X]:"
 if errorlevel 2 exit /b 0
 if errorlevel 1 goto MENU
 goto DEV_LOOP
@@ -439,7 +439,7 @@ if not exist "%SCRIPT_DIR%prisma\schema.prisma" (
 cd /d "%SCRIPT_DIR%"
 echo %C_YELLOW%[!] Bu islem veritabanina migration uygulayacak.%C_RESET%
 echo.
-choice /m "%C_CYAN%Devam etmek istiyor musunuz?%C_RESET%"
+choice /c YN /m "Devam etmek istiyor musunuz? Y/N:"
 if errorlevel 2 goto MENU
 
 echo.
