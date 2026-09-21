@@ -501,12 +501,16 @@ if "%commit_msg%"=="" (
     goto MENU
 )
 
+rem Sanitizasyon: tirnaklari temizle, %% karakterini ciftle
+set "commit_msg=%commit_msg:"=%"
+set "commit_msg=%commit_msg:%%=%%%%%"
+
 echo.
 echo %C_CYAN%[*] git add . calistiriliyor...%C_RESET%
 cmd /c "git add ."
 echo.
-echo %C_CYAN%[*] git commit -m "%commit_msg%" calistiriliyor...%C_RESET%
-cmd /c "git commit -m "%commit_msg%""
+echo %C_CYAN%[*] git commit -m "!commit_msg!" calistiriliyor...%C_RESET%
+cmd /c "git commit -m "!commit_msg!""
 echo.
 echo %C_CYAN%[*] git push calistiriliyor...%C_RESET%
 cmd /c "git push"
